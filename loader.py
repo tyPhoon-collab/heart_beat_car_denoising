@@ -3,6 +3,8 @@ import pandas as pd
 import scipy.io
 from abc import ABC, abstractmethod
 
+from visualize import plot_signal
+
 
 class Loader(ABC):
     @abstractmethod
@@ -47,16 +49,15 @@ class MatLoader(Loader):
 
 # test
 if __name__ == "__main__":
-    loader = MatLoader(
-        "data/Stop.mat",
-        ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-    )
-    data = loader.load()
-    print(data)
 
-    loader = MatLoader(
-        "data/Idling.mat",
-        ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-    )
-    data = loader.load()
-    print(data)
+    def show(file_path):
+        loader = MatLoader(
+            file_path,
+            ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
+        )
+        data = loader.load()
+        print(data)
+        plot_signal(data["ch1z"], "ch1z")
+
+    show("data/Stop.mat")
+    show("data/100km.mat")

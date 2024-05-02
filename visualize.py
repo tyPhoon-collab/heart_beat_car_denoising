@@ -13,3 +13,9 @@ def plot_two_signals(upper, lower, upper_label, lower_label):
     plt.title(lower_label)
     plt.legend()
     plt.show()
+
+
+def plot_signal(signal, label):
+    plt.plot(signal)
+    plt.title(label)
+    plt.show()
