@@ -15,7 +15,7 @@ dataset = NoisyHeartbeatDataset(
     # noisy_file_path="data/Stop.mat",
     sampling_rate_converter=ScipySamplingRateConverter(
         input_rate=32000,
-        output_rate=1000,
+        output_rate=1024,
     ),
     randomizer=NumpyRandomShuffleRandomizer(),
 )
@@ -31,12 +31,14 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 num_epochs = 5
 
 for epoch in range(num_epochs):
-    for inputs, labels in dataloader:
+    for noisy, clean in dataloader:
         optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
+        outputs = model(noisy)
+        loss = criterion(outputs, clean)
         loss.backward()
 
         optimizer.step()
+
+        # print(loss)
 
     print(f"Epoch {epoch + 1}, Loss: {loss.item()}")  # type: ignore

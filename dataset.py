@@ -43,9 +43,10 @@ class NoisyHeartbeatDataset(Dataset):
 
         clean = self.clean_data[start:end]
         randomized_noisy = self.__randomize(self.noisy_data[start:end])
+
         return (
-            self.__to_tensor(clean + randomized_noisy),
-            self.__to_tensor(clean),
+            self.__to_tensor(clean + randomized_noisy).unsqueeze(0),
+            self.__to_tensor(clean).unsqueeze(0),
         )
 
     def __to_tensor(self, data):
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     )
     dataloader = DataLoader(
         dataset,
-        batch_size=1,
+        batch_size=3,
         shuffle=True,
     )
 

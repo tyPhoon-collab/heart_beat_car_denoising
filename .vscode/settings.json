@@ -5,6 +5,7 @@
         "ndarray",
         "optim",
         "Randomizer",
-        "relu"
+        "relu",
+        "unsqueeze"
     ],
 }
