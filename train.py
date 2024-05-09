@@ -28,19 +28,16 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 num_epochs = 5
 
 for epoch in range(num_epochs):
-    running_loss = 0.0
     for noisy, clean in dataloader:
         optimizer.zero_grad()
         outputs = model(noisy)
         loss = criterion(outputs, clean)
         loss.backward()
         optimizer.step()
-        running_loss += loss.item()
 
-    epoch_loss = running_loss / len(dataloader)
-    print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}")
+        # print(loss)
+
+    print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
     torch.save(model.state_dict(), f"checkpoints/model_weights_epoch_{epoch}.pth")
 
-send_discord_notification(
-    f"Finished training. Epoch {epoch + 1}, Loss: {epoch_loss:.4f}"  # type: ignore
-)
+send_discord_notification("Finished training.")
