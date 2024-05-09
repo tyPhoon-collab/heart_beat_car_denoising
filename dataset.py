@@ -10,14 +10,9 @@ from sampling_rate_converter import SamplingRateConverter, ScipySamplingRateConv
 
 @dataclass
 class NoisyHeartbeatDataset(Dataset):
-    """
-    Dataset for loading noisy and clean heartbeat data.
-    Applies down sampling and splits the data into segments.
-    Noisy data is randomly shuffled.
-    """
-
     clean_file_path: str
     noisy_file_path: str
+    # loader_builder: TODO ローダーをカスタマイズできるようにする。現状はMatLoaderを使っている
     sampling_rate_converter: SamplingRateConverter
     randomizer: Randomizer
     split_duration_second: float = 5.0
@@ -35,6 +30,9 @@ class NoisyHeartbeatDataset(Dataset):
         data = loader.load()["ch1z"]
         return self.__preprocess(data)
 
+    def __preprocess(self, data):
+        return self.sampling_rate_converter.convert(data)
+
     def __len__(self):
         return (
             min(len(self.clean_data), len(self.noisy_data)) - self.split_sample_points
@@ -49,9 +47,6 @@ class NoisyHeartbeatDataset(Dataset):
             self.__to_tensor(clean + randomized_noisy),
             self.__to_tensor(clean),
         )
-
-    def __preprocess(self, data):
-        return self.sampling_rate_converter.convert(data)
 
     def __to_tensor(self, data):
         return torch.tensor(data, dtype=torch.float32)
@@ -73,7 +68,11 @@ if __name__ == "__main__":
         ),
         randomizer=NumpyRandomShuffleRandomizer(),
     )
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=1,
+        shuffle=True,
+    )
 
     for noisy, clean in dataloader:
         plot_two_signals(noisy[0], clean[0], "Noisy", "Clean")
