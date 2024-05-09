@@ -44,6 +44,7 @@ class NoisyHeartbeatDataset(Dataset):
         clean = self.clean_data[start:end]
         randomized_noisy = self.__randomize(self.noisy_data[start:end])
 
+        # channelの追加。最終的にbatch, channel, signalというshapeになる
         return (
             self.__to_tensor(clean + randomized_noisy).unsqueeze(0),
             self.__to_tensor(clean).unsqueeze(0),
