@@ -6,8 +6,13 @@ from dataset import NoisyHeartbeatDataset
 from models.wave_u_net import WaveUNet
 from randomizer import NumpyRandomShuffleRandomizer
 from sampling_rate_converter import ScipySamplingRateConverter
-from utils.notificator import send_discord_notification
+from utils.notificator import (
+    send_discord_notification,
+    send_discord_notification_on_error,
+)
 
+
+send_discord_notification_on_error()
 
 model = WaveUNet()
 
