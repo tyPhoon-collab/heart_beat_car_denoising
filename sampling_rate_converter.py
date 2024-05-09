@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from scipy.signal import resample
 from numpy.typing import ArrayLike
 from loader import MatLoader
-from visualize import plot_two_signals
+from utils.visualize import plot_two_signals
 import numpy as np
 
 

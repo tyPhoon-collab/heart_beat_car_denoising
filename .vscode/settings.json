@@ -1,8 +1,10 @@
 {
     "cSpell.words": [
         "dtype",
+        "figsize",
         "loadmat",
         "ndarray",
+        "notificator",
         "optim",
         "Randomizer",
         "relu",

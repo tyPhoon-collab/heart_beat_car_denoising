@@ -3,7 +3,7 @@ import pandas as pd
 import scipy.io
 from abc import ABC, abstractmethod
 
-from visualize import plot_signal
+from utils.visualize import plot_signal
 
 
 class Loader(ABC):
