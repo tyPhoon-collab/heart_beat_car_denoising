@@ -3,6 +3,8 @@
         "dtype",
         "loadmat",
         "ndarray",
-        "Randomizer"
+        "optim",
+        "Randomizer",
+        "relu"
     ],
 }
