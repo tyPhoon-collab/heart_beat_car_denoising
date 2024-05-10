@@ -31,6 +31,12 @@ with torch.no_grad():  # 勾配計算を無効化
         outputs = model(noisy)
 
         plot_three_signals(
-            noisy[0][0], clean[0][0], outputs[0][0], "Noisy", "Clean", "Output"
+            noisy[0][0],
+            clean[0][0],
+            outputs[0][0],
+            "Noisy",
+            "Clean",
+            "Output",
+            filename="eval.png",
         )
         break  # ここではデモンストレーションのため、最初のバッチのみ処理

@@ -1,7 +1,20 @@
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 
 
-def plot_three_signals(upper, middle, lower, upper_label, middle_label, lower_label):
+def __finalize_plot(filename=None):
+    """グラフの最終処理を行うヘルパー関数。
+    filenameが指定されていれば保存し、指定されていなければ表示する。"""
+    plt.tight_layout()  # サブプロット間の適切な間隔を確保
+    if filename:
+        plt.savefig(f"figs/{filename}")  # ファイルに保存
+        plt.close()  # フィギュアを閉じる
+    else:
+        plt.show()  # グラフを表示
+
+
+def plot_three_signals(
+    upper, middle, lower, upper_label, middle_label, lower_label, filename=None
+):
     plt.figure(figsize=(12, 6))
     plt.subplot(311)
     plt.plot(upper, label=upper_label)
@@ -17,10 +30,11 @@ def plot_three_signals(upper, middle, lower, upper_label, middle_label, lower_la
     plt.plot(lower, label=lower_label)
     plt.title(lower_label)
     plt.legend()
-    plt.show()
+
+    __finalize_plot(filename)
 
 
-def plot_two_signals(upper, lower, upper_label, lower_label):
+def plot_two_signals(upper, lower, upper_label, lower_label, filename=None):
     plt.figure(figsize=(12, 6))
     plt.subplot(211)
     plt.plot(upper, label=upper_label)
@@ -31,10 +45,12 @@ def plot_two_signals(upper, lower, upper_label, lower_label):
     plt.plot(lower, label=lower_label)
     plt.title(lower_label)
     plt.legend()
-    plt.show()
+
+    __finalize_plot(filename)
 
 
-def plot_signal(signal, label):
+def plot_signal(signal, label, filename=None):
+    plt.figure()
     plt.plot(signal)
     plt.title(label)
-    plt.show()
+    __finalize_plot(filename)
