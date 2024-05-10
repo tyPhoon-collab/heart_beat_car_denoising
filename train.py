@@ -52,7 +52,7 @@ def train_model(
 
             logger.on_batch_end(epoch, loss)
 
-            break
+            # break  # 全体の訓練のフローのチェック用
 
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
 
