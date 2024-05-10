@@ -4,3 +4,4 @@ data
 .DS_Store
 checkpoints/*.pth
 figs/*.png
+.env
