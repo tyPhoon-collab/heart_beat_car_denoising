@@ -10,6 +10,7 @@ from logger.training_logger import NoopLogger, TrainingLogger
 from logger.impls.composite import CompositeLogger
 from logger.impls.discord import DiscordLogger
 from logger.impls.neptune import NeptuneLogger
+from utils.gpu import get_device
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
@@ -40,10 +41,16 @@ def train_model(
     logger = logger or NoopLogger()
     logger.on_start()
 
+    device = get_device()
+    model.to(device)
+
     model.train()
 
     for epoch in range(num_epochs):
         for noisy, clean in dataloader:
+            noisy = noisy.to(device)
+            clean = clean.to(device)
+
             optimizer.zero_grad()
             outputs = model(noisy)
             loss = criterion(outputs, clean)
@@ -93,6 +100,6 @@ if __name__ == "__main__":
         nn.L1Loss(),
         optim.Adam(model.parameters(), lr=0.001),
         model_saver=model_saver,
-        # logger=logger,
+        logger=logger,
         num_epochs=5,
     )
