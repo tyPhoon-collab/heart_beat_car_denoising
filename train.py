@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
@@ -6,16 +7,19 @@ from dataset import NoisyHeartbeatDataset
 from models.wave_u_net import WaveUNet
 from randomizer import NumpyRandomShuffleRandomizer
 from sampling_rate_converter import ScipySamplingRateConverter
-from utils.notificator import (
-    send_discord_notification,
-    send_discord_notification_on_error,
-)
+from utils.training_logger_impls.composite import CompositeLogger
+from utils.training_logger_impls.discord import DiscordLogger
+from utils.training_logger_impls.neptune import NeptuneLogger
+from utils.training_logger import TrainingLogger
 
-send_discord_notification("Starting training...")
-send_discord_notification_on_error()
+
+load_dotenv()
+
+logger: TrainingLogger = CompositeLogger([NeptuneLogger(), DiscordLogger()])
+
+logger.on_start()
 
 model = WaveUNet()
-
 model.train()
 
 train_dataset = NoisyHeartbeatDataset(
@@ -41,9 +45,11 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
+        logger.on_batch_end(epoch, loss)
         # print(loss)
 
     print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
     torch.save(model.state_dict(), f"checkpoints/model_weights_epoch_{epoch + 1}.pth")
+    logger.on_epoch_end(epoch, loss)  # type: ignore
 
-send_discord_notification("Finished training.")
+logger.on_finish()

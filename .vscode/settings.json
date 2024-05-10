@@ -1,8 +1,11 @@
 {
     "cSpell.words": [
+        "denoising",
+        "dotenv",
         "dtype",
         "excepthook",
         "figsize",
+        "impls",
         "loadmat",
         "ndarray",
         "notificator",

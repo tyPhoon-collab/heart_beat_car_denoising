@@ -2,5 +2,6 @@ matplotlib
 numpy
 pandas
 scipy
-torch
+# torch  # Dockerによってインストールされる
 requests
+neptune

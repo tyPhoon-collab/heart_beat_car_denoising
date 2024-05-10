@@ -1,17 +1,21 @@
+from logging import warn
+import os
 import sys
 import traceback
 import requests
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1238032800851034113/1WcDXN9edWCL_VNHeRVs7cCzH03k90EMUgggDpRSVYG2q5cIFQfZ5dAIEmdFCUCINwwb"  # noqa
-
 
 def send_discord_notification(message):
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+
+    if webhook_url is None:
+        warn("Discord webhook URL is not set. Skipping notification.")
+        return
+
     data = {"content": message}
-    response = requests.post(WEBHOOK_URL, json=data)
-    if response.status_code == 204:
-        print("Notification sent to Discord successfully!")
-    else:
-        print(f"Failed to send notification, status code: {response.status_code}")
+    response = requests.post(webhook_url, json=data)
+    if response.status_code != 204:
+        warn(f"Failed to send notification, status code: {response.status_code}")
 
 
 def send_discord_notification_on_error():
