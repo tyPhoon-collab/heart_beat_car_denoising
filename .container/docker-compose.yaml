@@ -1,15 +1,15 @@
 version: '3.3'
 
 services:
-  heart_beat_car_denoizing:
+  heart_beat_car_denoising:
     build:
       context: .
       dockerfile: Dockerfile
       shm_size: '16gb'
-    container_name: heart_beat_car_denoizing
+    container_name: heart_beat_car_denoising
     volumes:
-      - ${PWD}:/heart_beat_car_denoizing
-    working_dir: /heart_beat_car_denoizing
+      - ${PWD}:/heart_beat_car_denoising
+    working_dir: /heart_beat_car_denoising
     shm_size: '16gb'
     deploy:
       resources:
