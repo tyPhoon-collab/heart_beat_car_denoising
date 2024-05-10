@@ -1,4 +1,4 @@
-from logging import warn
+from logging import warning
 import os
 import sys
 import traceback
@@ -13,7 +13,7 @@ class DiscordLogger(TrainingLogger):
 
         self.webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
         if self.webhook_url is None:
-            warn("Discord webhook URL is not set. Skipping notification.")
+            warning("Discord webhook URL is not set. Skipping notification.")
 
     def on_start(self):
         self.send_discord_notification_on_error()
@@ -35,7 +35,7 @@ class DiscordLogger(TrainingLogger):
         data = {"content": message}
         response = requests.post(self.webhook_url, json=data)
         if response.status_code != 204:
-            warn(f"Failed to send notification, status code: {response.status_code}")
+            warning(f"Failed to send notification, status code: {response.status_code}")
 
     def send_discord_notification_on_error(self):
         def custom_excepthook(exc_type, exc_value, exc_traceback):

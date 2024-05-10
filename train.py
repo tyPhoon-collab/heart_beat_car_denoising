@@ -1,4 +1,4 @@
-from logging import warn
+from logging import warning
 import os
 import torch
 from torch.utils.data import DataLoader
@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 def __build_logger() -> TrainingLogger | None:
     enable_logging = os.getenv("LOGGING", "0")  # Default to logging disabled
     if enable_logging == "0":
-        warn(
+        warning(
             "Logging is disabled. If you want to enable logging, set LOGGING=1 in .env"
         )
         return None

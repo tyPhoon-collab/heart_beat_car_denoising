@@ -1,4 +1,4 @@
-from logging import warn
+from logging import warning
 import os
 import neptune
 from logger.training_logger import TrainingLogger
@@ -11,7 +11,7 @@ class NeptuneLogger(TrainingLogger):
         self.api_token = os.getenv("NEPTUNE_API_TOKEN")
 
         if self.project_name is None or self.api_token is None:
-            warn(
+            warning(
                 "NEPTUNE_PROJECT_NAME or NEPTUNE_API_TOKEN environment variable is not set."
                 "neptune logger will be ignored."
             )
