@@ -1,5 +1,5 @@
 from attr import dataclass
-from utils.training_logger import TrainingLogger
+from logger.training_logger import TrainingLogger
 
 
 @dataclass

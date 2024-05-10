@@ -3,14 +3,14 @@ import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
 import torch.nn as nn
-from dataset import NoisyHeartbeatDataset
+from dataset.dataset import NoisyHeartbeatDataset
+from dataset.randomizer import NumpyRandomShuffleRandomizer
+from dataset.sampling_rate_converter import ScipySamplingRateConverter
+from logger.impls.composite import CompositeLogger
+from logger.impls.discord import DiscordLogger
+from logger.impls.neptune import NeptuneLogger
 from models.wave_u_net import WaveUNet
-from randomizer import NumpyRandomShuffleRandomizer
-from sampling_rate_converter import ScipySamplingRateConverter
-from utils.training_logger_impls.composite import CompositeLogger
-from utils.training_logger_impls.discord import DiscordLogger
-from utils.training_logger_impls.neptune import NeptuneLogger
-from utils.training_logger import TrainingLogger
+from logger.training_logger import TrainingLogger
 
 
 load_dotenv()
