@@ -1,6 +1,5 @@
 from logging import warning
 import os
-import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
@@ -11,6 +10,7 @@ from logger.training_logger import NoopLogger, TrainingLogger
 from logger.impls.composite import CompositeLogger
 from logger.impls.discord import DiscordLogger
 from logger.impls.neptune import NeptuneLogger
+from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
 from dotenv import load_dotenv
@@ -33,7 +33,8 @@ def train_model(
     criterion: nn.Module,
     optimizer: optim.Optimizer,
     *,
-    logger: TrainingLogger | None,
+    model_saver: ModelSaver | None = None,
+    logger: TrainingLogger | None = None,
     num_epochs: int = 5,
 ):
     logger = logger or NoopLogger()
@@ -51,11 +52,13 @@ def train_model(
 
             logger.on_batch_end(epoch, loss)
 
+            break
+
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
-        torch.save(
-            model.state_dict(),
-            f"checkpoints/model_weights_epoch_{epoch + 1}.pth",
-        )
+
+        if model_saver is not None:
+            model_saver.save(model, epoch)
+
         logger.on_epoch_end(epoch, loss)  # type: ignore
 
     logger.on_finish()
@@ -64,6 +67,7 @@ def train_model(
 if __name__ == "__main__":
     load_dotenv()
 
+    model_saver = WithDateModelSaver(base_directory="checkpoints")
     logger = __build_logger()
 
     model = WaveUNet()
@@ -88,6 +92,7 @@ if __name__ == "__main__":
         train_dataloader,
         nn.L1Loss(),
         optim.Adam(model.parameters(), lr=0.001),
-        logger=logger,
+        model_saver=model_saver,
+        # logger=logger,
         num_epochs=5,
     )
