@@ -3,10 +3,10 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from loader import Loader, MatLoader
+from .loader import Loader, MatLoader
 from utils.visualize import plot_two_signals
-from randomizer import NumpyRandomShuffleRandomizer, Randomizer
-from sampling_rate_converter import SamplingRateConverter, ScipySamplingRateConverter
+from .randomizer import NumpyRandomShuffleRandomizer, Randomizer
+from .sampling_rate_converter import SamplingRateConverter, ScipySamplingRateConverter
 
 
 @dataclass

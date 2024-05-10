@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from scipy.signal import resample
 from numpy.typing import ArrayLike
-from loader import MatLoader
+from .loader import MatLoader
 from utils.visualize import plot_two_signals
 import numpy as np
 
