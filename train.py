@@ -44,6 +44,6 @@ for epoch in range(num_epochs):
         # print(loss)
 
     print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
-    torch.save(model.state_dict(), f"checkpoints/model_weights_epoch_{epoch}.pth")
+    torch.save(model.state_dict(), f"checkpoints/model_weights_epoch_{epoch + 1}.pth")
 
 send_discord_notification("Finished training.")

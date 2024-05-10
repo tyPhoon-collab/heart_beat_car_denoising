@@ -22,7 +22,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
 # モデルのインスタンスを作成し、訓練済みの重みをロードします。
 model = WaveUNet()
-model.load_state_dict(torch.load("checkpoints/model_weights_epoch_4.pth"))
+model.load_state_dict(torch.load("checkpoints/model_weights_epoch_5.pth"))
 model.eval()  # 評価モードに設定
 
 # 推論の実行
