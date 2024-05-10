@@ -11,7 +11,7 @@ from utils.notificator import (
     send_discord_notification_on_error,
 )
 
-
+send_discord_notification("Starting training...")
 send_discord_notification_on_error()
 
 model = WaveUNet()
