@@ -1,6 +1,7 @@
 
-# Choose docker image 
-FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+# Choose docker image
+# FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel
 #FROM tensorflow/tensorflow:1.15.0-gpu-py3
 #FROM python:3.9
 

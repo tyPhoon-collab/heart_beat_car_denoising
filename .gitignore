@@ -5,3 +5,4 @@ data
 checkpoints/*.pth
 figs/*.png
 .env
+.neptune
