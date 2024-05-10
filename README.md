@@ -8,6 +8,7 @@
 
 - .env
   - ロガー用の変数を置く
+    - LOGGING
     - DISCORD_WEBHOOK_URL
     - NEPTUNE_PROJECT_NAME
     - NEPTUNE_API_TOKEN

@@ -21,3 +21,17 @@ class TrainingLogger(ABC):
     def on_finish(self):
         """トレーニングが正常に終了した時に呼ばれます。"""
         pass
+
+
+class NoopLogger(TrainingLogger):
+    def on_start(self):
+        pass
+
+    def on_batch_end(self, batch_idx, loss):
+        pass
+
+    def on_epoch_end(self, epoch_idx, epoch_loss):
+        pass
+
+    def on_finish(self):
+        pass
