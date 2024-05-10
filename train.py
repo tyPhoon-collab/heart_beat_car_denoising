@@ -18,22 +18,23 @@ model = WaveUNet()
 
 model.train()
 
-dataset = NoisyHeartbeatDataset(
+train_dataset = NoisyHeartbeatDataset(
     clean_file_path="data/Stop.mat",
     noisy_file_path="data/100km.mat",
     sampling_rate_converter=ScipySamplingRateConverter(
         input_rate=32000, output_rate=1024
     ),
     randomizer=NumpyRandomShuffleRandomizer(),
+    train=True,
 )
-dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 criterion = nn.L1Loss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 num_epochs = 5
 
 for epoch in range(num_epochs):
-    for noisy, clean in dataloader:
+    for noisy, clean in train_dataloader:
         optimizer.zero_grad()
         outputs = model(noisy)
         loss = criterion(outputs, clean)

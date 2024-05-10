@@ -15,7 +15,7 @@ class NoisyHeartbeatDataset(Dataset):
     noisy_file_path: str
     sampling_rate_converter: SamplingRateConverter
     randomizer: Randomizer
-    train: bool = True  # デフォルトを True に設定
+    train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
     split_duration_second: float = 5.0
 
