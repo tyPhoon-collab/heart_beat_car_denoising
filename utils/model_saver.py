@@ -13,9 +13,7 @@ class ModelSaver(ABC):
 
 class WithDateModelSaver(ModelSaver):
     def __init__(self, base_directory: str):
-        today = datetime.now().strftime(
-            "%Y-%m-%d"
-        )  # 今日の日付を YYYY-MM-DD 形式で取得
+        today = datetime.now().strftime("%Y-%m-%d_%H-%M")
         self.save_directory = os.path.join(base_directory, today)
         os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
 

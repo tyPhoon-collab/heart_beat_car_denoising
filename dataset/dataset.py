@@ -59,8 +59,10 @@ class NoisyHeartbeatDataset(Dataset):
     def __len__(self):
         return len(self.clean_data) - self.split_sample_points
 
-    def __getitem__(self, idx):
-        start, end = idx, idx + self.split_sample_points
+    def __getitem__(self, idx: int):
+        start = idx
+        end = idx + self.split_sample_points
+
         clean = self.clean_data[start:end]
         randomized_noisy = self.__randomize(self.noisy_data[start:end])
         return (
