@@ -6,3 +6,4 @@ scipy
 requests
 neptune
 python-dotenv
+librosa
