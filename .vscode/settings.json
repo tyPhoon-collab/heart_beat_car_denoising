@@ -6,12 +6,14 @@
         "excepthook",
         "figsize",
         "impls",
+        "librosa",
         "loadmat",
         "ndarray",
         "notificator",
         "optim",
         "Randomizer",
         "relu",
+        "stft",
         "unsqueeze"
     ],
 }

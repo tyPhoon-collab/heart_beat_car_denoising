@@ -4,7 +4,7 @@ from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.wave_u_net import WaveUNet
-from utils.visualize import plot_three_signals
+from utils.plot import plot_three_signals
 
 # 推論用のデータセット設定
 test_dataset = NoisyHeartbeatDataset(

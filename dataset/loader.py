@@ -43,25 +43,3 @@ class MatLoader(Loader):
         df.columns = self.columns
 
         return df
-
-
-if __name__ == "__main__":
-    import sys
-
-    sys.path.append(".")
-
-    from utils.visualize import plot_signal
-
-    def show(file_path):
-        loader = MatLoader(
-            file_path,
-            ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-        )
-        data = loader.load()
-        print(data)
-        single_data = data["ch1z"]
-        plot_signal(single_data, "ch1z")
-
-    # show("data/Stop.mat")
-    show("data/Idling.mat")
-    # show("data/100km.mat")

@@ -1,5 +1,7 @@
 import os
+import librosa
 from matplotlib import pyplot as plt
+import numpy as np
 
 
 def __finalize_plot(filename=None):
@@ -56,4 +58,31 @@ def plot_signal(signal, label, filename=None):
     plt.figure()
     plt.plot(signal)
     plt.title(label)
+    __finalize_plot(filename)
+
+
+def plot_spectrogram(
+    audio_data,
+    sr,
+    title="Spectrogram",
+    *,
+    figsize=(10, 4),
+    ylim=None,
+    filename=None,
+):
+    # 短時間フーリエ変換を実行
+    S = np.abs(librosa.stft(audio_data))
+
+    # 振幅スペクトルをデシベル単位に変換
+    D = librosa.amplitude_to_db(S, ref=np.max)
+
+    # スペクトログラムを表示
+    plt.figure(figsize=figsize)
+    librosa.display.specshow(D, sr=sr, x_axis="time", y_axis="log")
+    plt.colorbar(format="%+2.0f dB")
+    plt.title(title)
+
+    if ylim is not None:
+        plt.ylim(ylim)
+
     __finalize_plot(filename)

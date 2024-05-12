@@ -4,9 +4,8 @@ import torch
 from torch.utils.data import Dataset
 
 from .loader import Loader, MatLoader
-from utils.visualize import plot_two_signals
-from .randomizer import NumpyRandomShuffleRandomizer, Randomizer
-from .sampling_rate_converter import SamplingRateConverter, ScipySamplingRateConverter
+from .randomizer import Randomizer
+from .sampling_rate_converter import SamplingRateConverter
 
 
 @dataclass
@@ -75,42 +74,3 @@ class NoisyHeartbeatDataset(Dataset):
 
     def __randomize(self, data):
         return self.randomizer.shuffle(data)
-
-
-if __name__ == "__main__":
-    from torch.utils.data import DataLoader
-
-    train_dataset = NoisyHeartbeatDataset(
-        clean_file_path="data/Stop.mat",
-        noisy_file_path="data/100km.mat",
-        # noisy_file_path="data/Stop.mat",
-        sampling_rate_converter=ScipySamplingRateConverter(
-            input_rate=32000,
-            output_rate=1000,
-        ),
-        randomizer=NumpyRandomShuffleRandomizer(),
-    )
-    test_dataset = NoisyHeartbeatDataset(
-        clean_file_path="data/Stop.mat",
-        noisy_file_path="data/100km.mat",
-        # noisy_file_path="data/Stop.mat",
-        sampling_rate_converter=ScipySamplingRateConverter(
-            input_rate=32000,
-            output_rate=1000,
-        ),
-        randomizer=NumpyRandomShuffleRandomizer(),
-        train=False,
-    )
-
-    print(len(train_dataset))
-    print(len(test_dataset))
-
-    dataloader = DataLoader(
-        train_dataset,
-        batch_size=1,
-        shuffle=True,
-    )
-
-    noisy, clean = next(iter(dataloader))
-
-    plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
