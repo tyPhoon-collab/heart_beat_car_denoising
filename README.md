@@ -26,6 +26,7 @@
 
 ```bash
 LOGGING=1
+SKIP=0
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/xxx.../xxx..."
 NEPTUNE_PROJECT_NAME="xxx/yyy"
 NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="

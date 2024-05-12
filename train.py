@@ -46,6 +46,8 @@ def train_model(
 
     model.train()
 
+    is_only_first_batch = os.getenv("SKIP") == "1"
+
     for epoch in range(num_epochs):
         for noisy, clean in dataloader:
             noisy = noisy.to(device)
@@ -59,7 +61,8 @@ def train_model(
 
             logger.on_batch_end(epoch, loss)
 
-            break  # 全体の訓練のフローのチェック用
+            if is_only_first_batch:
+                break  # 全体の訓練のフローのチェック用
 
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
 
