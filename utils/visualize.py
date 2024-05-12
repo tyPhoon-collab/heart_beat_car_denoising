@@ -1,3 +1,4 @@
+import os
 from matplotlib import pyplot as plt
 
 
@@ -6,7 +7,9 @@ def __finalize_plot(filename=None):
     filenameが指定されていれば保存し、指定されていなければ表示する。"""
     plt.tight_layout()  # サブプロット間の適切な間隔を確保
     if filename:
-        plt.savefig(f"figs/{filename}")  # ファイルに保存
+        save_directory = "output/fig"
+        os.makedirs(save_directory, exist_ok=True)  # ディレクトリがなければ作成
+        plt.savefig(os.path.join(save_directory, filename))  # ファイルに保存
         plt.close()  # フィギュアを閉じる
     else:
         plt.show()  # グラフを表示

@@ -74,7 +74,7 @@ def train_model(
 if __name__ == "__main__":
     load_dotenv()
 
-    model_saver = WithDateModelSaver(base_directory="checkpoints")
+    model_saver = WithDateModelSaver(base_directory="output/checkpoint")
     logger = __build_logger()
 
     model = WaveUNet()

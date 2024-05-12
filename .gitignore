@@ -2,7 +2,7 @@
 __pycache__/
 data/
 .DS_Store
-checkpoints/
+output/
 !checkpoints/.gitkeep
 figs/*.png
 .env
