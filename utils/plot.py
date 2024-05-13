@@ -13,6 +13,7 @@ def __finalize_plot(filename=None):
         os.makedirs(save_directory, exist_ok=True)  # ディレクトリがなければ作成
         plt.savefig(os.path.join(save_directory, filename))  # ファイルに保存
         plt.close()  # フィギュアを閉じる
+        print(f"Figure saved to {os.path.join(save_directory, filename)}")
     else:
         plt.show()  # グラフを表示
 
