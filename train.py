@@ -100,7 +100,8 @@ if __name__ == "__main__":
     train_model(
         model,
         train_dataloader,
-        nn.L1Loss(),
+        # nn.L1Loss(),
+        nn.SmoothL1Loss(),
         optim.Adam(model.parameters(), lr=0.001),
         model_saver=model_saver,
         logger=logger,
