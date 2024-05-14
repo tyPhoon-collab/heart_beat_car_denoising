@@ -3,10 +3,7 @@
 いちいちコメント化するのも、書き換えるのも大変なので、テストケースとして用意する。
 """
 
-from logging import warning
 import unittest
-
-from dotenv import load_dotenv
 
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer

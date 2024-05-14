@@ -15,7 +15,6 @@ from utils.device import get_device, safe_load_dotenv
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
-from dotenv import load_dotenv
 
 
 def build_logger() -> TrainingLogger | None:
