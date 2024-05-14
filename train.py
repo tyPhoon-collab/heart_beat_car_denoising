@@ -6,10 +6,11 @@ import torch.optim as optim
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
-from logger.training_logger import NoopLogger, TrainingLogger
+from logger.training_logger import Params, TrainingLogger
 from logger.impls.composite import CompositeLogger
 from logger.impls.discord import DiscordLogger
 from logger.impls.neptune import NeptuneLogger
+from logger.impls.noop import NoopLogger
 from utils.gpu import get_device
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
@@ -18,10 +19,11 @@ from dotenv import load_dotenv
 
 
 def __build_logger() -> TrainingLogger | None:
-    enable_logging = os.getenv("LOGGING", "0")  # Default to logging disabled
-    if enable_logging == "0":
+    enable_logging = os.getenv("LOGGING")  # Default to logging disabled
+    if enable_logging is None or enable_logging == "0":
         warning(
-            "Logging is disabled. If you want to enable logging, set LOGGING=1 in .env"
+            "Logging is disabled. If you want to enable logging, set LOGGING=1 in .env."
+            f"LOGGING is currently set to {enable_logging}."
         )
         return None
     return CompositeLogger([NeptuneLogger(), DiscordLogger()])
@@ -36,10 +38,20 @@ def train_model(
     *,
     model_saver: ModelSaver | None = None,
     logger: TrainingLogger | None = None,
-    num_epochs: int = 5,
+    epoch_size: int = 5,
 ):
     logger = logger or NoopLogger()
-    logger.on_start()
+
+    params = Params(
+        learning_rate=optimizer.param_groups[0]["lr"],
+        model_name=model.__class__.__name__,
+        circuit_name=criterion.__class__.__name__,
+        optimizer_name=optimizer.__class__.__name__,
+        batch_size=dataloader.batch_size,
+        epoch_size=epoch_size,
+    )
+
+    logger.on_start(params)
 
     device = get_device()
     model.to(device)
@@ -48,7 +60,7 @@ def train_model(
 
     is_only_first_batch = os.getenv("SKIP") == "1"
 
-    for epoch in range(num_epochs):
+    for epoch in range(epoch_size):
         for noisy, clean in dataloader:
             noisy = noisy.to(device)
             clean = clean.to(device)
@@ -105,5 +117,5 @@ if __name__ == "__main__":
         optim.Adam(model.parameters(), lr=0.001),
         model_saver=model_saver,
         logger=logger,
-        num_epochs=5,
+        epoch_size=5,
     )

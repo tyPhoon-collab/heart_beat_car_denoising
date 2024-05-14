@@ -1,9 +1,20 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Params:
+    learning_rate: float
+    model_name: str
+    circuit_name: str
+    optimizer_name: str
+    batch_size: int | None
+    epoch_size: int
 
 
 class TrainingLogger(ABC):
     @abstractmethod
-    def on_start(self):
+    def on_start(self, params: Params):
         """トレーニング開始時に呼ばれます。"""
         pass
 
@@ -20,18 +31,4 @@ class TrainingLogger(ABC):
     @abstractmethod
     def on_finish(self):
         """トレーニングが正常に終了した時に呼ばれます。"""
-        pass
-
-
-class NoopLogger(TrainingLogger):
-    def on_start(self):
-        pass
-
-    def on_batch_end(self, batch_idx, loss):
-        pass
-
-    def on_epoch_end(self, epoch_idx, epoch_loss):
-        pass
-
-    def on_finish(self):
         pass

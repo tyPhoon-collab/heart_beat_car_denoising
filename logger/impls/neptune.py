@@ -1,7 +1,8 @@
+from dataclasses import asdict
 from logging import warning
 import os
 import neptune
-from logger.training_logger import TrainingLogger
+from logger.training_logger import Params, TrainingLogger
 
 
 class NeptuneLogger(TrainingLogger):
@@ -19,7 +20,7 @@ class NeptuneLogger(TrainingLogger):
         else:
             self.enabled = True
 
-    def on_start(self):
+    def on_start(self, params: Params):
         if not self.enabled:
             return
 
@@ -27,6 +28,7 @@ class NeptuneLogger(TrainingLogger):
             project=self.project_name,
             api_token=self.api_token,
         )
+        self.run["model/parameters"] = asdict(params)
 
     def on_batch_end(self, batch_idx, loss):
         if not self.enabled:
