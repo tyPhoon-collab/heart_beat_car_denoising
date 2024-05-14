@@ -1,4 +1,4 @@
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
@@ -6,7 +6,7 @@ from dataset.sampling_rate_converter import ScipySamplingRateConverter
 
 class DatasetFactory:
     @classmethod
-    def build(
+    def create(
         cls,
         clean_file_path="data/Stop.mat",
         noisy_file_path="data/100km.mat",
@@ -27,17 +27,17 @@ class DatasetFactory:
         )
 
     @classmethod
-    def train(cls, dataset):
-        return cls.build(dataset, train=True)
+    def create_train(cls):
+        return cls.create(train=True)
 
     @classmethod
-    def test(cls, dataset):
-        return cls.build(dataset, train=False)
+    def create_test(cls):
+        return cls.create(train=False)
 
 
 class DataLoaderFactory:
     @classmethod
-    def build(cls, dataset, batch_size=1, shuffle=True):
+    def create(cls, dataset: Dataset, batch_size=1, shuffle=True):
         return DataLoader(
             dataset=dataset,
             batch_size=batch_size,
@@ -45,9 +45,9 @@ class DataLoaderFactory:
         )
 
     @classmethod
-    def train(cls, dataset, batch_size=1):
-        return cls.build(dataset, batch_size, True)
+    def create_train(cls, dataset: Dataset, batch_size=1):
+        return cls.create(dataset, batch_size, True)
 
     @classmethod
-    def test(cls, dataset, batch_size=1):
-        return cls.build(dataset, batch_size, False)
+    def create_test(cls, dataset: Dataset, batch_size=1):
+        return cls.create(dataset, batch_size, False)
