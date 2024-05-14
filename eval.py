@@ -49,9 +49,9 @@ with torch.no_grad():  # 勾配計算を無効化
         print(f"Loss: {loss.item()}")
 
         plot_three_signals(
-            noisy[0][0],
-            clean[0][0],
-            outputs[0][0],
+            noisy[0][0].cpu(),
+            clean[0][0].cpu(),
+            outputs[0][0].cpu(),
             "Noisy",
             "Clean",
             "Output",
