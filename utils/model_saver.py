@@ -15,9 +15,10 @@ class WithDateModelSaver(ModelSaver):
     def __init__(self, base_directory: str):
         today = datetime.now().strftime("%Y-%m-%d_%H-%M")
         self.save_directory = os.path.join(base_directory, today)
-        os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
 
     def save(self, model: nn.Module, *, suffix: str | None):
+        os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
+
         path = os.path.join(
             self.save_directory, f"model_weights{f"_{suffix}" if suffix else ''}.pth",
         )
