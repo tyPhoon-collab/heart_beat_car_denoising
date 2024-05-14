@@ -19,8 +19,7 @@ class WithDateModelSaver(ModelSaver):
     def save(self, model: nn.Module, *, suffix: str | None):
         os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
 
-        path = os.path.join(
-            self.save_directory, f"model_weights{f"_{suffix}" if suffix else ''}.pth",
-        )
+        suffix = f"_{suffix}" if suffix else ""
+        path = os.path.join(self.save_directory, f"model_weights{suffix}.pth")
         torch.save(model.state_dict(), path)
         print(f"Model saved to {path}")
