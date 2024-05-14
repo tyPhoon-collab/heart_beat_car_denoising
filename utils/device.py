@@ -15,7 +15,7 @@ def get_device() -> torch.device:
     return device
 
 
-def safe_load_dotenv():
-    ret = load_dotenv()
+def load_local_dotenv():
+    ret = load_dotenv(override=True)
     if not ret:
         warning("Could not load .env file.")

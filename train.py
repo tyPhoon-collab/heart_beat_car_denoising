@@ -1,4 +1,3 @@
-from logging import warning
 import os
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -7,25 +6,11 @@ from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.training_logger import Params, TrainingLogger
-from logger.impls.composite import CompositeLogger
-from logger.impls.discord import DiscordLogger
-from logger.impls.neptune import NeptuneLogger
-from logger.impls.noop import NoopLogger
-from utils.device import get_device, safe_load_dotenv
+from logger.training_logger_factory import TrainingLoggerFactory
+from utils.device import get_device, load_local_dotenv
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
-
-
-def build_logger() -> TrainingLogger | None:
-    enable_logging = os.getenv("LOGGING")  # Default to logging disabled
-    if enable_logging is None or enable_logging == "0":
-        warning(
-            "Logging is disabled. If you want to enable logging, set LOGGING=1 in .env."
-            f"LOGGING is currently set to {enable_logging}."
-        )
-        return None
-    return CompositeLogger([NeptuneLogger(), DiscordLogger()])
 
 
 @timeit
@@ -39,7 +24,7 @@ def train_model(
     logger: TrainingLogger | None = None,
     epoch_size: int = 5,
 ):
-    logger = logger or NoopLogger()
+    logger = logger or TrainingLoggerFactory.noop()
 
     params = Params(
         learning_rate=optimizer.param_groups[0]["lr"],
@@ -86,10 +71,10 @@ def train_model(
 
 
 if __name__ == "__main__":
-    safe_load_dotenv()
+    load_local_dotenv()
 
     model_saver = WithDateModelSaver(base_directory="output/checkpoint")
-    logger = build_logger()
+    logger = TrainingLoggerFactory.remote()
 
     model = WaveUNet()
 

@@ -9,10 +9,11 @@ from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from eval import eval_model
+from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Conv1DAutoencoder
 from models.wave_u_net import WaveUNet
-from train import build_logger, train_model
-from utils.device import safe_load_dotenv
+from train import train_model
+from utils.device import load_local_dotenv
 from utils.model_saver import WithDateModelSaver
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -56,9 +57,9 @@ def _build_loader(
 
 class TestTrainSet(unittest.TestCase):
     def setUp(self):
-        safe_load_dotenv()
+        load_local_dotenv()
         self._model_saver = WithDateModelSaver(base_directory="output/checkpoint")
-        self._logger = build_logger()
+        self._logger = TrainingLoggerFactory.remote()
 
     def test_l1_adam_wave_u_net(self):
         model = WaveUNet()
