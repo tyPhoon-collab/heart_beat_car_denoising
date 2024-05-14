@@ -18,7 +18,7 @@ from models.wave_u_net import WaveUNet
 from dotenv import load_dotenv
 
 
-def __build_logger() -> TrainingLogger | None:
+def build_logger() -> TrainingLogger | None:
     enable_logging = os.getenv("LOGGING")  # Default to logging disabled
     if enable_logging is None or enable_logging == "0":
         warning(
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     model_saver = WithDateModelSaver(base_directory="output/checkpoint")
-    logger = __build_logger()
+    logger = build_logger()
 
     model = WaveUNet()
 

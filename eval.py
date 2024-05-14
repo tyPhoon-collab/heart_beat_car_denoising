@@ -7,54 +7,61 @@ from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.wave_u_net import WaveUNet
 from utils.gpu import get_device
 from utils.plot import plot_three_signals
+from utils.timeit import timeit
 
 
-# 推論用のデータセット設定
-test_dataset = NoisyHeartbeatDataset(
-    clean_file_path="data/Stop.mat",
-    noisy_file_path="data/100km.mat",
-    sampling_rate_converter=ScipySamplingRateConverter(
-        input_rate=32000, output_rate=1024
-    ),
-    randomizer=NumpyRandomShuffleRandomizer(),
-    train=False,
-)
+@timeit
+def eval_model(
+    model: nn.Module,
+    state_dict_path: str,
+    dataloader: DataLoader,
+    criterion: nn.Module | None = None,
+):
+    model.load_state_dict(torch.load(state_dict_path))
+    device = get_device()
+    model.to(device)
 
-# DataLoaderの設定。推論ではshuffleは不要です。
-test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+    model.eval()
+
+    with torch.no_grad():
+        for noisy, clean in test_dataloader:
+            noisy = noisy.to(device)
+            clean = clean.to(device)
+
+            outputs = model(noisy)
+
+            if criterion is not None:
+                loss = criterion(outputs, clean)
+                print(f"Loss: {loss.item()}")
+
+            plot_three_signals(
+                noisy[0][0].cpu(),
+                clean[0][0].cpu(),
+                outputs[0][0].cpu(),
+                "Noisy",
+                "Clean",
+                "Output",
+                filename="eval.png",
+            )
+            break  # 最初のバッチのみ処理
 
 
-criterion = nn.L1Loss()
+if __name__ == "__main__":
+    test_dataset = NoisyHeartbeatDataset(
+        clean_file_path="data/Stop.mat",
+        noisy_file_path="data/100km.mat",
+        sampling_rate_converter=ScipySamplingRateConverter(
+            input_rate=32000, output_rate=1024
+        ),
+        randomizer=NumpyRandomShuffleRandomizer(),
+        train=False,
+    )
 
-device = get_device()
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-# モデルのインスタンスを作成し、訓練済みの重みをロードします。
-model = WaveUNet()
-model.to(device)
-model.load_state_dict(
-    torch.load("output/checkpoint/2024-05-11/model_weights_epoch_5.pth")
-)
-model.eval()  # 評価モードに設定
-
-# 推論の実行
-with torch.no_grad():  # 勾配計算を無効化
-    for noisy, clean in test_dataloader:
-        noisy = noisy.to(device)
-        clean = clean.to(device)
-
-        outputs = model(noisy)
-
-        loss = criterion(outputs, clean)
-
-        print(f"Loss: {loss.item()}")
-
-        plot_three_signals(
-            noisy[0][0].cpu(),
-            clean[0][0].cpu(),
-            outputs[0][0].cpu(),
-            "Noisy",
-            "Clean",
-            "Output",
-            filename="eval.png",
-        )
-        break  # ここではデモンストレーションのため、最初のバッチのみ処理
+    eval_model(
+        WaveUNet(),
+        "output/checkpoint/2024-05-11/model_weights_epoch_5.pth",
+        dataloader=test_dataloader,
+        criterion=nn.L1Loss(),
+    )
