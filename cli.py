@@ -7,10 +7,6 @@ Usage:
 
     Evaluating the model:
     python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file>
-
-Example:
-    $ python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss --checkpoint-dir "output/checkpoint/AE_smooth_l1_loss"
-    $ python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path "output/checkpoint/AE_smooth_l1_loss/2024-05-15_05-36/model_weights_epoch_5.pth" --figure-filename "AE.png"
 """
 
 import argparse
