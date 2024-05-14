@@ -48,6 +48,38 @@ class TestDataSet(unittest.TestCase):
 
         plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
 
+    def test_idx_0(self):
+        train_dataset = NoisyHeartbeatDataset(
+            clean_file_path="data/Stop.mat",
+            noisy_file_path="data/100km.mat",
+            # noisy_file_path="data/Stop.mat",
+            sampling_rate_converter=ScipySamplingRateConverter(
+                input_rate=32000,
+                output_rate=1024,
+            ),
+            randomizer=NumpyRandomShuffleRandomizer(),
+        )
+
+        data = train_dataset[0]
+        self.assertEqual(data[0].shape, (1, 5120))
+        print(data)
+
+    def test_idx_max(self):
+        train_dataset = NoisyHeartbeatDataset(
+            clean_file_path="data/Stop.mat",
+            noisy_file_path="data/100km.mat",
+            # noisy_file_path="data/Stop.mat",
+            sampling_rate_converter=ScipySamplingRateConverter(
+                input_rate=32000,
+                output_rate=1024,
+            ),
+            randomizer=NumpyRandomShuffleRandomizer(),
+        )
+
+        data = train_dataset[len(train_dataset) - 1]
+        self.assertEqual(data[0].shape, (1, 5120))
+        print(data)
+
 
 class TestSampleRateConverter(unittest.TestCase):
     def test_scipy_sample_rate_converter(self):
