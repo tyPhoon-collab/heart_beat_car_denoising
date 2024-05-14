@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import torch
 
 
-def get_device() -> torch.device:
+def get_device_name() -> torch.device:
     # GPUが利用可能かどうかをチェック
     if torch.cuda.is_available():
         device = torch.device("cuda")

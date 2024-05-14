@@ -5,7 +5,7 @@ from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.wave_u_net import WaveUNet
-from utils.device import get_device
+from utils.device import get_device_name
 from utils.plot import plot_three_signals
 from utils.timeit import timeit
 
@@ -18,7 +18,7 @@ def eval_model(
     criterion: nn.Module | None = None,
 ):
     model.load_state_dict(torch.load(state_dict_path))
-    device = get_device()
+    device = get_device_name()
     model.to(device)
 
     model.eval()

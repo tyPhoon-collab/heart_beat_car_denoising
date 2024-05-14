@@ -8,7 +8,7 @@
 
 - .env
   - ロガー用の変数を置く
-    - [サンプル](#サンプル)
+    - [サンプル](#envファイルのサンプル)
     - LOGGING
     - DISCORD_WEBHOOK_URL
     - NEPTUNE_PROJECT_NAME
@@ -22,7 +22,11 @@
   - gitで管理していないため、必要に応じてファイルを追加する
   - Larkの心拍推定からダウンロードする
 
-## サンプル
+## ファイル名
+
+[このリポジトリ](https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Object-Detection/blob/master/README.md)に則ったファイル名にしている。inferenceではなく、evalとしている。
+
+## .envファイルのサンプル
 
 ```bash
 LOGGING=1

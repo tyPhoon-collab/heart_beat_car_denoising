@@ -7,7 +7,7 @@ from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.training_logger import Params, TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
-from utils.device import get_device, load_local_dotenv
+from utils.device import get_device_name, load_local_dotenv
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
@@ -37,7 +37,7 @@ def train_model(
 
     logger.on_start(params)
 
-    device = get_device()
+    device = get_device_name()
     model.to(device)
 
     model.train()
