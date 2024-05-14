@@ -7,6 +7,10 @@ Usage:
 
     Evaluating the model:
     python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file>
+
+Example:
+    $ python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss --checkpoint-dir "output/checkpoint/AE_smooth_l1_loss"
+    $ python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path "output/checkpoint/AE_smooth_l1_loss/2024-05-15_05-36/model_weights_epoch_5.pth" --figure-filename "AE.png"
 """
 
 import argparse
@@ -94,6 +98,7 @@ def evaluate(args):
         args.weights_path,
         test_dataloader,
         criterion,
+        figure_filename=args.figure_filename,
     )
 
 
@@ -160,6 +165,12 @@ def main():
         type=str,
         required=True,
         help="Path to the model weights",
+    )
+    parser_eval.add_argument(
+        "--figure-filename",
+        type=str,
+        default=None,
+        help="Filename of the figure",
     )
     parser_eval.set_defaults(func=evaluate)
 

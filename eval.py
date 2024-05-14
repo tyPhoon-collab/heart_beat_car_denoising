@@ -16,6 +16,8 @@ def eval_model(
     state_dict_path: str,
     dataloader: DataLoader,
     criterion: nn.Module | None = None,
+    *,
+    figure_filename: str | None = None,
 ):
     model.load_state_dict(torch.load(state_dict_path))
     device = get_device_name()
@@ -34,15 +36,16 @@ def eval_model(
                 loss = criterion(outputs, clean)
                 print(f"Loss: {loss.item()}")
 
-            plot_three_signals(
-                noisy[0][0].cpu(),
-                clean[0][0].cpu(),
-                outputs[0][0].cpu(),
-                "Noisy",
-                "Clean",
-                "Output",
-                filename="eval.png",
-            )
+            if figure_filename is not None:
+                plot_three_signals(
+                    noisy[0][0].cpu(),
+                    clean[0][0].cpu(),
+                    outputs[0][0].cpu(),
+                    "Noisy",
+                    "Clean",
+                    "Output",
+                    filename=figure_filename,
+                )
             break  # 最初のバッチのみ処理
 
 
