@@ -11,7 +11,7 @@ from logger.impls.composite import CompositeLogger
 from logger.impls.discord import DiscordLogger
 from logger.impls.neptune import NeptuneLogger
 from logger.impls.noop import NoopLogger
-from utils.gpu import get_device
+from utils.device import get_device, safe_load_dotenv
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
@@ -79,7 +79,7 @@ def train_model(
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
 
         if model_saver is not None:
-            model_saver.save(model, epoch)
+            model_saver.save(model, suffix=f"epoch_{epoch + 1}")
 
         logger.on_epoch_end(epoch, loss)  # type: ignore
 
@@ -87,7 +87,7 @@ def train_model(
 
 
 if __name__ == "__main__":
-    load_dotenv()
+    safe_load_dotenv()
 
     model_saver = WithDateModelSaver(base_directory="output/checkpoint")
     logger = build_logger()

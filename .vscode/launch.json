@@ -5,13 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "train.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "train.py",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "Python デバッガー: 現在のファイル",
             "type": "debugpy",
             "request": "launch",

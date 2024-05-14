@@ -7,7 +7,7 @@ from datetime import datetime
 
 class ModelSaver(ABC):
     @abstractmethod
-    def save(self, model: nn.Module, epoch: int):
+    def save(self, model: nn.Module, *, suffix: str | None):
         pass
 
 
@@ -17,7 +17,9 @@ class WithDateModelSaver(ModelSaver):
         self.save_directory = os.path.join(base_directory, today)
         os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
 
-    def save(self, model: nn.Module, epoch: int):
-        path = os.path.join(self.save_directory, f"model_weights_epoch_{epoch + 1}.pth")
+    def save(self, model: nn.Module, *, suffix: str | None):
+        path = os.path.join(
+            self.save_directory, f"model_weights{f"_{suffix}" if suffix else ''}.pth",
+        )
         torch.save(model.state_dict(), path)
         print(f"Model saved to {path}")

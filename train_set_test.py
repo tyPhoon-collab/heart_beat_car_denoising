@@ -15,13 +15,14 @@ from eval import eval_model
 from models.auto_encoder import Conv1DAutoencoder
 from models.wave_u_net import WaveUNet
 from train import build_logger, train_model
+from utils.device import safe_load_dotenv
 from utils.model_saver import WithDateModelSaver
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 
 
-def __build_dataset(
+def _build_dataset(
     clean_file_path="data/Stop.mat",
     noisy_file_path="data/100km.mat",
     input_rate=32000,
@@ -42,7 +43,7 @@ def __build_dataset(
     return dataset
 
 
-def __build_loader(
+def _build_loader(
     dataset,
     *,
     batch_size=1,
@@ -56,60 +57,51 @@ def __build_loader(
     return dataloader
 
 
-def __load_dotenv():
-    ret = load_dotenv()
-    if not ret:
-        warning("Could not load .env file.")
-
-
-__model_saver = WithDateModelSaver(base_directory="output/checkpoint")
-__logger = build_logger()
-
-
 class TestTrainSet(unittest.TestCase):
-    def __init__(self, methodName: str = "runTest") -> None:
-        super().__init__(methodName)
-        __load_dotenv()
+    def setUp(self):
+        safe_load_dotenv()
+        self._model_saver = WithDateModelSaver(base_directory="output/checkpoint")
+        self._logger = build_logger()
 
     def test_l1_adam_wave_u_net(self):
         model = WaveUNet()
-        train_dataloader = __build_loader(__build_dataset())
+        train_dataloader = _build_loader(_build_dataset())
 
         train_model(
             model,
             train_dataloader,
             nn.L1Loss(),
             optim.Adam(model.parameters(), lr=0.001),
-            model_saver=__model_saver,
-            logger=__logger,
+            model_saver=self._model_saver,
+            logger=self._logger,
             epoch_size=5,
         )
 
     def test_smooth_l1_adam_wave_u_net(self):
         model = WaveUNet()
-        train_dataloader = __build_loader(__build_dataset())
+        train_dataloader = _build_loader(_build_dataset())
 
         train_model(
             model,
             train_dataloader,
             nn.SmoothL1Loss(),
             optim.Adam(model.parameters(), lr=0.001),
-            model_saver=__model_saver,
-            logger=__logger,
+            model_saver=self._model_saver,
+            logger=self._logger,
             epoch_size=5,
         )
 
     def test_smooth_l1_adam_autoencoder(self):
         model = Conv1DAutoencoder()
-        train_dataloader = __build_loader(__build_dataset())
+        train_dataloader = _build_loader(_build_dataset())
 
         train_model(
             model,
             train_dataloader,
             nn.SmoothL1Loss(),
             optim.Adam(model.parameters(), lr=0.001),
-            model_saver=__model_saver,
-            logger=__logger,
+            model_saver=self._model_saver,
+            logger=self._logger,
             epoch_size=5,
         )
 
@@ -117,7 +109,7 @@ class TestTrainSet(unittest.TestCase):
 class TestEvalSet(unittest.TestCase):
     def test_eval_l1_wave_u_net(self):
         model = WaveUNet()
-        test_dataloader = __build_loader(__build_dataset(train=False))
+        test_dataloader = _build_loader(_build_dataset(train=False))
 
         eval_model(
             model,
@@ -128,7 +120,7 @@ class TestEvalSet(unittest.TestCase):
 
     def test_eval_smooth_l1_wave_u_net(self):
         model = WaveUNet()
-        test_dataloader = __build_loader(__build_dataset(train=False))
+        test_dataloader = _build_loader(_build_dataset(train=False))
 
         eval_model(
             model,
@@ -139,7 +131,7 @@ class TestEvalSet(unittest.TestCase):
 
     def test_eval_smooth_l1_autoencoder(self):
         model = Conv1DAutoencoder()
-        test_dataloader = __build_loader(__build_dataset(train=False))
+        test_dataloader = _build_loader(_build_dataset(train=False))
 
         eval_model(
             model,

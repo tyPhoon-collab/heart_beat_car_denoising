@@ -5,7 +5,7 @@ from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.wave_u_net import WaveUNet
-from utils.gpu import get_device
+from utils.device import get_device
 from utils.plot import plot_three_signals
 from utils.timeit import timeit
 
@@ -24,7 +24,7 @@ def eval_model(
     model.eval()
 
     with torch.no_grad():
-        for noisy, clean in test_dataloader:
+        for noisy, clean in dataloader:
             noisy = noisy.to(device)
             clean = clean.to(device)
 

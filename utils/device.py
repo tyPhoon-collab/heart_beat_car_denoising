@@ -1,3 +1,5 @@
+from logging import warning
+from dotenv import load_dotenv
 import torch
 
 
@@ -11,3 +13,9 @@ def get_device() -> torch.device:
         print("GPU is not available, using CPU instead.")
 
     return device
+
+
+def safe_load_dotenv():
+    ret = load_dotenv()
+    if not ret:
+        warning("Could not load .env file.")
