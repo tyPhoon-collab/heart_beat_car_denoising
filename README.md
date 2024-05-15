@@ -10,6 +10,7 @@
   - ロガー用の変数を置く
     - [サンプル](#envファイルのサンプル)
     - LOGGING
+    - ONLY_FIRST_BATCH
     - DISCORD_WEBHOOK_URL
     - NEPTUNE_PROJECT_NAME
     - NEPTUNE_API_TOKEN
@@ -28,15 +29,25 @@
 
 ## 実行コマンド例
 
-`$ python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss --checkpoint-dir "output/checkpoint/AE_smooth_l1_loss"`
+```bash
+python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss \
+--checkpoint-dir "output/checkpoint/AE_smooth_l1_loss"
+```
 
-`$ python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path "output/checkpoint/AE_smooth_l1_loss/2024-05-15_05-36/model_weights_epoch_5.pth" --figure-filename "AE.png"`
+```bash
+python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss \
+--weights-path "output/checkpoint/AE_smooth_l1_loss/2024-05-15_05-36/model_weights_epoch_5.pth" \
+--figure-filename "AE.png" \
+--clean-audio-filename "AE_clean.wav" \
+--noisy-audio-filename "AE_noisy.wav" \
+--audio-filename "AE_output.wav"
+```
 
 ## .envファイルのサンプル
 
 ```bash
 LOGGING=1
-SKIP=0
+ONLY_FIRST_BATCH=0
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/xxx.../xxx..."
 NEPTUNE_PROJECT_NAME="xxx/yyy"
 NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="

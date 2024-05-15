@@ -42,7 +42,9 @@ def train_model(
 
     model.train()
 
-    is_only_first_batch = os.getenv("SKIP") == "1"
+    if os.getenv("ONLY_FIRST_BATCH") == "1":
+        # 最初のバッチのみ処理。全体の訓練コードの確認用なので、値は何でも良い
+        dataloader = [next(iter(dataloader))]  # type: ignore
 
     for epoch in range(epoch_size):
         for noisy, clean in dataloader:
@@ -56,9 +58,6 @@ def train_model(
             optimizer.step()
 
             logger.on_batch_end(epoch, loss)
-
-            if is_only_first_batch:
-                break  # 全体の訓練のフローのチェック用
 
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
 

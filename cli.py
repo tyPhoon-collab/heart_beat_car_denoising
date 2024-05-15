@@ -95,6 +95,9 @@ def evaluate(args):
         test_dataloader,
         criterion,
         figure_filename=args.figure_filename,
+        clean_audio_filename=args.clean_audio_filename,
+        noisy_audio_filename=args.noisy_audio_filename,
+        audio_filename=args.audio_filename,
     )
 
 
@@ -167,6 +170,24 @@ def main():
         type=str,
         default=None,
         help="Filename of the figure",
+    )
+    parser_eval.add_argument(
+        "--clean-audio-filename",
+        type=str,
+        default=None,
+        help="Filename of the clean audio",
+    )
+    parser_eval.add_argument(
+        "--noisy-audio-filename",
+        type=str,
+        default=None,
+        help="Filename of the noisy audio",
+    )
+    parser_eval.add_argument(
+        "--audio-filename",
+        type=str,
+        default=None,
+        help="Filename of the output audio",
     )
     parser_eval.set_defaults(func=evaluate)
 

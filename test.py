@@ -118,13 +118,13 @@ class TestLoader(unittest.TestCase):
 
 class TestVisualize(unittest.TestCase):
     def test_sound_all(self):
-        self.convert_to_wav("data/Stop.mat", "stop_32000")
-        self.convert_to_wav("data/Idling.mat", "idling_32000")
-        self.convert_to_wav("data/100km.mat", "100km_32000")
+        self.convert_to_wav("data/Stop.mat", "stop_32000.wav")
+        self.convert_to_wav("data/Idling.mat", "idling_32000.wav")
+        self.convert_to_wav("data/100km.mat", "100km_32000.wav")
 
-        self.convert_to_wav("data/Stop.mat", "stop_1024", output_sample_rate=1024)
-        self.convert_to_wav("data/Idling.mat", "idling_1024", output_sample_rate=1024)
-        self.convert_to_wav("data/100km.mat", "100km_1024", output_sample_rate=1024)
+        self.convert_to_wav("data/Stop.mat", "stop_1024.wav", output_rate=1024)
+        self.convert_to_wav("data/Idling.mat", "idling_1024.wav", output_rate=1024)
+        self.convert_to_wav("data/100km.mat", "100km_1024.wav", output_rate=1024)
 
     def test_stft_32000(self):
         single_data = self.load("data/100km.mat", "ch1z")
@@ -150,15 +150,11 @@ class TestVisualize(unittest.TestCase):
         filename: str,
         output_filename: str,
         *,
-        output_sample_rate=32000,
+        output_rate=32000,
     ):
         single_data = self.load(filename, "ch1z")
-        single_data = self.convert_sample_rate(single_data, 32000, output_sample_rate)
-        save_signal_to_wav_scipy(
-            single_data,
-            output_sample_rate,
-            f"output/audio/{output_filename}.wav",
-        )
+        single_data = self.convert_sample_rate(single_data, 32000, output_rate)
+        save_signal_to_wav_scipy(single_data, output_rate, output_filename)
 
     def show(self, file_path: str, ch: str = "ch1z"):
         single_data = self.load(file_path, ch)
