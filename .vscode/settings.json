@@ -14,7 +14,8 @@
         "Randomizer",
         "relu",
         "stft",
-        "unsqueeze"
+        "unsqueeze",
+        "wavfile"
     ],
     "python.testing.unittestArgs": [
         "-v",
