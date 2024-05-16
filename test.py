@@ -1,12 +1,21 @@
 import unittest
 
 import numpy as np
+import torch
+import torch.optim as optim
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.loader import MatLoader
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
+from models.auto_encoder import Conv1DAutoencoder
+from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
+from models.transformer_pixel_shuffle_auto_encoder import (
+    TransformerPixelShuffleConv1DAutoencoder,
+)
+from models.wave_u_net import WaveUNet
 from utils.plot import plot_signal, plot_spectrogram, plot_two_signals
 from utils.sound import save_signal_to_wav_scipy
 
@@ -79,6 +88,87 @@ class TestDataSet(unittest.TestCase):
         data = train_dataset[len(train_dataset) - 1]
         self.assertEqual(data[0].shape, (1, 5120))
         print(data)
+
+
+class TestModels(unittest.TestCase):
+    def test_wave_u_net(self):
+        # Create model and example input tensor
+        model = WaveUNet()
+
+        example_input = torch.rand(1, 1, 256 * 20)  # (batch_size, channels, length)
+        # Get the model output
+        output = model(example_input)
+        print(output.shape)  # Should be torch.Size([1, 1, 5120])
+
+    def test_transformer_pixel_shuffle_auto_encoder(self):
+
+        # Model instantiation
+        model = TransformerPixelShuffleConv1DAutoencoder()
+        print(model)
+
+        # Define the loss function and optimizer
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+        # Dummy data for demonstration
+        x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
+        x = x.to(torch.float32)
+
+        # Forward pass
+        outputs = model(x)
+        loss = criterion(outputs, x)
+        print(f"Loss: {loss.item()}")
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    def test_pixel_shuffle_auto_encoder(self):
+        # Model instantiation
+        model = PixelShuffleConv1DAutoencoder()
+        print(model)
+
+        # Define the loss function and optimizer
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+        # Dummy data for demonstration
+        x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
+        x = x.to(torch.float32)
+
+        # Forward pass
+        outputs = model(x)
+        loss = criterion(outputs, x)
+        print(f"Loss: {loss.item()}")
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    def test_auto_encoder(self):
+        # Model instantiation
+        model = Conv1DAutoencoder()
+        print(model)
+
+        # Define the loss function and optimizer
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+        # Dummy data for demonstration
+        x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
+        x = x.to(torch.float32)
+
+        # Forward pass
+        outputs = model(x)
+        loss = criterion(outputs, x)
+        print(f"Loss: {loss.item()}")
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
 
 class TestSampleRateConverter(unittest.TestCase):

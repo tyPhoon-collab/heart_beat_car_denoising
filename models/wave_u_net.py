@@ -51,13 +51,3 @@ class WaveUNet(nn.Module):
                     [x, skip_connections[i + 1]], 1
                 )  # Skip the first connection
         return x
-
-
-if __name__ == "__main__":
-    # Create model and example input tensor
-    model = WaveUNet()
-
-    example_input = torch.rand(1, 1, 256 * 20)  # (batch_size, channels, length)
-    # Get the model output
-    output = model(example_input)
-    print(output.shape)  # Should be torch.Size([1, 1, 5120])

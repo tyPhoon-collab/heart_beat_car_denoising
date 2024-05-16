@@ -1,12 +1,12 @@
-import torch
 import torch.nn as nn
 
 from models.modules.pixel_shuffle import PixelShuffle1d, PixelUnshuffle1d
+from models.modules.transformer import PositionalEncoding, TransformerBlock
 
 
-class PixelShuffleConv1DAutoencoder(nn.Module):
-    def __init__(self):
-        super(PixelShuffleConv1DAutoencoder, self).__init__()
+class TransformerPixelShuffleConv1DAutoencoder(nn.Module):
+    def __init__(self, transformer_layers=4):
+        super(TransformerPixelShuffleConv1DAutoencoder, self).__init__()
         self.encoder = nn.Sequential(
             nn.Conv1d(
                 1, 16, kernel_size=3, stride=1, padding=1
@@ -28,6 +28,11 @@ class PixelShuffleConv1DAutoencoder(nn.Module):
             ),  # output is (1024, 640)
             nn.ReLU(),
             PixelUnshuffle1d(2),  # output is (2048, 320)
+        )
+
+        self.positional_encoding = PositionalEncoding(d_model=2048)
+        self.transformer = TransformerBlock(
+            d_model=2048, nhead=8, num_layers=transformer_layers, dim_feedforward=2048
         )
 
         self.decoder = nn.Sequential(
@@ -56,5 +61,7 @@ class PixelShuffleConv1DAutoencoder(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
+        x = self.positional_encoding(x)
+        x = self.transformer(x)
         x = self.decoder(x)
         return x

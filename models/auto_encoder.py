@@ -46,29 +46,3 @@ class Conv1DAutoencoder(nn.Module):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
-
-
-if __name__ == "__main__":
-    import torch.optim as optim
-
-    # Model instantiation
-    model = Conv1DAutoencoder()
-    print(model)
-
-    # Define the loss function and optimizer
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-    # Dummy data for demonstration
-    x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
-    x = x.to(torch.float32)
-
-    # Forward pass
-    outputs = model(x)
-    loss = criterion(outputs, x)
-    print(f"Loss: {loss.item()}")
-
-    # Backward pass and optimization
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
