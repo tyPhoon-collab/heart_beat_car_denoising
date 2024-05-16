@@ -29,7 +29,7 @@ def train_model(
     params = Params(
         learning_rate=optimizer.param_groups[0]["lr"],
         model_name=model.__class__.__name__,
-        circuit_name=criterion.__class__.__name__,
+        criterion_name=criterion.__class__.__name__,
         optimizer_name=optimizer.__class__.__name__,
         batch_size=dataloader.batch_size,
         epoch_size=epoch_size,

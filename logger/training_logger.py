@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class Params:
     learning_rate: float
     model_name: str
-    circuit_name: str
+    criterion_name: str
     optimizer_name: str
     batch_size: int | None
     epoch_size: int
