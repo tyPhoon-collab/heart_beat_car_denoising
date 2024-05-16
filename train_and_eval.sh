@@ -19,6 +19,10 @@ print_green() {
     tput sgr0
 }
 
+print_separator() {
+    echo "----------------------------------------"
+}
+
 # 引数チェック
 if [ "$#" -ne 3 ]; then
     print_error "Usage: $0 <ID> <MODEL> <LOSS_FN>"
@@ -37,7 +41,9 @@ CLEAN_AUDIO_FILENAME="${ID}_clean.wav"
 NOISY_AUDIO_FILENAME="${ID}_noisy.wav"
 AUDIO_FILENAME="${ID}_output.wav"
 
-print_yellow "** Training the model-------------------------"
+print_separator
+print_yellow "Training the model"
+print_separator
 python cli.py train --model "$MODEL" --loss-fn "$LOSS_FN" \
 --checkpoint-dir "$CHECKPOINT_DIR" \
 --model-id "$ID"
@@ -48,7 +54,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-print_yellow "** Evaluating the model-------------------------"
+print_separator
+print_yellow "Evaluating the model"
+print_separator
 python cli.py eval --model "$MODEL" --loss-fn "$LOSS_FN" \
 --weights-path "$WEIGHTS_PATH" \
 --figure-filename "$FIGURE_FILENAME" \
@@ -62,4 +70,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-print_green "** Training and evaluation completed successfully."
+print_separator
+print_green "Training and evaluation completed successfully."
+print_separator

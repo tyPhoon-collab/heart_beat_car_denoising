@@ -44,14 +44,14 @@ class NoisyHeartbeatDataset(Dataset):
         clean_data = clean_data[:total_samples]
         noisy_data = noisy_data[:total_samples]
 
-        ratio = self.train_split_ratio
+        split_samples = int(self.train_split_ratio * total_samples)
 
         if self.train:
-            clean_data = clean_data[: int(ratio * total_samples)]
-            noisy_data = noisy_data[: int(ratio * total_samples)]
+            clean_data = clean_data[:split_samples]
+            noisy_data = noisy_data[:split_samples]
         else:
-            clean_data = clean_data[int(ratio * total_samples) :]
-            noisy_data = noisy_data[int(ratio * total_samples) :]
+            clean_data = clean_data[split_samples:]
+            noisy_data = noisy_data[split_samples:]
 
         return clean_data, noisy_data
 
