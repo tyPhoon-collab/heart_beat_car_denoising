@@ -16,12 +16,9 @@ class NoisyHeartbeatDataset(Dataset):
     randomizer: Randomizer
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
-    split_duration_second: float = 5.0
+    split_sample_points: int = 5120
 
     def __post_init__(self):
-        self.split_sample_points = int(
-            self.sampling_rate_converter.output_rate * self.split_duration_second
-        )
         self.clean_data, self.noisy_data = self.__partition_data(
             self.__load_and_preprocess(self.clean_file_path),
             self.__load_and_preprocess(self.noisy_file_path),

@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 from models.modules.pixel_shuffle import PixelShuffle1d, PixelUnshuffle1d
