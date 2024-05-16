@@ -14,6 +14,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from dataset.factory import DataLoaderFactory, DatasetFactory
+from loss.combine import CombinedLoss
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from train import train_model
 from utils.device import load_local_dotenv
@@ -24,7 +25,7 @@ from models.wave_u_net import WaveUNet
 from eval import eval_model
 
 MODEL_CHOICES = [WaveUNet, Conv1DAutoencoder, PixelShuffleConv1DAutoencoder]
-LOSS_FUNCTIONS = [nn.L1Loss, nn.SmoothL1Loss]
+LOSS_FUNCTIONS = [nn.L1Loss, nn.SmoothL1Loss, CombinedLoss]
 
 
 def get_model(model_name: str) -> nn.Module:
