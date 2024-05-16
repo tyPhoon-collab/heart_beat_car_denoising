@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
+        "Autoencoder",
+        "Conv",
         "denoising",
         "dotenv",
         "dtype",
@@ -11,9 +13,11 @@
         "ndarray",
         "notificator",
         "optim",
+        "randn",
         "Randomizer",
         "relu",
         "stft",
+        "Unshuffle",
         "unsqueeze",
         "wavfile"
     ],

@@ -52,3 +52,21 @@ DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/xxx.../xxx..."
 NEPTUNE_PROJECT_NAME="xxx/yyy"
 NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 ```
+
+## Memo
+
+- PixelShuffleベースのAutoEncoderの実装
+  - skipコネクションが良くない可能性がある
+- TransformerBlockを使用した上記のモデルの実装
+  - nheadが重要
+  - 500サンプル程度ずらした6セットを1バッチとする
+- Diffusionモデルも実装してみる
+
+- Wavelet変換で周波数成分を算出して、L1Lossを出す
+  - 連続Wavelet変換
+    - scipy.signal.cwt
+    - scipy.signal.morletをマザーwaveletとして使用する
+  - 基底　36
+  - 波形のL1lossと足し合わせた損失関数を定義する
+
+- 1000Hzのデータを扱う
