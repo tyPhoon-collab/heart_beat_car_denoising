@@ -6,7 +6,7 @@ Usage:
     python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss --checkpoint-dir <path-to-checkpoint-dir>
 
     Evaluating the model:
-    python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file>
+    python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file> [--figure-filename <figure-path>] [--clean-audio-filename <clean-audio-path>] [--noisy-audio-filename <noisy-audio-path>] [--audio-filename <output-audio-path>]
 """
 
 import argparse
@@ -14,6 +14,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from dataset.factory import DataLoaderFactory, DatasetFactory
+from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from train import train_model
 from utils.device import load_local_dotenv
 from utils.model_saver import WithDateModelSaver
@@ -22,25 +23,50 @@ from models.auto_encoder import Conv1DAutoencoder
 from models.wave_u_net import WaveUNet
 from eval import eval_model
 
-
-def get_model(model_name):
-    match model_name:
-        case "WaveUNet":
-            return WaveUNet()
-        case "Conv1DAutoencoder":
-            return Conv1DAutoencoder()
-        case _:
-            raise ValueError(f"Unknown model: {model_name}")
+MODEL_CHOICES = [WaveUNet, Conv1DAutoencoder, PixelShuffleConv1DAutoencoder]
+LOSS_FUNCTIONS = [nn.L1Loss, nn.SmoothL1Loss]
 
 
-def get_loss_function(loss_fn_name):
-    match loss_fn_name:
-        case "L1Loss":
-            return nn.L1Loss()
-        case "SmoothL1Loss":
-            return nn.SmoothL1Loss()
-        case _:
-            raise ValueError(f"Unknown loss function: {loss_fn_name}")
+def get_model(model_name: str) -> nn.Module:
+    model_dict = {model.__name__: model for model in MODEL_CHOICES}
+    if model_name in model_dict:
+        return model_dict[model_name]()
+    else:
+        raise ValueError(f"Unknown model: {model_name}")
+
+
+def get_loss_function(loss_fn_name: str) -> nn.Module:
+    loss_fn_dict = {loss_fn.__name__: loss_fn for loss_fn in LOSS_FUNCTIONS}
+    if loss_fn_name in loss_fn_dict:
+        return loss_fn_dict[loss_fn_name]()
+    else:
+        raise ValueError(f"Unknown loss function: {loss_fn_name}")
+
+
+def get_model_names() -> list[str]:
+    return [model.__name__ for model in MODEL_CHOICES]
+
+
+def get_loss_function_names() -> list[str]:
+    return [loss_fn.__name__ for loss_fn in LOSS_FUNCTIONS]
+
+
+def add_common_arguments(parser):
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        choices=get_model_names(),
+        help="Model name",
+    )
+    parser.add_argument(
+        "--loss-fn",
+        type=str,
+        required=True,
+        choices=get_loss_function_names(),
+        help="Loss function",
+    )
+    parser.add_argument("--batch-size", type=int, default=1, help="Batch size")
 
 
 def train(args):
@@ -107,21 +133,7 @@ def main():
 
     # トレーニングサブコマンド
     parser_train = subparsers.add_parser("train", help="Train the model")
-    parser_train.add_argument(
-        "--model",
-        type=str,
-        required=True,
-        choices=["WaveUNet", "Conv1DAutoencoder"],
-        help="Model name",
-    )
-    parser_train.add_argument(
-        "--loss-fn",
-        type=str,
-        required=True,
-        choices=["L1Loss", "SmoothL1Loss"],
-        help="Loss function",
-    )
-    parser_train.add_argument("--batch-size", type=int, default=1, help="Batch size")
+    add_common_arguments(parser_train)
     parser_train.add_argument(
         "--learning-rate",
         type=float,
@@ -144,21 +156,7 @@ def main():
 
     # 推論サブコマンド
     parser_eval = subparsers.add_parser("eval", help="Evaluate the model")
-    parser_eval.add_argument(
-        "--model",
-        type=str,
-        required=True,
-        choices=["WaveUNet", "Conv1DAutoencoder"],
-        help="Model name",
-    )
-    parser_eval.add_argument(
-        "--loss-fn",
-        type=str,
-        required=True,
-        choices=["L1Loss", "SmoothL1Loss"],
-        help="Loss function",
-    )
-    parser_eval.add_argument("--batch-size", type=int, default=1, help="Batch size")
+    add_common_arguments(parser_eval)
     parser_eval.add_argument(
         "--weights-path",
         type=str,
