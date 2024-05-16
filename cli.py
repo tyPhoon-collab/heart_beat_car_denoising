@@ -18,7 +18,7 @@ from loss.combine import CombinedLoss
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from train import train_model
 from utils.device import load_local_dotenv
-from utils.model_saver import WithDateModelSaver
+from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Conv1DAutoencoder
 from models.wave_u_net import WaveUNet
@@ -75,7 +75,13 @@ def train(args):
 
     # ロガーとモデルセーバーの準備
     logger = TrainingLoggerFactory.remote()
-    model_saver = WithDateModelSaver(base_directory=args.checkpoint_dir)
+
+    id = args.model_id
+    model_saver = (
+        WithDateModelSaver(base_directory=args.checkpoint_dir)
+        if id is None
+        else WithIdModelSaver(base_directory=args.checkpoint_dir, id=id)
+    )
 
     # モデルと損失関数の選択
     model = get_model(args.model)
@@ -152,6 +158,12 @@ def main():
         type=str,
         default="output/checkpoint",
         help="Checkpoint directory",
+    )
+    parser_train.add_argument(
+        "--model-id",
+        type=str,
+        default=None,
+        help="ID of the model",
     )
     parser_train.set_defaults(func=train)
 

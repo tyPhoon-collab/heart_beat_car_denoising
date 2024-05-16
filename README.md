@@ -30,6 +30,10 @@
 ## 実行コマンド例
 
 ```bash
+bash train_and_eval.sh PSAE PixelShuffleConv1DAutoencoder CombinedLoss
+```
+
+```bash
 python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss \
 --checkpoint-dir "output/checkpoint/AE_smooth_l1_loss"
 ```
