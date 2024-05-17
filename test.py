@@ -13,7 +13,7 @@ from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.transformer_pixel_shuffle_auto_encoder import (
-    TransformerPixelShuffleConv1DAutoencoder,
+    PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
 from utils.plot import plot_signal, plot_spectrogram, plot_two_signals
@@ -103,7 +103,7 @@ class TestModels(unittest.TestCase):
     def test_transformer_pixel_shuffle_auto_encoder(self):
 
         # Model instantiation
-        model = TransformerPixelShuffleConv1DAutoencoder()
+        model = PixelShuffleConv1DAutoencoderWithTransformer()
         print(model)
 
         # Define the loss function and optimizer
