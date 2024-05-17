@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.loader import MatLoader
-from dataset.randomizer import NumpyRandomShuffleRandomizer
+from dataset.randomizer import NumpyRandomShuffleRandomizer, PhaseShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
@@ -268,6 +268,20 @@ class TestVisualize(unittest.TestCase):
         ).convert(signal)
 
         return signal
+
+
+class TestRandomizer(unittest.TestCase):
+    def test_numpy_shuffle(self):
+        a = np.random.randn(100)
+        rand = NumpyRandomShuffleRandomizer().shuffle(a)
+        self.assertEqual(len(a), len(rand))
+        print(rand)
+
+    def test_phase_shuffle(self):
+        a = np.random.randn(100)
+        rand = PhaseShuffleRandomizer().shuffle(a)
+        self.assertEqual(len(a), len(rand))
+        print(rand)
 
 
 if __name__ == "__main__":
