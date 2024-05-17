@@ -56,18 +56,58 @@ class NoisyHeartbeatDataset(Dataset):
         return len(self.clean_data) - self.split_sample_points
 
     def __getitem__(self, idx: int):
-        start = idx
-        end = idx + self.split_sample_points
+        start, end = self._get_start_end(idx)
 
         clean = self.clean_data[start:end]
-        randomized_noisy = self.__randomize(self.noisy_data[start:end])
+        randomized_noisy = self._randomize(self.noisy_data[start:end])
         return (
-            self.__to_tensor(clean + randomized_noisy).unsqueeze(0),
-            self.__to_tensor(clean).unsqueeze(0),
+            self._to_tensor(clean + randomized_noisy).unsqueeze(0),
+            self._to_tensor(clean).unsqueeze(0),
         )
 
-    def __to_tensor(self, data):
+    def _get_start_end(self, idx: int):
+        start = idx
+        end = idx + self.split_sample_points
+        return start, end
+
+    def _to_tensor(self, data):
         return torch.tensor(data, dtype=torch.float32)
 
-    def __randomize(self, data):
+    def _randomize(self, data):
         return self.randomizer.shuffle(data)
+
+
+@dataclass
+class ProgressiveNoisyHeartbeatDataset(NoisyHeartbeatDataset):
+    epoch_from: int = 0  # プログレッシブ学習の開始エポック数
+    epoch_to: int = 5  # プログレッシブ学習の終了エポック数
+    max_gain: float = 1.1  # ノイズを加算する際の最大倍率
+    # 現在のノイズの倍率。テスト時にset_epochを呼び出さない可能性があるので1にしておく
+    gain: float = 1
+
+    def set_epoch(self, epoch: int):
+        self.gain = self.__calculate_gain(epoch)
+
+    def __getitem__(self, idx: int):
+        start, end = self._get_start_end(idx)
+
+        clean = self.clean_data[start:end]
+        randomized_noisy = self._randomize(self.noisy_data[start:end])
+
+        return (
+            self._to_tensor(clean + randomized_noisy * self.gain).unsqueeze(0),
+            self._to_tensor(clean).unsqueeze(0),
+        )
+
+    def __calculate_gain(self, epoch: int):
+        if not self.train:
+            return 1.0
+
+        if epoch < self.epoch_from:
+            return (
+                self.max_gain
+                * (epoch - self.epoch_from)
+                / (self.epoch_to - self.epoch_from)
+            )
+        else:
+            return self.max_gain

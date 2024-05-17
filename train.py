@@ -2,7 +2,7 @@ import os
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
-from dataset.dataset import NoisyHeartbeatDataset
+from dataset.dataset import NoisyHeartbeatDataset, ProgressiveNoisyHeartbeatDataset
 from dataset.randomizer import NumpyRandomShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.training_logger import Params, TrainingLogger
@@ -47,6 +47,9 @@ def train_model(
         dataloader = [next(iter(dataloader))]  # type: ignore
 
     for epoch in range(epoch_size):
+        if dataloader.dataset is ProgressiveNoisyHeartbeatDataset:
+            dataloader.dataset.set_epoch(epoch)
+
         for noisy, clean in dataloader:
             noisy = noisy.to(device)
             clean = clean.to(device)
