@@ -13,8 +13,7 @@ class Randomizer(ABC):
 
 class NumpyRandomShuffleRandomizer(Randomizer):
     def shuffle(self, array: ArrayLike) -> np.ndarray:
-        np.random.shuffle(array)
-        return array  # type: ignore
+        return np.random.permutation(array)
 
 
 @dataclass
@@ -25,6 +24,6 @@ class PhaseShuffleRandomizer(Randomizer):
 
     def shuffle(self, array: ArrayLike) -> np.ndarray:
         array_fft = fft(array)
-        magnitude = np.abs(array_fft)
-        random_phase = np.exp(1j * self.fft_randomizer.shuffle(np.angle(array_fft)))
-        return ifft(magnitude * random_phase).real
+        magnitude = np.abs(array_fft)  # type: ignore
+        random_phase = np.exp(1j * self.fft_randomizer.shuffle(np.angle(array_fft)))  # type: ignore
+        return ifft(magnitude * random_phase).real  # type: ignore

@@ -1,3 +1,4 @@
+from random import shuffle
 import unittest
 
 import numpy as np
@@ -6,7 +7,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from dataset.dataset import NoisyHeartbeatDataset
+from dataset.dataset import NoisyHeartbeatDataset, ProgressiveNoisyHeartbeatDataset
 from dataset.loader import MatLoader
 from dataset.randomizer import NumpyRandomShuffleRandomizer, PhaseShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
@@ -16,7 +17,12 @@ from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
-from utils.plot import plot_signal, plot_spectrogram, plot_two_signals
+from utils.plot import (
+    plot_signal,
+    plot_spectrogram,
+    plot_three_signals,
+    plot_two_signals,
+)
 from utils.sound import save_signal_to_wav_scipy
 
 
@@ -41,6 +47,42 @@ class TestDataSet(unittest.TestCase):
                 output_rate=1000,
             ),
             randomizer=NumpyRandomShuffleRandomizer(),
+            train=False,
+        )
+
+        print(len(train_dataset))
+        print(len(test_dataset))
+
+        dataloader = DataLoader(
+            train_dataset,
+            batch_size=1,
+            shuffle=True,
+        )
+
+        noisy, clean = next(iter(dataloader))
+
+        plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
+
+    def test_data_set_progressive(self):
+        train_dataset = ProgressiveNoisyHeartbeatDataset(
+            clean_file_path="data/Stop.mat",
+            noisy_file_path="data/100km.mat",
+            # noisy_file_path="data/Stop.mat",
+            sampling_rate_converter=ScipySamplingRateConverter(
+                input_rate=32000,
+                output_rate=1000,
+            ),
+            randomizer=PhaseShuffleRandomizer(),
+        )
+        test_dataset = ProgressiveNoisyHeartbeatDataset(
+            clean_file_path="data/Stop.mat",
+            noisy_file_path="data/100km.mat",
+            # noisy_file_path="data/Stop.mat",
+            sampling_rate_converter=ScipySamplingRateConverter(
+                input_rate=32000,
+                output_rate=1000,
+            ),
+            randomizer=PhaseShuffleRandomizer(),
             train=False,
         )
 
@@ -234,6 +276,21 @@ class TestVisualize(unittest.TestCase):
 
     def test_show_100km(self):
         self.show("data/100km.mat")
+
+    def test_show_all_randomize(self):
+        single_data = self.load("data/100km.mat")
+        single_data = self.convert_sample_rate(single_data, 32000, 1000)
+        sample_base_shuffled_data = NumpyRandomShuffleRandomizer().shuffle(single_data)
+        phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
+
+        plot_three_signals(
+            upper=single_data,
+            middle=sample_base_shuffled_data,
+            lower=phase_shuffled_data,
+            upper_label="Original Signal",
+            middle_label="Randomized Signal",
+            lower_label="Phase Shuffled Signal",
+        )
 
     def convert_to_wav(
         self,
