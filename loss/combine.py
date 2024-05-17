@@ -25,6 +25,7 @@ class CombinedLoss(nn.Module):
         l1_loss_waveform = self.l1_loss(outputs, targets)
 
         # Wavelet変換を実行
+        # 勾配計算を行わないようにするため、detach()メソッドを使用
         outputs_np = outputs.detach().cpu().numpy().squeeze()
         targets_np = targets.detach().cpu().numpy().squeeze()
 
@@ -33,10 +34,14 @@ class CombinedLoss(nn.Module):
 
         # CWTの結果をPyTorchテンソルに変換
         cwt_outputs_tensor = torch.tensor(
-            cwt_outputs, dtype=torch.float32, device=outputs.device
+            cwt_outputs,
+            dtype=torch.float32,
+            device=outputs.device,
         )
         cwt_targets_tensor = torch.tensor(
-            cwt_targets, dtype=torch.float32, device=outputs.device
+            cwt_targets,
+            dtype=torch.float32,
+            device=outputs.device,
         )
 
         # 周波数成分のL1Lossを計算
