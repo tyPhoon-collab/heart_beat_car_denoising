@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader, Dataset
 from dataset.dataset import NoisyHeartbeatDataset
-from dataset.randomizer import NumpyRandomShuffleRandomizer
+from dataset.randomizer import SampleShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 
 
@@ -22,17 +22,17 @@ class DatasetFactory:
                 input_rate=input_rate,
                 output_rate=output_rate,
             ),
-            randomizer=randomizer or NumpyRandomShuffleRandomizer(),
+            randomizer=randomizer or SampleShuffleRandomizer(),
             train=train,
         )
 
     @classmethod
-    def create_train(cls):
-        return cls.create(train=True)
+    def create_train(cls, *, randomizer=None):
+        return cls.create(train=True, randomizer=randomizer)
 
     @classmethod
-    def create_test(cls):
-        return cls.create(train=False)
+    def create_test(cls, *, randomizer=None):
+        return cls.create(train=False, randomizer=randomizer)
 
 
 class DataLoaderFactory:

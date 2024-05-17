@@ -1,4 +1,3 @@
-from random import shuffle
 import unittest
 
 import numpy as np
@@ -9,7 +8,7 @@ from torch.utils.data import DataLoader
 
 from dataset.dataset import NoisyHeartbeatDataset, ProgressiveNoisyHeartbeatDataset
 from dataset.loader import MatLoader
-from dataset.randomizer import NumpyRandomShuffleRandomizer, PhaseShuffleRandomizer
+from dataset.randomizer import SampleShuffleRandomizer, PhaseShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
@@ -36,7 +35,7 @@ class TestDataSet(unittest.TestCase):
                 input_rate=32000,
                 output_rate=1000,
             ),
-            randomizer=NumpyRandomShuffleRandomizer(),
+            randomizer=SampleShuffleRandomizer(),
         )
         test_dataset = NoisyHeartbeatDataset(
             clean_file_path="data/Stop.mat",
@@ -46,7 +45,7 @@ class TestDataSet(unittest.TestCase):
                 input_rate=32000,
                 output_rate=1000,
             ),
-            randomizer=NumpyRandomShuffleRandomizer(),
+            randomizer=SampleShuffleRandomizer(),
             train=False,
         )
 
@@ -108,7 +107,7 @@ class TestDataSet(unittest.TestCase):
                 input_rate=32000,
                 output_rate=1024,
             ),
-            randomizer=NumpyRandomShuffleRandomizer(),
+            randomizer=SampleShuffleRandomizer(),
         )
 
         data = train_dataset[0]
@@ -124,7 +123,7 @@ class TestDataSet(unittest.TestCase):
                 input_rate=32000,
                 output_rate=1024,
             ),
-            randomizer=NumpyRandomShuffleRandomizer(),
+            randomizer=SampleShuffleRandomizer(),
         )
 
         data = train_dataset[len(train_dataset) - 1]
@@ -280,7 +279,7 @@ class TestVisualize(unittest.TestCase):
     def test_show_all_randomize(self):
         single_data = self.load("data/100km.mat")
         single_data = self.convert_sample_rate(single_data, 32000, 1000)
-        sample_base_shuffled_data = NumpyRandomShuffleRandomizer().shuffle(single_data)
+        sample_base_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
         phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
 
         plot_three_signals(
@@ -330,7 +329,7 @@ class TestVisualize(unittest.TestCase):
 class TestRandomizer(unittest.TestCase):
     def test_numpy_shuffle(self):
         a = np.random.randn(100)
-        rand = NumpyRandomShuffleRandomizer().shuffle(a)
+        rand = SampleShuffleRandomizer().shuffle(a)
         self.assertEqual(len(a), len(rand))
         print(rand)
 

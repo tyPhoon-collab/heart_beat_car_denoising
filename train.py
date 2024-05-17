@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from dataset.dataset import NoisyHeartbeatDataset, ProgressiveNoisyHeartbeatDataset
-from dataset.randomizer import NumpyRandomShuffleRandomizer
+from dataset.randomizer import SampleShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.training_logger import Params, TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
@@ -42,13 +42,15 @@ def train_model(
 
     model.train()
 
+    dataset = dataloader.dataset
+
     if os.getenv("ONLY_FIRST_BATCH") == "1":
         # 最初のバッチのみ処理。全体の訓練コードの確認用なので、値は何でも良い
         dataloader = [next(iter(dataloader))]  # type: ignore
 
     for epoch in range(epoch_size):
-        if dataloader.dataset is ProgressiveNoisyHeartbeatDataset:
-            dataloader.dataset.set_epoch(epoch)
+        if dataset is ProgressiveNoisyHeartbeatDataset:
+            dataset.set_epoch(epoch)
 
         for noisy, clean in dataloader:
             noisy = noisy.to(device)
@@ -86,7 +88,7 @@ if __name__ == "__main__":
         sampling_rate_converter=ScipySamplingRateConverter(
             input_rate=32000, output_rate=1024
         ),
-        randomizer=NumpyRandomShuffleRandomizer(),
+        randomizer=SampleShuffleRandomizer(),
         train=True,
     )
     train_dataloader = DataLoader(

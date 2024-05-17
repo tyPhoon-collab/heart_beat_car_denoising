@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from dataset.dataset import NoisyHeartbeatDataset
-from dataset.randomizer import NumpyRandomShuffleRandomizer
+from dataset.randomizer import SampleShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.wave_u_net import WaveUNet
 from utils.device import get_torch_device
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         sampling_rate_converter=ScipySamplingRateConverter(
             input_rate=32000, output_rate=1024
         ),
-        randomizer=NumpyRandomShuffleRandomizer(),
+        randomizer=SampleShuffleRandomizer(),
         train=False,
     )
 

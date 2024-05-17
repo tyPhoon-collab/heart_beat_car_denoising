@@ -11,7 +11,7 @@ class Randomizer(ABC):
         pass
 
 
-class NumpyRandomShuffleRandomizer(Randomizer):
+class SampleShuffleRandomizer(Randomizer):
     def shuffle(self, array: ArrayLike) -> np.ndarray:
         return np.random.permutation(array)
 
@@ -19,7 +19,7 @@ class NumpyRandomShuffleRandomizer(Randomizer):
 @dataclass
 class PhaseShuffleRandomizer(Randomizer):
     fft_randomizer: Randomizer = field(
-        default_factory=lambda: NumpyRandomShuffleRandomizer()
+        default_factory=lambda: SampleShuffleRandomizer()
     )
 
     def shuffle(self, array: ArrayLike) -> np.ndarray:

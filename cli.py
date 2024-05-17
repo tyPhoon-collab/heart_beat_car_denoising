@@ -14,8 +14,12 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from dataset.factory import DataLoaderFactory, DatasetFactory
+from dataset.randomizer import SampleShuffleRandomizer, PhaseShuffleRandomizer
 from loss.combine import CombinedLoss
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
+from models.transformer_pixel_shuffle_auto_encoder import (
+    PixelShuffleConv1DAutoencoderWithTransformer,
+)
 from train import train_model
 from utils.device import load_local_dotenv
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
@@ -24,12 +28,18 @@ from models.auto_encoder import Conv1DAutoencoder
 from models.wave_u_net import WaveUNet
 from eval import eval_model
 
-MODEL_CHOICES = [WaveUNet, Conv1DAutoencoder, PixelShuffleConv1DAutoencoder]
-LOSS_FUNCTIONS = [nn.L1Loss, nn.SmoothL1Loss, CombinedLoss]
+MODEL = [
+    WaveUNet,
+    Conv1DAutoencoder,
+    PixelShuffleConv1DAutoencoder,
+    PixelShuffleConv1DAutoencoderWithTransformer,
+]
+LOSS_FN = [nn.L1Loss, nn.SmoothL1Loss, CombinedLoss]
+RANDOMIZER = [SampleShuffleRandomizer, PhaseShuffleRandomizer]
 
 
 def get_model(model_name: str) -> nn.Module:
-    model_dict = {model.__name__: model for model in MODEL_CHOICES}
+    model_dict = {model.__name__: model for model in MODEL}
     if model_name in model_dict:
         return model_dict[model_name]()
     else:
@@ -37,19 +47,31 @@ def get_model(model_name: str) -> nn.Module:
 
 
 def get_loss_function(loss_fn_name: str) -> nn.Module:
-    loss_fn_dict = {loss_fn.__name__: loss_fn for loss_fn in LOSS_FUNCTIONS}
+    loss_fn_dict = {loss_fn.__name__: loss_fn for loss_fn in LOSS_FN}
     if loss_fn_name in loss_fn_dict:
         return loss_fn_dict[loss_fn_name]()
     else:
         raise ValueError(f"Unknown loss function: {loss_fn_name}")
 
 
+def get_randomizer(randomizer_name: str) -> nn.Module:
+    randomizer_dict = {randomizer.__name__: randomizer for randomizer in RANDOMIZER}
+    if randomizer_name in randomizer_dict:
+        return randomizer_dict[randomizer_name]()
+    else:
+        raise ValueError(f"Unknown randomizer: {randomizer_name}")
+
+
 def get_model_names() -> list[str]:
-    return [model.__name__ for model in MODEL_CHOICES]
+    return [model.__name__ for model in MODEL]
 
 
 def get_loss_function_names() -> list[str]:
-    return [loss_fn.__name__ for loss_fn in LOSS_FUNCTIONS]
+    return [loss_fn.__name__ for loss_fn in LOSS_FN]
+
+
+def get_randomizer_names() -> list[str]:
+    return [randomizer.__name__ for randomizer in RANDOMIZER]
 
 
 def add_common_arguments(parser):
@@ -68,6 +90,13 @@ def add_common_arguments(parser):
         help="Loss function",
     )
     parser.add_argument("--batch-size", type=int, default=1, help="Batch size")
+    parser.add_argument(
+        "--randomizer",
+        type=str,
+        default="PhaseShuffleRandomizer",
+        choices=get_randomizer_names(),
+        help="Randomizer",
+    )
 
 
 def train(args):
@@ -76,19 +105,20 @@ def train(args):
     # ロガーとモデルセーバーの準備
     logger = TrainingLoggerFactory.remote()
 
-    id = args.model_id
+    model_id = args.model_id
     model_saver = (
         WithDateModelSaver(base_directory=args.checkpoint_dir)
-        if id is None
-        else WithIdModelSaver(base_directory=args.checkpoint_dir, id=id)
+        if model_id is None
+        else WithIdModelSaver(base_directory=args.checkpoint_dir, id=model_id)
     )
 
     # モデルと損失関数の選択
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
+    randomizer = get_randomizer(args.randomizer)
 
     # データセットとデータローダーの準備
-    train_dataset = DatasetFactory.create_train()
+    train_dataset = DatasetFactory.create_train(randomizer=randomizer)
     train_dataloader = DataLoaderFactory.create_train(
         train_dataset, batch_size=args.batch_size
     )
@@ -110,13 +140,14 @@ def evaluate(args):
     # モデルと損失関数の選択
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
+    randomizer = get_randomizer(args.randomizer)
 
     # モデルの重みのロード
     if args.weights_path:
         model.load_state_dict(torch.load(args.weights_path))
 
     # データセットとデータローダーの準備
-    test_dataset = DatasetFactory.create_test()
+    test_dataset = DatasetFactory.create_test(randomizer=randomizer)
     test_dataloader = DataLoaderFactory.create_test(
         test_dataset, batch_size=args.batch_size
     )

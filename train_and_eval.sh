@@ -24,8 +24,8 @@ print_separator() {
 }
 
 # 引数チェック
-if [ "$#" -ne 3 ]; then
-    print_error "Usage: $0 <ID> <MODEL> <LOSS_FN>"
+if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
+    print_error "Usage: $0 <ID> <MODEL> <LOSS_FN> [<RANDOMIZER>]"
     exit 1
 fi
 
@@ -33,20 +33,23 @@ fi
 ID=$1
 MODEL=$2
 LOSS_FN=$3
+RANDOMIZER=$4
+
 FOLDER_NAME="${MODEL}_${LOSS_FN}"
 CHECKPOINT_DIR="output/checkpoint/$FOLDER_NAME"
 WEIGHTS_PATH="$CHECKPOINT_DIR/$ID/model_weights_epoch_5.pth"
 FIGURE_FILENAME="${ID}.png"
-CLEAN_AUDIO_FILENAME="${ID}_clean.wav"
-NOISY_AUDIO_FILENAME="${ID}_noisy.wav"
-AUDIO_FILENAME="${ID}_output.wav"
+# CLEAN_AUDIO_FILENAME="${ID}_clean.wav"
+# NOISY_AUDIO_FILENAME="${ID}_noisy.wav"
+# AUDIO_FILENAME="${ID}_output.wav"
 
 print_separator
 print_yellow "Training the model"
 print_separator
 python cli.py train --model "$MODEL" --loss-fn "$LOSS_FN" \
---checkpoint-dir "$CHECKPOINT_DIR" \
---model-id "$ID"
+    --checkpoint-dir "$CHECKPOINT_DIR" \
+    --model-id "$ID" \
+    --randomizer "$RANDOMIZER"
 
 # エラーハンドリング
 if [ $? -ne 0 ]; then
@@ -58,11 +61,11 @@ print_separator
 print_yellow "Evaluating the model"
 print_separator
 python cli.py eval --model "$MODEL" --loss-fn "$LOSS_FN" \
---weights-path "$WEIGHTS_PATH" \
---figure-filename "$FIGURE_FILENAME" \
---clean-audio-filename "$CLEAN_AUDIO_FILENAME" \
---noisy-audio-filename "$NOISY_AUDIO_FILENAME" \
---audio-filename "$AUDIO_FILENAME"
+    --weights-path "$WEIGHTS_PATH" \
+    --figure-filename "$FIGURE_FILENAME" \
+    # --clean-audio-filename "$CLEAN_AUDIO_FILENAME" \
+    # --noisy-audio-filename "$NOISY_AUDIO_FILENAME" \
+    # --audio-filename "$AUDIO_FILENAME"
 
 # エラーハンドリング
 if [ $? -ne 0 ]; then
