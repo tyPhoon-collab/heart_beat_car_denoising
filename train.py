@@ -2,12 +2,13 @@ import os
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
-from dataset.dataset import NoisyHeartbeatDataset, ProgressiveNoisyHeartbeatDataset
+from dataset.dataset import NoisyHeartbeatDataset
 from dataset.randomizer import SampleShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.training_logger import Params, TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from utils.device import get_torch_device, load_local_dotenv
+from utils.gain_controller import GainController
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
@@ -42,15 +43,12 @@ def train_model(
 
     model.train()
 
-    dataset = dataloader.dataset
+    gain_controller: GainController = dataloader.dataset.gain_controller  # type: ignore
 
-    if os.getenv("ONLY_FIRST_BATCH") == "1":
-        # 最初のバッチのみ処理。全体の訓練コードの確認用なので、値は何でも良い
-        dataloader = [next(iter(dataloader))]  # type: ignore
+    only_first_batch = os.getenv("ONLY_FIRST_BATCH") == "1"
 
     for epoch in range(epoch_size):
-        if dataset is ProgressiveNoisyHeartbeatDataset:
-            dataset.set_epoch(epoch)
+        gain_controller.set_gain_from_epoch(epoch)
 
         for noisy, clean in dataloader:
             noisy = noisy.to(device)
@@ -63,6 +61,9 @@ def train_model(
             optimizer.step()
 
             logger.on_batch_end(epoch, loss)
+
+            if only_first_batch:
+                break
 
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
 
@@ -89,6 +90,7 @@ if __name__ == "__main__":
             input_rate=32000, output_rate=1024
         ),
         randomizer=SampleShuffleRandomizer(),
+        gain_controller=GainController(epoch_to=4, max_gain=1.1),
         train=True,
     )
     train_dataloader = DataLoader(

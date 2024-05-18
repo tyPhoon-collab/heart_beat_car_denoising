@@ -6,7 +6,11 @@ Usage:
     python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss --checkpoint-dir <path-to-checkpoint-dir>
 
     Evaluating the model:
-    python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file> [--figure-filename <figure-path>] [--clean-audio-filename <clean-audio-path>] [--noisy-audio-filename <noisy-audio-path>] [--audio-filename <output-audio-path>]
+    python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file> \
+        [--figure-filename <figure-path>] \
+        [--clean-audio-filename <clean-audio-path>] \
+        [--noisy-audio-filename <noisy-audio-path>] \
+        [--audio-filename <output-audio-path>]
 """
 
 import argparse
@@ -123,7 +127,8 @@ def train(args):
     # データセットとデータローダーの準備
     train_dataset = DatasetFactory.create_train(randomizer=randomizer)
     train_dataloader = DataLoaderFactory.create_train(
-        train_dataset, batch_size=args.batch_size
+        train_dataset,
+        batch_size=args.batch_size,
     )
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
@@ -152,7 +157,8 @@ def evaluate(args):
     # データセットとデータローダーの準備
     test_dataset = DatasetFactory.create_test(randomizer=randomizer)
     test_dataloader = DataLoaderFactory.create_test(
-        test_dataset, batch_size=args.batch_size
+        test_dataset,
+        batch_size=args.batch_size,
     )
 
     # モデルの評価

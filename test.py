@@ -63,43 +63,6 @@ class TestDataSet(unittest.TestCase):
 
         plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
 
-    def test_data_set_progressive(self):
-        train_dataset = NoisyHeartbeatDataset(
-            clean_file_path="data/Stop.mat",
-            noisy_file_path="data/100km.mat",
-            # noisy_file_path="data/Stop.mat",
-            sampling_rate_converter=ScipySamplingRateConverter(
-                input_rate=32000,
-                output_rate=1000,
-            ),
-            randomizer=PhaseShuffleRandomizer(),
-            gain_controller=GainController(epoch_from=0, epoch_to=5),
-        )
-        test_dataset = NoisyHeartbeatDataset(
-            clean_file_path="data/Stop.mat",
-            noisy_file_path="data/100km.mat",
-            # noisy_file_path="data/Stop.mat",
-            sampling_rate_converter=ScipySamplingRateConverter(
-                input_rate=32000,
-                output_rate=1000,
-            ),
-            randomizer=PhaseShuffleRandomizer(),
-            train=False,
-        )
-
-        print(len(train_dataset))
-        print(len(test_dataset))
-
-        dataloader = DataLoader(
-            train_dataset,
-            batch_size=1,
-            shuffle=True,
-        )
-
-        noisy, clean = next(iter(dataloader))
-
-        plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
-
     def test_idx_0(self):
         train_dataset = NoisyHeartbeatDataset(
             clean_file_path="data/Stop.mat",
