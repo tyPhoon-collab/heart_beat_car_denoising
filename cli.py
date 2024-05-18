@@ -15,6 +15,9 @@ import torch.optim as optim
 import torch.nn as nn
 from dataset.factory import DataLoaderFactory, DatasetFactory
 from dataset.randomizer import SampleShuffleRandomizer, PhaseShuffleRandomizer
+from logger.evaluation_impls.audio import AudioEvaluationLogger
+from logger.evaluation_impls.composite import CompositeEvaluationLogger
+from logger.evaluation_impls.figure import FigureEvaluationLogger
 from loss.combine import CombinedLoss
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.transformer_pixel_shuffle_auto_encoder import (
@@ -158,10 +161,17 @@ def evaluate(args):
         args.weights_path,
         test_dataloader,
         criterion,
-        figure_filename=args.figure_filename,
-        clean_audio_filename=args.clean_audio_filename,
-        noisy_audio_filename=args.noisy_audio_filename,
-        audio_filename=args.audio_filename,
+        logger=CompositeEvaluationLogger(
+            loggers=[
+                FigureEvaluationLogger(filename=args.figure_filename),
+                AudioEvaluationLogger(
+                    sample_rate=test_dataset.sample_rate(),
+                    audio_filename=args.audio_filename,
+                    clean_audio_filename=args.clean_audio_filename,
+                    noisy_audio_filename=args.noisy_audio_filename,
+                ),
+            ]
+        ),
     )
 
 

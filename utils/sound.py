@@ -10,3 +10,4 @@ def save_signal_to_wav_scipy(
 ):
     scaled_data = np.int16(data / np.max(np.abs(data)) * 32767)
     wavfile.write(f"output/audio/{filename}", sample_rate, scaled_data)
+    print(f"Audio saved to output/audio/{filename}")
