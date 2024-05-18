@@ -29,6 +29,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 )
 from train import train_model
 from utils.device import load_local_dotenv
+from utils.gain_controller import GainController
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Conv1DAutoencoder
@@ -125,7 +126,14 @@ def train(args):
     randomizer = get_randomizer(args.randomizer)
 
     # データセットとデータローダーの準備
-    train_dataset = DatasetFactory.create_train(randomizer=randomizer)
+    train_dataset = DatasetFactory.create_train(
+        randomizer=randomizer,
+        gain_controller=(
+            GainController(epoch_to=4, max_gain=1.1)
+            if args.with_progressive_gain
+            else None
+        ),
+    )
     train_dataloader = DataLoaderFactory.create_train(
         train_dataset,
         batch_size=args.batch_size,
@@ -155,7 +163,9 @@ def evaluate(args):
         model.load_state_dict(torch.load(args.weights_path))
 
     # データセットとデータローダーの準備
-    test_dataset = DatasetFactory.create_test(randomizer=randomizer)
+    test_dataset = DatasetFactory.create_test(
+        randomizer=randomizer,
+    )
     test_dataloader = DataLoaderFactory.create_test(
         test_dataset,
         batch_size=args.batch_size,
@@ -211,6 +221,11 @@ def main():
         type=str,
         default=None,
         help="ID of the model",
+    )
+    parser_train.add_argument(
+        "--with-progressive-gain",
+        action="store_true",
+        help="Enable progressive gain",
     )
     parser_train.set_defaults(func=train)
 

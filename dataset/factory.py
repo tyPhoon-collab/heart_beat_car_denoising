@@ -13,6 +13,7 @@ class DatasetFactory:
         input_rate=32000,
         output_rate=1024,
         randomizer=None,
+        gain_controller=None,
         train=True,
     ):
         return NoisyHeartbeatDataset(
@@ -23,12 +24,17 @@ class DatasetFactory:
                 output_rate=output_rate,
             ),
             randomizer=randomizer or SampleShuffleRandomizer(),
+            gain_controller=gain_controller,
             train=train,
         )
 
     @classmethod
-    def create_train(cls, *, randomizer=None):
-        return cls.create(train=True, randomizer=randomizer)
+    def create_train(cls, *, randomizer=None, gain_controller=None):
+        return cls.create(
+            train=True,
+            randomizer=randomizer,
+            gain_controller=gain_controller,
+        )
 
     @classmethod
     def create_test(cls, *, randomizer=None):

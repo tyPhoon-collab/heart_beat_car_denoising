@@ -21,6 +21,7 @@ class GainController:
 
     def set_gain_from_epoch(self, epoch: int):
         self.gain = self.__calculate_gain(epoch)
+        print(f"Set gain: {self.gain}")
 
     def __calculate_gain(self, epoch: int) -> float:
         if epoch <= self.epoch_from:

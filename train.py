@@ -43,12 +43,13 @@ def train_model(
 
     model.train()
 
-    gain_controller: GainController = dataloader.dataset.gain_controller  # type: ignore
+    gain_controller: GainController | None = dataloader.dataset.gain_controller  # type: ignore
 
     only_first_batch = os.getenv("ONLY_FIRST_BATCH") == "1"
 
     for epoch in range(epoch_size):
-        gain_controller.set_gain_from_epoch(epoch)
+        if gain_controller is not None:
+            gain_controller.set_gain_from_epoch(epoch)
 
         for noisy, clean in dataloader:
             noisy = noisy.to(device)

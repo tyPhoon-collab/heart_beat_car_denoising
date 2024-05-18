@@ -24,8 +24,8 @@ print_separator() {
 }
 
 # 引数チェック
-if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
-    print_error "Usage: $0 <ID> <MODEL> <LOSS_FN> [<RANDOMIZER>]"
+if [ "$#" -lt 3 ]; then
+    print_error "Usage: $0 <ID> <MODEL> <LOSS_FN> [<ANOTHER_TRAINING_OPTIONS>]"
     exit 1
 fi
 
@@ -33,7 +33,10 @@ fi
 ID=$1
 MODEL=$2
 LOSS_FN=$3
-RANDOMIZER=$4
+
+shift 3
+
+ANOTHER_TRAINING_OPTIONS=$*
 
 FOLDER_NAME="${MODEL}_${LOSS_FN}"
 CHECKPOINT_DIR="output/checkpoint/$FOLDER_NAME"
@@ -48,8 +51,7 @@ print_yellow "Training the model"
 print_separator
 python cli.py train --model "$MODEL" --loss-fn "$LOSS_FN" \
     --checkpoint-dir "$CHECKPOINT_DIR" \
-    --model-id "$ID" \
-    --randomizer "$RANDOMIZER"
+    --model-id "$ID" $ANOTHER_TRAINING_OPTIONS
 
 # エラーハンドリング
 if [ $? -ne 0 ]; then
