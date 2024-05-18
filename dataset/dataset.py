@@ -1,7 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+
+from utils.gain_controller import GainController
 
 from .loader import Loader, MatLoader
 from .randomizer import Randomizer
@@ -17,6 +19,7 @@ class NoisyHeartbeatDataset(Dataset):
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
     split_sample_points: int = 5120
+    gain_controller: GainController = field(default_factory=lambda: GainController())
 
     def sample_rate(self):
         return self.sampling_rate_converter.output_rate
@@ -62,9 +65,9 @@ class NoisyHeartbeatDataset(Dataset):
         start, end = self._get_start_end(idx)
 
         clean = self.clean_data[start:end]
-        randomized_noisy = self._randomize(self.noisy_data[start:end])
+        noise = self._randomize(self.noisy_data[start:end])
         return (
-            self._to_tensor(clean + randomized_noisy).unsqueeze(0),
+            self._to_tensor(clean + noise * self.gain_controller.gain).unsqueeze(0),
             self._to_tensor(clean).unsqueeze(0),
         )
 
@@ -78,39 +81,3 @@ class NoisyHeartbeatDataset(Dataset):
 
     def _randomize(self, data):
         return self.randomizer.shuffle(data)
-
-
-@dataclass
-class ProgressiveNoisyHeartbeatDataset(NoisyHeartbeatDataset):
-    epoch_from: int = 0  # プログレッシブ学習の開始エポック数
-    epoch_to: int = 5  # プログレッシブ学習の終了エポック数
-    max_gain: float = 1.1  # ノイズを加算する際の最大倍率
-    # 現在のノイズの倍率。テスト時にset_epochを呼び出さない可能性があるので1にしておく
-    gain: float = 1
-
-    def set_epoch(self, epoch: int):
-        self.gain = self.__calculate_gain(epoch)
-
-    def __getitem__(self, idx: int):
-        start, end = self._get_start_end(idx)
-
-        clean = self.clean_data[start:end]
-        randomized_noisy = self._randomize(self.noisy_data[start:end])
-
-        return (
-            self._to_tensor(clean + randomized_noisy * self.gain).unsqueeze(0),
-            self._to_tensor(clean).unsqueeze(0),
-        )
-
-    def __calculate_gain(self, epoch: int):
-        if not self.train:
-            return 1.0
-
-        if epoch < self.epoch_from:
-            return (
-                self.max_gain
-                * (epoch - self.epoch_from)
-                / (self.epoch_to - self.epoch_from)
-            )
-        else:
-            return self.max_gain

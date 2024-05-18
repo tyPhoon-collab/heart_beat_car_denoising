@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from dataset.dataset import NoisyHeartbeatDataset, ProgressiveNoisyHeartbeatDataset
+from dataset.dataset import NoisyHeartbeatDataset
 from dataset.loader import MatLoader
 from dataset.randomizer import SampleShuffleRandomizer, PhaseShuffleRandomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
@@ -16,6 +16,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
+from utils.gain_controller import GainController
 from utils.plot import (
     plot_signal,
     plot_spectrogram,
@@ -63,7 +64,7 @@ class TestDataSet(unittest.TestCase):
         plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
 
     def test_data_set_progressive(self):
-        train_dataset = ProgressiveNoisyHeartbeatDataset(
+        train_dataset = NoisyHeartbeatDataset(
             clean_file_path="data/Stop.mat",
             noisy_file_path="data/100km.mat",
             # noisy_file_path="data/Stop.mat",
@@ -72,8 +73,9 @@ class TestDataSet(unittest.TestCase):
                 output_rate=1000,
             ),
             randomizer=PhaseShuffleRandomizer(),
+            gain_controller=GainController(epoch_from=0, epoch_to=5),
         )
-        test_dataset = ProgressiveNoisyHeartbeatDataset(
+        test_dataset = NoisyHeartbeatDataset(
             clean_file_path="data/Stop.mat",
             noisy_file_path="data/100km.mat",
             # noisy_file_path="data/Stop.mat",
@@ -324,6 +326,21 @@ class TestVisualize(unittest.TestCase):
         ).convert(signal)
 
         return signal
+
+
+class TestGainController(unittest.TestCase):
+    def test_gain_controller(self):
+        controller = GainController(epoch_from=0, epoch_to=4, max_gain=1.1)
+        self.assertEqual(controller.gain, 1)
+
+        controller.set_gain_from_epoch(0)
+        self.assertEqual(controller.gain, 0)
+
+        controller.set_gain_from_epoch(2)
+        self.assertEqual(controller.gain, 0.55)
+
+        controller.set_gain_from_epoch(4)
+        self.assertEqual(controller.gain, 1.1)
 
 
 class TestRandomizer(unittest.TestCase):
