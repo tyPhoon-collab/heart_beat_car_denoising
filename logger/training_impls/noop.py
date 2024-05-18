@@ -1,7 +1,7 @@
 from logger.training_logger import Params, TrainingLogger
 
 
-class NoopLogger(TrainingLogger):
+class NoopTrainingLogger(TrainingLogger):
     def on_start(self, params: Params):
         pass
 

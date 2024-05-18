@@ -3,7 +3,7 @@ from logger.training_logger import Params, TrainingLogger
 
 
 @dataclass
-class CompositeLogger(TrainingLogger):
+class CompositeTrainingLogger(TrainingLogger):
     loggers: list[TrainingLogger] = []
 
     def add_logger(self, logger):

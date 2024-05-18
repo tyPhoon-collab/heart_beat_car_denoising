@@ -1,23 +1,23 @@
 from logging import warning
 import os
-from logger.impls.composite import CompositeLogger
-from logger.impls.discord import DiscordLogger
-from logger.impls.neptune import NeptuneLogger
-from logger.impls.noop import NoopLogger
+from logger.training_impls.composite import CompositeTrainingLogger
+from logger.training_impls.discord import DiscordLogger
+from logger.training_impls.neptune import NeptuneLogger
+from logger.training_impls.noop import NoopTrainingLogger
 from logger.training_logger import TrainingLogger
 
 
 class TrainingLoggerFactory:
     @classmethod
     def noop(cls) -> TrainingLogger:
-        return NoopLogger()
+        return NoopTrainingLogger()
 
     @classmethod
     def remote(cls) -> TrainingLogger:
         if not cls.__is_enable_env():
             return cls.noop()
 
-        return CompositeLogger([NeptuneLogger(), DiscordLogger()])
+        return CompositeTrainingLogger([NeptuneLogger(), DiscordLogger()])
 
     @classmethod
     def __is_enable_env(cls) -> bool:
