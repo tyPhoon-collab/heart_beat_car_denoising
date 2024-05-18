@@ -21,11 +21,11 @@ class TrainingLoggerFactory:
 
     @classmethod
     def __is_enable_env(cls) -> bool:
-        logging_env_value = os.getenv("LOGGING")
+        logging_env_value = os.getenv("REMOTE_LOGGING")
         is_enable = logging_env_value == "1"
         if not is_enable:
             warning(
-                "Logging is disabled. If you want to enable logging, set LOGGING=1 in .env."
-                f"LOGGING is currently set to {logging_env_value}."
+                "Logging is disabled. If you want to enable logging, set REMOTE_LOGGING=1 in .env."
+                f"REMOTE_LOGGING is currently set to {logging_env_value}."
             )
         return is_enable

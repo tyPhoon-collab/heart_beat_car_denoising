@@ -9,7 +9,7 @@
 - .env
   - ロガー用の変数を置く
     - [サンプル](#envファイルのサンプル)
-    - LOGGING
+    - REMOTE_LOGGING
     - ONLY_FIRST_BATCH
     - DISCORD_WEBHOOK_URL
     - NEPTUNE_PROJECT_NAME
@@ -52,7 +52,7 @@ python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss \
 ## .envファイルのサンプル
 
 ```bash
-LOGGING=1
+REMOTE_LOGGING=1
 ONLY_FIRST_BATCH=0
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/xxx.../xxx..."
 NEPTUNE_PROJECT_NAME="xxx/yyy"
@@ -109,3 +109,4 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
   - 精度の悪化を確認
     - おそらくランダマイズの処理に依存していた上、ランダマイズの処理が正しくなかった
     - mutableなメソッドを用いていたため、元データが書き変わっていた
+    - 損失関数の性質か？
