@@ -27,6 +27,8 @@
 
 [このリポジトリ](https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Object-Detection/blob/master/README.md)に則ったファイル名にしている。inferenceではなく、evalとしている。
 
+とくに理由はない
+
 ## 実行コマンド例
 
 ```bash
@@ -57,20 +59,53 @@ NEPTUNE_PROJECT_NAME="xxx/yyy"
 NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 ```
 
-## Memo
+## Note
 
-- PixelShuffleベースのAutoEncoderの実装
-  - skipコネクションが良くない可能性がある
-- TransformerBlockを使用した上記のモデルの実装
-  - nheadが重要
-  - 500サンプル程度ずらした6セットを1バッチとする
-- Diffusionモデルも実装してみる
+### 5/2
 
-- Wavelet変換で周波数成分を算出して、L1Lossを出す
-  - 連続Wavelet変換
-    - scipy.signal.cwt
-    - scipy.signal.morletをマザーwaveletとして使用する
-  - 基底　36
-  - 波形のL1lossと足し合わせた損失関数を定義する
+- インストラクション
+  - ルールベースのみでは厳しいので、ノイズ除去部分をNNで行う
+- 実装方針の決定
+  - サンプルベースでランダム化した100km.matとStop.matを足し合わせたものを雑音とする
 
-- 1000Hzのデータを扱う
+### 5/9
+
+- DataSetとDataLoaderの仮実装
+- WaveUNetの仮実装
+
+### 5/10
+
+- Autoencoderの仮実装
+
+### 5/16
+
+- WaveUNetによる雑音除去の検証
+- Autoencoderによる雑音除去の検証
+- 今後の方針
+  - PixelShuffleベースのAutoEncoderの実装
+    - skipコネクションが良くない可能性がある
+  - TransformerBlockを使用した上記のモデルの実装
+    - nheadが重要
+    - 500サンプル程度ずらした6セットを1バッチとする
+  - Diffusionモデルも実装してみる
+  - Wavelet変換で周波数成分を算出して、L1Lossを出す
+    - 連続Wavelet変換
+      - scipy.signal.cwt
+      - scipy.signal.morletをマザーwaveletとして使用する
+    - 基底は36
+    - 波形のL1lossと足し合わせた損失関数を定義する
+  - 1000Hzのデータを扱う
+
+### 5/17
+
+- 位相シャッフルの実装
+- 既存のサンプルベースのシャッフルの予期しない動作の修正
+- PixelShuffleAutoEncoderの仮実装
+- PixelShuffleAutoEncoderWithTransformerの仮実装
+
+### 5/18
+
+- 全体的な検証
+  - 精度の悪化を確認
+    - おそらくランダマイズの処理に依存していた上、ランダマイズの処理が正しくなかった
+    - mutableなメソッドを用いていたため、元データが書き変わっていた
