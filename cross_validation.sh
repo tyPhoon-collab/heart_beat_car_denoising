@@ -15,5 +15,8 @@ bash train_and_eval.sh P_AE_SL1 Conv1DAutoencoder SmoothL1Loss --with-progressiv
 bash train_and_eval.sh SAE_L1 PixelShuffleConv1DAutoencoder L1Loss
 bash train_and_eval.sh SAE_SL1 PixelShuffleConv1DAutoencoder SmoothL1Loss
 
+bash train_and_eval.sh P_SAE_L1 Conv1DAutoencoder L1Loss --with-progressive-gain
+bash train_and_eval.sh P_SAE_SL1 Conv1DAutoencoder SmoothL1Loss --with-progressive-gain
+
 bash train_and_eval.sh SAET_L1 PixelShuffleConv1DAutoencoderWithTransformer L1Loss
 bash train_and_eval.sh SAET_SL1 PixelShuffleConv1DAutoencoderWithTransformer SmoothL1Loss
