@@ -244,16 +244,58 @@ class TestVisualize(unittest.TestCase):
     def test_show_all_randomize(self):
         single_data = self.load("data/100km.mat")
         single_data = self.convert_sample_rate(single_data, 32000, 1000)
-        sample_base_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
+        sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
         phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
 
         plot_three_signals(
             upper=single_data,
-            middle=sample_base_shuffled_data,
+            middle=sample_shuffled_data,
             lower=phase_shuffled_data,
             upper_label="Original Signal",
             middle_label="Randomized Signal",
             lower_label="Phase Shuffled Signal",
+        )
+
+    def test_show_all_randomize_5120(self):
+        single_data = self.load("data/100km.mat")
+        single_data = self.convert_sample_rate(single_data, 32000, 1000)[:5120]
+        sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
+        phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
+
+        plot_three_signals(
+            upper=single_data,
+            middle=sample_shuffled_data,
+            lower=phase_shuffled_data,
+            upper_label="Original Signal",
+            middle_label="Randomized Signal",
+            lower_label="Phase Shuffled Signal",
+        )
+
+    def test_sound_noise(self):
+        output_sample_rate = 3000
+        single_data = self.load("data/100km.mat")
+        single_data = self.convert_sample_rate(
+            single_data,
+            32000,
+            output_sample_rate,
+        )[: output_sample_rate * 5]
+        sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
+        phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
+
+        save_signal_to_wav_scipy(
+            single_data,
+            output_sample_rate,
+            "100km_1000.wav",
+        )
+        save_signal_to_wav_scipy(
+            sample_shuffled_data,
+            output_sample_rate,
+            "100km_1000_sample_randomized.wav",
+        )
+        save_signal_to_wav_scipy(
+            phase_shuffled_data,
+            output_sample_rate,
+            "100km_1000_phase_shuffled.wav",
         )
 
     def convert_to_wav(
