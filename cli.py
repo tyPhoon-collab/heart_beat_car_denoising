@@ -137,6 +137,7 @@ def train(args):
     train_dataloader = DataLoaderFactory.create_train(
         train_dataset,
         batch_size=args.batch_size,
+        shuffle=not args.without_shuffle,
     )
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
@@ -226,6 +227,12 @@ def main():
         "--with-progressive-gain",
         action="store_true",
         help="Enable progressive gain",
+    )
+    parser_train.add_argument(
+        "--without-shuffle",
+        action="store_true",
+        default=False,
+        help="Disable shuffling",
     )
     parser_train.set_defaults(func=train)
 

@@ -19,6 +19,7 @@ class NoisyHeartbeatDataset(Dataset):
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
     split_sample_points: int = 5120
+    stride_sample_points: int = 256
     gain_controller: GainController | None = None
 
     def sample_rate(self):
@@ -59,7 +60,9 @@ class NoisyHeartbeatDataset(Dataset):
         return clean_data, noisy_data
 
     def __len__(self):
-        return len(self.clean_data) - self.split_sample_points
+        return (
+            len(self.clean_data) - self.split_sample_points
+        ) // self.stride_sample_points + 1
 
     def __getitem__(self, idx: int):
         start, end = self._get_start_end(idx)
@@ -75,8 +78,8 @@ class NoisyHeartbeatDataset(Dataset):
         )
 
     def _get_start_end(self, idx: int):
-        start = idx
-        end = idx + self.split_sample_points
+        start = idx * self.stride_sample_points
+        end = start + self.split_sample_points
         return start, end
 
     def _to_tensor(self, data):

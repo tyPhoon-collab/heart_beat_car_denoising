@@ -51,8 +51,8 @@ class DataLoaderFactory:
         )
 
     @classmethod
-    def create_train(cls, dataset: Dataset, batch_size=1):
-        return cls.create(dataset, batch_size, True)
+    def create_train(cls, dataset: Dataset, batch_size=1, shuffle=True):
+        return cls.create(dataset, batch_size, shuffle)
 
     @classmethod
     def create_test(cls, dataset: Dataset, batch_size=1):
