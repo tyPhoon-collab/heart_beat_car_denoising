@@ -19,7 +19,7 @@ class NoisyHeartbeatDataset(Dataset):
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
     split_sample_points: int = 5120
-    stride_sample_points: int = 256
+    stride_sample_points: int = 1
     gain_controller: GainController | None = None
 
     def sample_rate(self):
