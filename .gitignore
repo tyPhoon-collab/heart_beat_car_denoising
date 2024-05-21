@@ -3,7 +3,5 @@ __pycache__/
 data/
 .DS_Store
 output/
-!checkpoints/.gitkeep
-figs/*.png
 .env
 .neptune/
