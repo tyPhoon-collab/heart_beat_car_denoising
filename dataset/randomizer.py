@@ -18,12 +18,12 @@ class SampleShuffleRandomizer(Randomizer):
 
 @dataclass
 class PhaseShuffleRandomizer(Randomizer):
-    fft_randomizer: Randomizer = field(
+    angle_randomizer: Randomizer = field(
         default_factory=lambda: SampleShuffleRandomizer()
     )
 
     def shuffle(self, array: ArrayLike) -> np.ndarray:
         array_fft = fft(array)
         magnitude = np.abs(array_fft)  # type: ignore
-        random_phase = np.exp(1j * self.fft_randomizer.shuffle(np.angle(array_fft)))  # type: ignore
+        random_phase = np.exp(1j * self.angle_randomizer.shuffle(np.angle(array_fft)))  # type: ignore
         return ifft(magnitude * random_phase).real  # type: ignore
