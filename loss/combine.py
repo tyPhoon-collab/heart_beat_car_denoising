@@ -2,14 +2,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-from scipy.signal import cwt, morlet
+import ptwt
+import pywt
 
 
-# Wavelet変換を行う関数
-def wavelet_transform(signal, widths):
-    wavelet = morlet
-    cwt_matr = cwt(signal, wavelet, widths)
-    return cwt_matr
+# GPU上でWavelet変換を行う関数
+def wavelet_transform(signal: torch.Tensor, widths, wavelet_name="morl"):
+    wavelet = pywt.ContinuousWavelet(wavelet_name)  # type: ignore
+    cwt_coeffs = ptwt.cwt(signal, widths, wavelet)
+    return cwt_coeffs
 
 
 # カスタム損失関数の定義
@@ -18,34 +19,18 @@ class CombinedLoss(nn.Module):
         super(CombinedLoss, self).__init__()
         self.l1_loss = nn.L1Loss()
         self.alpha = alpha
-        self.widths = widths
+        self.widths = torch.tensor(widths, dtype=torch.float32)
 
     def forward(self, outputs, targets):
         # 波形のL1Lossを計算
         l1_loss_waveform = self.l1_loss(outputs, targets)
 
         # Wavelet変換を実行
-        # 勾配計算を行わないようにするため、detach()メソッドを使用
-        outputs_np = outputs.detach().cpu().numpy().squeeze()
-        targets_np = targets.detach().cpu().numpy().squeeze()
-
-        cwt_outputs = wavelet_transform(outputs_np, self.widths)
-        cwt_targets = wavelet_transform(targets_np, self.widths)
-
-        # CWTの結果をPyTorchテンソルに変換
-        cwt_outputs_tensor = torch.tensor(
-            cwt_outputs,
-            dtype=torch.float32,
-            device=outputs.device,
-        )
-        cwt_targets_tensor = torch.tensor(
-            cwt_targets,
-            dtype=torch.float32,
-            device=outputs.device,
-        )
+        outputs_cwt = wavelet_transform(outputs.detach(), self.widths)
+        targets_cwt = wavelet_transform(targets.detach(), self.widths)
 
         # 周波数成分のL1Lossを計算
-        l1_loss_cwt = self.l1_loss(cwt_outputs_tensor, cwt_targets_tensor)
+        l1_loss_cwt = self.l1_loss(outputs_cwt[0], targets_cwt[0])
 
         # 総合損失を計算
         total_loss = self.alpha * l1_loss_waveform + (1 - self.alpha) * l1_loss_cwt
@@ -68,8 +53,8 @@ if __name__ == "__main__":
     optimizer = optim.SGD(model.parameters(), lr=0.01)
 
     # ダミーデータの作成
-    inputs = torch.randn(1, 1, 5120)  # バッチサイズ1、チャネル1、入力次元5120
-    targets = torch.randn(1, 1, 5120)  # バッチサイズ1、チャネル1、ターゲット次元5120
+    inputs = torch.randn(1, 1, 5120)
+    targets = torch.randn(1, 1, 5120)
 
     # 学習ループ
     for epoch in range(100):  # 例として100エポック

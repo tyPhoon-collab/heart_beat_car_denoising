@@ -7,3 +7,4 @@ requests
 neptune
 python-dotenv
 librosa
+ptwt
