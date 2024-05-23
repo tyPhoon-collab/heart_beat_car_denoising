@@ -1,100 +1,37 @@
 import os
 import librosa
+import librosa.display
 from matplotlib import pyplot as plt
 import numpy as np
 
 
-def __finalize_plot(filename=None):
+def _finalize_plot(filename=None):
     """グラフの最終処理を行うヘルパー関数。
     filenameが指定されていれば保存し、指定されていなければ表示する。"""
-    plt.tight_layout()  # サブプロット間の適切な間隔を確保
+    plt.tight_layout()
     if filename:
         save_directory = "output/fig"
-        os.makedirs(save_directory, exist_ok=True)  # ディレクトリがなければ作成
-        plt.savefig(os.path.join(save_directory, filename))  # ファイルに保存
-        plt.close()  # フィギュアを閉じる
+        os.makedirs(save_directory, exist_ok=True)
+        plt.savefig(os.path.join(save_directory, filename))
+        plt.close()
         print(f"Figure saved to {os.path.join(save_directory, filename)}")
     else:
-        plt.show()  # グラフを表示
+        plt.show()
 
 
-def plot_four_signals(
-    upper,
-    upper_middle,
-    lower_middle,
-    lower,
-    upper_label,
-    upper_middle_label,
-    lower_middle_label,
-    lower_label,
-    filename=None,
-):
-    plt.figure(figsize=(12, 6))
-    plt.subplot(411)
-    plt.plot(upper, label=upper_label)
-    plt.title(upper_label)
-    plt.legend()
-
-    plt.subplot(412)
-    plt.plot(upper_middle, label=upper_middle_label)
-    plt.title(upper_middle_label)
-    plt.legend()
-
-    plt.subplot(413)
-    plt.plot(lower_middle, label=lower_middle_label)
-    plt.title(lower_middle_label)
-    plt.legend()
-
-    plt.subplot(414)
-    plt.plot(lower, label=lower_label)
-    plt.title(lower_label)
-    plt.legend()
-
-    __finalize_plot(filename)
-
-
-def plot_three_signals(
-    upper, middle, lower, upper_label, middle_label, lower_label, filename=None
-):
-    plt.figure(figsize=(12, 6))
-    plt.subplot(311)
-    plt.plot(upper, label=upper_label)
-    plt.title(upper_label)
-    plt.legend()
-
-    plt.subplot(312)
-    plt.plot(middle, label=middle_label)
-    plt.title(middle_label)
-    plt.legend()
-
-    plt.subplot(313)
-    plt.plot(lower, label=lower_label)
-    plt.title(lower_label)
-    plt.legend()
-
-    __finalize_plot(filename)
-
-
-def plot_two_signals(upper, lower, upper_label, lower_label, filename=None):
-    plt.figure(figsize=(12, 6))
-    plt.subplot(211)
-    plt.plot(upper, label=upper_label)
-    plt.title(upper_label)
-    plt.legend()
-
-    plt.subplot(212)
-    plt.plot(lower, label=lower_label)
-    plt.title(lower_label)
-    plt.legend()
-
-    __finalize_plot(filename)
+def plot_signals(signals, labels, filename=None):
+    n = len(signals)
+    plt.figure(figsize=(12, 3 * n))
+    for i, (signal, label) in enumerate(zip(signals, labels), 1):
+        plt.subplot(n, 1, i)
+        plt.plot(signal, label=label)
+        plt.title(label)
+        plt.legend()
+    _finalize_plot(filename)
 
 
 def plot_signal(signal, label, filename=None):
-    plt.figure()
-    plt.plot(signal)
-    plt.title(label)
-    __finalize_plot(filename)
+    plot_signals([signal], [label], filename)
 
 
 def plot_spectrogram(
@@ -121,4 +58,4 @@ def plot_spectrogram(
     if ylim is not None:
         plt.ylim(ylim)
 
-    __finalize_plot(filename)
+    _finalize_plot(filename)

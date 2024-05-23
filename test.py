@@ -23,10 +23,9 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 from models.wave_u_net import WaveUNet
 from utils.gain_controller import GainController
 from utils.plot import (
-    plot_four_signals,
     plot_signal,
+    plot_signals,
     plot_spectrogram,
-    plot_two_signals,
 )
 from utils.sound import save_signal_to_wav_scipy
 
@@ -55,7 +54,7 @@ class TestDataSet(unittest.TestCase):
 
         noisy, clean = next(iter(dataloader))
 
-        plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
+        plot_signals([noisy[0][0], clean[0][0]], ["Noisy", "Clean"])
 
     def test_idx_0(self):
         train_dataset = DatasetFactory.create_240219(
@@ -174,11 +173,15 @@ class TestSampleRateConverter(unittest.TestCase):
         converted_ch1z = converter.convert(ch1z)
 
         # 元のデータと変換後のデータをプロット
-        plot_two_signals(
-            upper=ch1z[: converter.input_rate],
-            lower=converted_ch1z[: converter.output_rate],
-            upper_label="Original Signal",
-            lower_label="Converted Signal",
+        plot_signals(
+            [
+                ch1z[: converter.input_rate],
+                converted_ch1z[: converter.output_rate],
+            ],
+            [
+                "Original Signal",
+                "Converted Signal",
+            ],
         )
 
 
@@ -203,54 +206,64 @@ class TestLoader(unittest.TestCase):
 
 class TestVisualize(unittest.TestCase):
     def test_sound_all(self):
-        self.convert_to_wav("data/Stop.mat", "stop_32000.wav")
-        self.convert_to_wav("data/Idling.mat", "idling_32000.wav")
-        self.convert_to_wav("data/100km.mat", "100km_32000.wav")
+        self.convert_to_wav("data/240219_Rawdata/Stop.mat", "stop_32000.wav")
+        self.convert_to_wav("data/240219_Rawdata/Idling.mat", "idling_32000.wav")
+        self.convert_to_wav("data/240219_Rawdata/100km.mat", "100km_32000.wav")
 
-        self.convert_to_wav("data/Stop.mat", "stop_1024.wav", output_rate=1024)
-        self.convert_to_wav("data/Idling.mat", "idling_1024.wav", output_rate=1024)
-        self.convert_to_wav("data/100km.mat", "100km_1024.wav", output_rate=1024)
+        self.convert_to_wav(
+            "data/240219_Rawdata/Stop.mat", "stop_1024.wav", output_rate=1024
+        )
+        self.convert_to_wav(
+            "data/240219_Rawdata/Idling.mat", "idling_1024.wav", output_rate=1024
+        )
+        self.convert_to_wav(
+            "data/240219_Rawdata/100km.mat", "100km_1024.wav", output_rate=1024
+        )
 
     def test_stft_32000(self):
-        single_data = self.load("data/100km.mat", "ch1z")
+        single_data = self.load("data/240219_Rawdata/100km.mat", "ch1z")
         plot_spectrogram(single_data, 32000)
 
     def test_stft_1000(self):
-        single_data = self.load("data/Stop.mat", "ch1z")
+        single_data = self.load("data/240219_Rawdata/Stop.mat", "ch1z")
         # single_data = self.load("data/100km.mat", "ch1z")
         single_data = self.convert_sample_rate(single_data, 32000, 1000)
         plot_spectrogram(single_data[:10000], 1000, ylim=(0, 64))
 
     def test_show_stop(self):
-        self.show("data/Stop.mat")
+        self.show("data/240219_Rawdata/Stop.mat")
 
     def test_show_idling(self):
-        self.show("data/Idling.mat")
+        self.show("data/240219_Rawdata/Idling.mat")
 
     def test_show_100km(self):
-        self.show("data/100km.mat")
+        self.show("data/240219_Rawdata/100km.mat")
 
     def test_show_all_randomize(self):
-        single_data = self.load("data/100km.mat")[: 32000 * 5]
+        single_data = self.load("data/240219_Rawdata/100km.mat")[: 32000 * 5]
         # single_data = self.convert_sample_rate(single_data, 32000, 1000)
         sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
         phase_shuffled_data = PhaseHalfShuffleRandomizer().shuffle(single_data)
         add_noise_data = AddUniformNoiseRandomizer().shuffle(single_data)
 
-        plot_four_signals(
-            upper=single_data,
-            upper_middle=sample_shuffled_data,
-            lower_middle=phase_shuffled_data,
-            lower=add_noise_data,
-            upper_label="Original Signal",
-            upper_middle_label="Randomized Signal",
-            lower_middle_label="Phase Shuffled Signal",
-            lower_label="Add Uniform Noise",
+        plot_signals(
+            [
+                single_data,
+                sample_shuffled_data,
+                phase_shuffled_data,
+                add_noise_data,
+            ],
+            [
+                "Original",
+                "Sample Shuffled",
+                "Phase Shuffled",
+                "Add Noise",
+            ],
         )
 
     def test_sound_noise(self):
         output_sample_rate = 3000
-        single_data = self.load("data/100km.mat")
+        single_data = self.load("data/240219_Rawdata/100km.mat")
         single_data = self.convert_sample_rate(
             single_data,
             32000,
