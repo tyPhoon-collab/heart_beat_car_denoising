@@ -325,6 +325,24 @@ class TestVisualize(unittest.TestCase):
             "Noise.wav",
         )
 
+    def test_compare_noise_240219_240517(self):
+        plot_signals(
+            [
+                self.load("data/240219_Rawdata/100km.mat")[: 32000 * 5],
+                self.load("data/240517_Rawdata/Noise_data_serial.mat")[: 1000 * 5],
+            ],
+            ["240219", "240517"],
+        )
+
+    def test_compare_hs_240219_240517(self):
+        plot_signals(
+            [
+                self.load("data/240219_Rawdata/Stop.mat")[: 32000 * 5],
+                self.load("data/240517_Rawdata/HS_data_serial.mat")[: 1000 * 5],
+            ],
+            ["240219", "240517"],
+        )
+
     def convert_to_wav(
         self,
         filename: str,
