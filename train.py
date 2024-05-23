@@ -2,9 +2,8 @@ import os
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
-from dataset.dataset import NoisyHeartbeatDataset
+from dataset.factory import DatasetFactory
 from dataset.randomizer import SampleShuffleRandomizer
-from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.training_logger import Params, TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from utils.device import get_torch_device, load_local_dotenv
@@ -84,12 +83,7 @@ if __name__ == "__main__":
 
     model = WaveUNet()
 
-    train_dataset = NoisyHeartbeatDataset(
-        clean_file_path="data/Stop.mat",
-        noisy_file_path="data/100km.mat",
-        sampling_rate_converter=ScipySamplingRateConverter(
-            input_rate=32000, output_rate=1024
-        ),
+    train_dataset = DatasetFactory.create_240219(
         randomizer=SampleShuffleRandomizer(),
         gain_controller=GainController(epoch_to=4, max_gain=1.1),
         train=True,

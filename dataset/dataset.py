@@ -5,17 +5,16 @@ from torch.utils.data import Dataset
 
 from utils.gain_controller import GainController
 
-from .loader import Loader, MatLoader
 from .randomizer import Randomizer
 from .sampling_rate_converter import SamplingRateConverter
 
 
 @dataclass
 class NoisyHeartbeatDataset(Dataset):
-    clean_file_path: str
-    noisy_file_path: str
+    clean_data: np.ndarray
+    noisy_data: np.ndarray  # noisyデータ。データの都合上、ノイズ単体ではない
     sampling_rate_converter: SamplingRateConverter
-    randomizer: Randomizer
+    randomizer: Randomizer | None  # 指定した場合、getitemでnoisy_dataをランダマイズ
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
     split_sample_points: int = 5120
@@ -27,16 +26,9 @@ class NoisyHeartbeatDataset(Dataset):
 
     def __post_init__(self):
         self.clean_data, self.noisy_data = self.__partition_data(
-            self.__load_and_preprocess(self.clean_file_path),
-            self.__load_and_preprocess(self.noisy_file_path),
+            self.__preprocess(self.clean_data),
+            self.__preprocess(self.noisy_data),
         )
-
-    def __load_and_preprocess(self, file_path: str):
-        columns = ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"]
-
-        loader: Loader = MatLoader(file_path, columns)
-        data = loader.load()["ch1z"]
-        return self.__preprocess(data)
 
     def __preprocess(self, data):
         return self.sampling_rate_converter.convert(data)
@@ -86,4 +78,6 @@ class NoisyHeartbeatDataset(Dataset):
         return torch.tensor(data, dtype=torch.float32)
 
     def _randomize(self, data):
+        if self.randomizer is None:
+            return data
         return self.randomizer.shuffle(data)

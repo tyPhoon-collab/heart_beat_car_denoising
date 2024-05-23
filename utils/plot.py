@@ -18,6 +18,41 @@ def __finalize_plot(filename=None):
         plt.show()  # グラフを表示
 
 
+def plot_four_signals(
+    upper,
+    upper_middle,
+    lower_middle,
+    lower,
+    upper_label,
+    upper_middle_label,
+    lower_middle_label,
+    lower_label,
+    filename=None,
+):
+    plt.figure(figsize=(12, 6))
+    plt.subplot(411)
+    plt.plot(upper, label=upper_label)
+    plt.title(upper_label)
+    plt.legend()
+
+    plt.subplot(412)
+    plt.plot(upper_middle, label=upper_middle_label)
+    plt.title(upper_middle_label)
+    plt.legend()
+
+    plt.subplot(413)
+    plt.plot(lower_middle, label=lower_middle_label)
+    plt.title(lower_middle_label)
+    plt.legend()
+
+    plt.subplot(414)
+    plt.plot(lower, label=lower_label)
+    plt.title(lower_label)
+    plt.legend()
+
+    __finalize_plot(filename)
+
+
 def plot_three_signals(
     upper, middle, lower, upper_label, middle_label, lower_label, filename=None
 ):

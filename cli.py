@@ -17,8 +17,14 @@ import argparse
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from dataset.factory import DataLoaderFactory, DatasetFactory
-from dataset.randomizer import SampleShuffleRandomizer, PhaseShuffleRandomizer
+from dataset.factory import DatasetFactory
+from dataset.randomizer import (
+    AddUniformNoiseRandomizer,
+    Randomizer,
+    SampleShuffleRandomizer,
+    PhaseShuffleRandomizer,
+)
+from torch.utils.data import DataLoader
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
@@ -43,7 +49,11 @@ MODEL = [
     PixelShuffleConv1DAutoencoderWithTransformer,
 ]
 LOSS_FN = [nn.L1Loss, nn.SmoothL1Loss, CombinedLoss]
-RANDOMIZER = [SampleShuffleRandomizer, PhaseShuffleRandomizer]
+RANDOMIZER = [
+    SampleShuffleRandomizer,
+    PhaseShuffleRandomizer,
+    AddUniformNoiseRandomizer,
+]
 
 
 def get_model(model_name: str) -> nn.Module:
@@ -62,7 +72,7 @@ def get_loss_function(loss_fn_name: str) -> nn.Module:
         raise ValueError(f"Unknown loss function: {loss_fn_name}")
 
 
-def get_randomizer(randomizer_name: str) -> nn.Module:
+def get_randomizer(randomizer_name: str) -> Randomizer:
     randomizer_dict = {randomizer.__name__: randomizer for randomizer in RANDOMIZER}
     if randomizer_name in randomizer_dict:
         return randomizer_dict[randomizer_name]()
@@ -101,7 +111,7 @@ def add_common_arguments(parser):
     parser.add_argument(
         "--randomizer",
         type=str,
-        default="PhaseShuffleRandomizer",
+        default="AddUniformNoiseRandomizer",
         choices=get_randomizer_names(),
         help="Randomizer",
     )
@@ -126,15 +136,16 @@ def train(args):
     randomizer = get_randomizer(args.randomizer)
 
     # データセットとデータローダーの準備
-    train_dataset = DatasetFactory.create_train(
+    train_dataset = DatasetFactory.create_240517(
         randomizer=randomizer,
         gain_controller=(
             GainController(epoch_to=4, max_gain=1.1)
             if args.with_progressive_gain
             else None
         ),
+        train=True,
     )
-    train_dataloader = DataLoaderFactory.create_train(
+    train_dataloader = DataLoader(
         train_dataset,
         batch_size=args.batch_size,
         shuffle=not args.without_shuffle,
@@ -164,12 +175,14 @@ def evaluate(args):
         model.load_state_dict(torch.load(args.weights_path))
 
     # データセットとデータローダーの準備
-    test_dataset = DatasetFactory.create_test(
+    test_dataset = DatasetFactory.create_240517(
         randomizer=randomizer,
+        train=False,
     )
-    test_dataloader = DataLoaderFactory.create_test(
+    test_dataloader = DataLoader(
         test_dataset,
         batch_size=args.batch_size,
+        shuffle=False,
     )
 
     # モデルの評価
@@ -208,7 +221,7 @@ def main():
     parser_train.add_argument(
         "--epoch-size",
         type=int,
-        default=5,
+        default=10,
         help="Number of epochs",
     )
     parser_train.add_argument(

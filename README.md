@@ -120,3 +120,5 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 - 学習率 0.0001
 - バッチサイズ 64
 - エポック数を増やす
+- 柔軟なMatLoaderを提供する機能を追加する
+- 適切なTransformerの学習環境を整える

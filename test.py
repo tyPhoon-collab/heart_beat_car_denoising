@@ -6,9 +6,14 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from dataset.dataset import NoisyHeartbeatDataset
+from dataset.factory import DatasetFactory
 from dataset.loader import MatLoader
-from dataset.randomizer import SampleShuffleRandomizer, PhaseShuffleRandomizer
+from dataset.randomizer import (
+    AddUniformNoiseRandomizer,
+    SampleShuffleRandomizer,
+    PhaseShuffleRandomizer,
+    PhaseHalfShuffleRandomizer,
+)
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
@@ -18,9 +23,9 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 from models.wave_u_net import WaveUNet
 from utils.gain_controller import GainController
 from utils.plot import (
+    plot_four_signals,
     plot_signal,
     plot_spectrogram,
-    plot_three_signals,
     plot_two_signals,
 )
 from utils.sound import save_signal_to_wav_scipy
@@ -28,30 +33,19 @@ from utils.sound import save_signal_to_wav_scipy
 
 class TestDataSet(unittest.TestCase):
     def test_data_set(self):
-        train_dataset = NoisyHeartbeatDataset(
-            clean_file_path="data/Stop.mat",
-            noisy_file_path="data/100km.mat",
-            # noisy_file_path="data/Stop.mat",
-            sampling_rate_converter=ScipySamplingRateConverter(
-                input_rate=32000,
-                output_rate=1000,
-            ),
-            randomizer=SampleShuffleRandomizer(),
+        randomizer = SampleShuffleRandomizer()
+        train_dataset = DatasetFactory.create_240219(
+            randomizer=randomizer,
         )
-        test_dataset = NoisyHeartbeatDataset(
-            clean_file_path="data/Stop.mat",
-            noisy_file_path="data/100km.mat",
-            # noisy_file_path="data/Stop.mat",
-            sampling_rate_converter=ScipySamplingRateConverter(
-                input_rate=32000,
-                output_rate=1000,
-            ),
-            randomizer=SampleShuffleRandomizer(),
+        test_dataset = DatasetFactory.create_240219(
+            randomizer=randomizer,
             train=False,
         )
 
         print(len(train_dataset))
         print(len(test_dataset))
+
+        self.assertGreaterEqual(len(train_dataset), len(test_dataset))
 
         dataloader = DataLoader(
             train_dataset,
@@ -64,14 +58,7 @@ class TestDataSet(unittest.TestCase):
         plot_two_signals(noisy[0][0], clean[0][0], "Noisy", "Clean")
 
     def test_idx_0(self):
-        train_dataset = NoisyHeartbeatDataset(
-            clean_file_path="data/Stop.mat",
-            noisy_file_path="data/100km.mat",
-            # noisy_file_path="data/Stop.mat",
-            sampling_rate_converter=ScipySamplingRateConverter(
-                input_rate=32000,
-                output_rate=1024,
-            ),
+        train_dataset = DatasetFactory.create_240219(
             randomizer=SampleShuffleRandomizer(),
         )
 
@@ -80,14 +67,7 @@ class TestDataSet(unittest.TestCase):
         print(data)
 
     def test_idx_max(self):
-        train_dataset = NoisyHeartbeatDataset(
-            clean_file_path="data/Stop.mat",
-            noisy_file_path="data/100km.mat",
-            # noisy_file_path="data/Stop.mat",
-            sampling_rate_converter=ScipySamplingRateConverter(
-                input_rate=32000,
-                output_rate=1024,
-            ),
+        train_dataset = DatasetFactory.create_240219(
             randomizer=SampleShuffleRandomizer(),
         )
 
@@ -203,10 +183,19 @@ class TestSampleRateConverter(unittest.TestCase):
 
 
 class TestLoader(unittest.TestCase):
-    def test_mat_loader(self):
+    def test_240219_mat_loader(self):
         loader = MatLoader(
-            "data/Stop.mat",
+            "data/240219_Rawdata/Stop.mat",
             ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
+        )
+        data = loader.load()
+        print(data)
+
+    def test_240517_mat_loader(self):
+        loader = MatLoader(
+            "data/240517_Rawdata/HS_data_serial.mat",
+            ["ch1z"],
+            data_key="HS_data",
         )
         data = loader.load()
         print(data)
@@ -242,33 +231,21 @@ class TestVisualize(unittest.TestCase):
         self.show("data/100km.mat")
 
     def test_show_all_randomize(self):
-        single_data = self.load("data/100km.mat")
-        single_data = self.convert_sample_rate(single_data, 32000, 1000)
+        single_data = self.load("data/100km.mat")[: 32000 * 5]
+        # single_data = self.convert_sample_rate(single_data, 32000, 1000)
         sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
-        phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
+        phase_shuffled_data = PhaseHalfShuffleRandomizer().shuffle(single_data)
+        add_noise_data = AddUniformNoiseRandomizer().shuffle(single_data)
 
-        plot_three_signals(
+        plot_four_signals(
             upper=single_data,
-            middle=sample_shuffled_data,
-            lower=phase_shuffled_data,
+            upper_middle=sample_shuffled_data,
+            lower_middle=phase_shuffled_data,
+            lower=add_noise_data,
             upper_label="Original Signal",
-            middle_label="Randomized Signal",
-            lower_label="Phase Shuffled Signal",
-        )
-
-    def test_show_all_randomize_5120(self):
-        single_data = self.load("data/100km.mat")
-        single_data = self.convert_sample_rate(single_data, 32000, 1000)[:5120]
-        sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
-        phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
-
-        plot_three_signals(
-            upper=single_data,
-            middle=sample_shuffled_data,
-            lower=phase_shuffled_data,
-            upper_label="Original Signal",
-            middle_label="Randomized Signal",
-            lower_label="Phase Shuffled Signal",
+            upper_middle_label="Randomized Signal",
+            lower_middle_label="Phase Shuffled Signal",
+            lower_label="Add Uniform Noise",
         )
 
     def test_sound_noise(self):
@@ -281,6 +258,7 @@ class TestVisualize(unittest.TestCase):
         )[: output_sample_rate * 5]
         sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
         phase_shuffled_data = PhaseShuffleRandomizer().shuffle(single_data)
+        add_uniform_noise_data = AddUniformNoiseRandomizer().shuffle(single_data)
 
         save_signal_to_wav_scipy(
             single_data,
@@ -296,6 +274,11 @@ class TestVisualize(unittest.TestCase):
             phase_shuffled_data,
             output_sample_rate,
             "100km_1000_phase_shuffled.wav",
+        )
+        save_signal_to_wav_scipy(
+            add_uniform_noise_data,
+            output_sample_rate,
+            "100km_1000_add_uniform_noise.wav",
         )
 
     def convert_to_wav(

@@ -43,3 +43,14 @@ class MatLoader(Loader):
         df.columns = self.columns
 
         return df
+
+
+if __name__ == "__main__":
+    loader = MatLoader(
+        "data/240517_Rawdata/HS_data_serial.mat",
+        # ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
+        ["ch1z"],
+        data_key="Noise_data",
+    )
+    data = loader.load()
+    print(data)

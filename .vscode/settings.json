@@ -19,11 +19,13 @@
         "optim",
         "randn",
         "Randomizer",
+        "Rawdata",
         "relu",
         "stft",
         "Unshuffle",
         "unsqueeze",
-        "wavfile"
+        "wavfile",
+        "ylim"
     ],
     "python.testing.unittestArgs": [
         "-v",
