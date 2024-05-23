@@ -1,9 +1,8 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from dataset.dataset import NoisyHeartbeatDataset
+from dataset.factory import DatasetFactory
 from dataset.randomizer import SampleShuffleRandomizer
-from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from logger.evaluation_impls.noop import NoopEvaluationLogger
 from logger.evaluation_logger import EvaluationLogger
 from models.wave_u_net import WaveUNet
@@ -48,12 +47,7 @@ def eval_model(
 
 
 if __name__ == "__main__":
-    test_dataset = NoisyHeartbeatDataset(
-        clean_file_path="data/Stop.mat",
-        noisy_file_path="data/100km.mat",
-        sampling_rate_converter=ScipySamplingRateConverter(
-            input_rate=32000, output_rate=1024
-        ),
+    test_dataset = DatasetFactory.create_240517(
         randomizer=SampleShuffleRandomizer(),
         train=False,
     )
