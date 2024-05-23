@@ -239,6 +239,13 @@ class TestVisualize(unittest.TestCase):
     def test_show_100km(self):
         self.show("data/240219_Rawdata/100km.mat")
 
+    def test_show_hs(self):
+        data = self.load("data/240517_Rawdata/HS_data_serial.mat")
+        plot_signal(data[:5000], "HS_data")
+
+    def test_show_noise(self):
+        self.show("data/240517_Rawdata/Noise_data_serial.mat")
+
     def test_show_all_randomize(self):
         single_data = self.load("data/240219_Rawdata/100km.mat")[: 32000 * 5]
         # single_data = self.convert_sample_rate(single_data, 32000, 1000)
@@ -261,7 +268,7 @@ class TestVisualize(unittest.TestCase):
             ],
         )
 
-    def test_sound_noise(self):
+    def test_sound_240219_randomize(self):
         output_sample_rate = 3000
         single_data = self.load("data/240219_Rawdata/100km.mat")
         single_data = self.convert_sample_rate(
@@ -294,6 +301,30 @@ class TestVisualize(unittest.TestCase):
             "100km_1000_add_uniform_noise.wav",
         )
 
+    def test_sound_240517(self):
+        output_sample_rate = 3000
+
+        def load(path: str, ch: str = "ch1z"):
+            loader = DatasetFactory.get_loader(path)
+            single_data = loader.load()["ch1z"].to_numpy()
+            return self.convert_sample_rate(
+                single_data,
+                1000,
+                output_sample_rate,
+            )
+
+        save_signal_to_wav_scipy(
+            load("data/240517_Rawdata/HS_data_serial.mat"),
+            output_sample_rate,
+            "HS.wav",
+        )
+
+        save_signal_to_wav_scipy(
+            load("data/240517_Rawdata/Noise_data_serial.mat"),
+            output_sample_rate,
+            "Noise.wav",
+        )
+
     def convert_to_wav(
         self,
         filename: str,
@@ -305,28 +336,15 @@ class TestVisualize(unittest.TestCase):
         single_data = self.convert_sample_rate(single_data, 32000, output_rate)
         save_signal_to_wav_scipy(single_data, output_rate, output_filename)
 
-    def show(self, file_path: str, ch: str = "ch1z"):
-        single_data = self.load(file_path, ch)
-        print(single_data.shape)
-        print(single_data)
+    def show(self, path: str, ch: str = "ch1z"):
+        single_data = self.load(path, ch)
         plot_signal(single_data, ch)
 
-    def load(self, file_path: str, ch: str = "ch1z"):
-        loader = MatLoader(
-            file_path,
-            ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-        )
-        data = loader.load()
-        single_data = data[ch]
-        return single_data.to_numpy()
+    def load(self, path: str, ch: str = "ch1z"):
+        return DatasetFactory.get_loader(path).load()[ch].to_numpy()
 
     def convert_sample_rate(self, signal: np.ndarray, input_rate, output_rate):
-        signal = ScipySamplingRateConverter(
-            input_rate,
-            output_rate,
-        ).convert(signal)
-
-        return signal
+        return ScipySamplingRateConverter(input_rate, output_rate).convert(signal)
 
 
 class TestGainController(unittest.TestCase):
