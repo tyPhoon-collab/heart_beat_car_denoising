@@ -15,6 +15,7 @@ from dataset.randomizer import (
     PhaseHalfShuffleRandomizer,
 )
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
+from loss.combine import CombinedLoss
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.transformer_pixel_shuffle_auto_encoder import (
@@ -73,6 +74,37 @@ class TestDataSet(unittest.TestCase):
         data = train_dataset[len(train_dataset) - 1]
         self.assertEqual(data[0].shape, (1, 5120))
         print(data)
+
+
+class TestLoss(unittest.TestCase):
+    def test_loss(self):
+        class SimpleModel(nn.Module):
+            def __init__(self):
+                super(SimpleModel, self).__init__()
+                self.fc = nn.Linear(5120, 5120)  # 入力5120次元、出力5120次元
+
+            def forward(self, x):
+                return self.fc(x)
+
+        # モデル、損失関数、最適化手法の初期化
+        model = SimpleModel()
+        criterion = CombinedLoss(alpha=0.5)
+        optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+        # ダミーデータの作成
+        inputs = torch.randn(1, 1, 5120)
+        targets = torch.randn(1, 1, 5120)
+
+        # 学習ループ
+        for epoch in range(100):  # 例として100エポック
+            optimizer.zero_grad()  # 勾配の初期化
+            outputs = model(inputs)  # モデルの出力
+            loss = criterion(outputs, targets)  # 損失の計算
+            loss.backward()  # 勾配の計算
+            optimizer.step()  # パラメータの更新
+
+            if (epoch + 1) % 10 == 0:  # 10エポックごとに損失を出力
+                print(f"Epoch [{epoch + 1}/100], Loss: {loss.item():.4f}")
 
 
 class TestModels(unittest.TestCase):

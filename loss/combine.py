@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import numpy as np
 import ptwt
 import pywt
+
+from utils.device import get_torch_device
 
 
 # GPU上でWavelet変換を行う関数
@@ -19,7 +20,7 @@ class CombinedLoss(nn.Module):
         super(CombinedLoss, self).__init__()
         self.l1_loss = nn.L1Loss()
         self.alpha = alpha
-        self.widths = torch.tensor(widths, dtype=torch.float32)
+        self.widths = torch.tensor(widths, dtype=torch.float32).to(get_torch_device())
 
     def forward(self, outputs, targets):
         # 波形のL1Lossを計算
@@ -35,34 +36,3 @@ class CombinedLoss(nn.Module):
         # 総合損失を計算
         total_loss = self.alpha * l1_loss_waveform + (1 - self.alpha) * l1_loss_cwt
         return total_loss
-
-
-if __name__ == "__main__":
-    # モデルの定義（例として単純な線形モデル）
-    class SimpleModel(nn.Module):
-        def __init__(self):
-            super(SimpleModel, self).__init__()
-            self.fc = nn.Linear(5120, 5120)  # 入力5120次元、出力5120次元
-
-        def forward(self, x):
-            return self.fc(x)
-
-    # モデル、損失関数、最適化手法の初期化
-    model = SimpleModel()
-    criterion = CombinedLoss(alpha=0.5)
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
-
-    # ダミーデータの作成
-    inputs = torch.randn(1, 1, 5120)
-    targets = torch.randn(1, 1, 5120)
-
-    # 学習ループ
-    for epoch in range(100):  # 例として100エポック
-        optimizer.zero_grad()  # 勾配の初期化
-        outputs = model(inputs)  # モデルの出力
-        loss = criterion(outputs, targets)  # 損失の計算
-        loss.backward()  # 勾配の計算
-        optimizer.step()  # パラメータの更新
-
-        if (epoch + 1) % 10 == 0:  # 10エポックごとに損失を出力
-            print(f"Epoch [{epoch + 1}/100], Loss: {loss.item():.4f}")
