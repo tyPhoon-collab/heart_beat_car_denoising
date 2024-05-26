@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from dataset.factory import DatasetFactory
+from dataset.filter import ButterworthLowpassFilter
 from dataset.loader import MatLoader
 from dataset.randomizer import (
     AddUniformNoiseRandomizer,
@@ -337,7 +338,7 @@ class TestVisualize(unittest.TestCase):
         output_sample_rate = 3000
 
         def load(path: str, ch: str = "ch1z"):
-            loader = DatasetFactory.get_loader(path)
+            loader = DatasetFactory.build_loader(path)
             single_data = loader.load()["ch1z"].to_numpy()
             return self.convert_sample_rate(
                 single_data,
@@ -357,22 +358,45 @@ class TestVisualize(unittest.TestCase):
             "Noise.wav",
         )
 
-    def test_compare_noise_240219_240517(self):
+    def test_filter_240517(self):
+        filter = ButterworthLowpassFilter(20, 1000)
+        data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
         plot_signals(
             [
-                self.load("data/240219_Rawdata/100km.mat")[: 32000 * 5],
-                self.load("data/240517_Rawdata/Noise_data_serial.mat")[: 1000 * 5],
+                data,
+                filter.apply(data),
             ],
-            ["240219", "240517"],
+            ["Original", "Filtered"],
+        )
+
+    def test_compare_noise_240219_240517(self):
+        filter = ButterworthLowpassFilter(20, 1000)
+        seconds = 10
+        old_data = self.load("data/240219_Rawdata/100km.mat")[: 32000 * seconds]
+        new_data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[
+            : 1000 * seconds
+        ]
+        plot_signals(
+            [
+                old_data,
+                new_data,
+                filter.apply(new_data),
+            ],
+            ["100km 240219", "Noise 240517", "Noise 240517 Filtered"],
         )
 
     def test_compare_hs_240219_240517(self):
+        filter = ButterworthLowpassFilter(80, 1000)
+        seconds = 5
+        old_data = self.load("data/240219_Rawdata/Stop.mat")[: 32000 * seconds]
+        new_data = self.load("data/240517_Rawdata/HS_data_serial.mat")[: 1000 * seconds]
         plot_signals(
             [
-                self.load("data/240219_Rawdata/Stop.mat")[: 32000 * 5],
-                self.load("data/240517_Rawdata/HS_data_serial.mat")[: 1000 * 5],
+                old_data,
+                new_data,
+                filter.apply(new_data),
             ],
-            ["240219", "240517"],
+            ["Stop 240219", "HS 240517", "HS 240517 Filtered"],
         )
 
     def convert_to_wav(
@@ -391,7 +415,7 @@ class TestVisualize(unittest.TestCase):
         plot_signal(single_data, ch)
 
     def load(self, path: str, ch: str = "ch1z"):
-        return DatasetFactory.get_loader(path).load()[ch].to_numpy()
+        return DatasetFactory.build_loader(path).load()[ch].to_numpy()
 
     def convert_sample_rate(self, signal: np.ndarray, input_rate, output_rate):
         return ScipySamplingRateConverter(input_rate, output_rate).convert(signal)

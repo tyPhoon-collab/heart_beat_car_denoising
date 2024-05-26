@@ -2,6 +2,7 @@
     "cSpell.words": [
         "arange",
         "Autoencoder",
+        "Butterworth",
         "Conv",
         "denoising",
         "dotenv",
@@ -12,6 +13,7 @@
         "impls",
         "librosa",
         "loadmat",
+        "Lowpass",
         "matr",
         "ndarray",
         "nhead",

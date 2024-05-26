@@ -47,9 +47,9 @@ class MatLoader(Loader):
 
 if __name__ == "__main__":
     loader = MatLoader(
-        "data/240517_Rawdata/HS_data_serial.mat",
+        "data/240517_Rawdata/HS_data.mat",
         # ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-        ["ch1z"],
+        ["ch1z"] * 36,
         data_key="HS_data",
     )
     data = loader.load()
