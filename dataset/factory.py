@@ -76,6 +76,7 @@ class DatasetFactory:
             noisy_file_path="data/240517_Rawdata/Noise_data_serial.mat",
             clean_data_modifier=ButterworthLowpassFilter(20, 1000).apply,
             noisy_data_modifier=ButterworthLowpassFilter(20, 1000).apply,
+            sample_rate=1000,
             **kwargs,
         )
 

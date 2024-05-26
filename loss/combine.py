@@ -4,8 +4,6 @@ import numpy as np
 import ptwt
 import pywt
 
-from utils.device import get_torch_device
-
 
 # GPU上でWavelet変換を行う関数
 def wavelet_transform(signal: torch.Tensor, widths, wavelet_name="morl"):
@@ -20,7 +18,7 @@ class CombinedLoss(nn.Module):
         super(CombinedLoss, self).__init__()
         self.l1_loss = nn.L1Loss()
         self.alpha = alpha
-        self.widths = torch.tensor(widths, dtype=torch.float32).to(get_torch_device())
+        self.widths = torch.tensor(widths, dtype=torch.float32)
 
     def forward(self, outputs, targets):
         # 波形のL1Lossを計算
