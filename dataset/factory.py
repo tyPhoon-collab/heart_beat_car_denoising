@@ -5,7 +5,7 @@ import numpy as np
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.filter import ButterworthLowpassFilter
 from dataset.loader import MatLoader
-from dataset.randomizer import PhaseShuffleRandomizer, Randomizer
+from dataset.randomizer import Randomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from utils.gain_controller import GainController
 
