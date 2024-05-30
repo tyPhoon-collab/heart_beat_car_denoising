@@ -3,9 +3,9 @@ from typing import Callable
 
 import numpy as np
 from dataset.dataset import NoisyHeartbeatDataset
-from dataset.filter import ButterworthLowpassFilter
+from dataset.filter import ButterworthLowpassFilter, FIRBandpassFilter
 from dataset.loader import MatLoader
-from dataset.randomizer import Randomizer
+from dataset.randomizer import AddUniformNoiseRandomizer, Randomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from utils.gain_controller import GainController
 
@@ -74,8 +74,8 @@ class DatasetFactory:
         return cls.create(
             clean_file_path="data/240517_Rawdata/HS_data_serial.mat",
             noisy_file_path="data/240517_Rawdata/Noise_data_serial.mat",
-            clean_data_modifier=ButterworthLowpassFilter(20, 1000).apply,
-            noisy_data_modifier=ButterworthLowpassFilter(20, 1000).apply,
+            clean_data_modifier=FIRBandpassFilter((25, 55), 1000).apply,
+            noisy_data_modifier=FIRBandpassFilter((25, 55), 1000).apply,
             sample_rate=1000,
             **kwargs,
         )
