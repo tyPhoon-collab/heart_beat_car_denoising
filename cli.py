@@ -140,15 +140,16 @@ def train(args):
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
-
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    gain_controller = (
+        ProgressiveGainController(epoch_to=4, max_gain=args.gain)
+        if args.with_progressive_gain
+        else ConstantGainController(gain=args.gain)
+    )
     # データセットとデータローダーの準備
-    train_dataset = DatasetFactory.create_240517(
+    train_dataset = DatasetFactory.create_240517_filtered(
         randomizer=randomizer,
-        gain_controller=(
-            ProgressiveGainController(epoch_to=4, max_gain=args.gain)
-            if args.with_progressive_gain
-            else ConstantGainController(gain=args.gain)
-        ),
+        gain_controller=gain_controller,
         train=True,
     )
     train_dataloader = DataLoader(
@@ -156,7 +157,17 @@ def train(args):
         batch_size=args.batch_size,
         shuffle=not args.without_shuffle,
     )
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+
+    val_dataset = DatasetFactory.create_240517_filtered(
+        randomizer=randomizer,
+        gain_controller=gain_controller,
+        train=False,
+    )
+    val_dataloader = DataLoader(
+        val_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+    )
 
     # モデルの訓練
     train_model(
@@ -167,6 +178,7 @@ def train(args):
         model_saver=model_saver,
         logger=logger,
         epoch_size=args.epoch_size,
+        val_dataloader=val_dataloader,
     )
 
 
@@ -181,7 +193,7 @@ def evaluate(args):
         model.load_state_dict(torch.load(args.weights_path))
 
     # データセットとデータローダーの準備
-    test_dataset = DatasetFactory.create_240517(
+    test_dataset = DatasetFactory.create_240517_filtered(
         randomizer=randomizer,
         train=False,
     )
@@ -227,7 +239,7 @@ def main():
     parser_train.add_argument(
         "--epoch-size",
         type=int,
-        default=10,
+        default=5,
         help="Number of epochs",
     )
     parser_train.add_argument(

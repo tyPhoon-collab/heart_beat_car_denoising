@@ -19,7 +19,7 @@ def _finalize_plot(filename=None):
         plt.show()
 
 
-def plot_signals(signals, labels, filename=None):
+def plot_signals(signals, labels):
     n = len(signals)
     plt.figure(figsize=(12, 3 * n))
     for i, (signal, label) in enumerate(zip(signals, labels), 1):
@@ -27,14 +27,18 @@ def plot_signals(signals, labels, filename=None):
         plt.plot(signal, label=label)
         plt.title(label)
         plt.legend()
+
+
+def show_signals(signals, labels, filename=None):
+    plot_signals(signals, labels)
     _finalize_plot(filename)
 
 
-def plot_signal(signal, label, filename=None):
-    plot_signals([signal], [label], filename)
+def show_signal(signal, label, filename=None):
+    show_signals([signal], [label], filename)
 
 
-def plot_spectrogram(
+def show_spectrogram(
     audio_data,
     sr,
     title="Spectrogram",

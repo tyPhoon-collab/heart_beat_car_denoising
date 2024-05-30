@@ -25,9 +25,9 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 from models.wave_u_net import WaveUNet
 from utils.gain_controller import ProgressiveGainController
 from utils.plot import (
-    plot_signal,
-    plot_signals,
-    plot_spectrogram,
+    show_signal,
+    show_signals,
+    show_spectrogram,
 )
 from utils.sound import save_signal_to_wav_scipy
 
@@ -56,7 +56,7 @@ class TestDataSet(unittest.TestCase):
 
         noisy, clean = next(iter(dataloader))
 
-        plot_signals([noisy[0][0], clean[0][0]], ["Noisy", "Clean"])
+        show_signals([noisy[0][0], clean[0][0]], ["Noisy", "Clean"])
 
     def test_idx_0(self):
         train_dataset = DatasetFactory.create_240219(
@@ -206,7 +206,7 @@ class TestSampleRateConverter(unittest.TestCase):
         converted_ch1z = converter.convert(ch1z)
 
         # 元のデータと変換後のデータをプロット
-        plot_signals(
+        show_signals(
             [
                 ch1z[: converter.input_rate],
                 converted_ch1z[: converter.output_rate],
@@ -255,13 +255,13 @@ class TestVisualize(unittest.TestCase):
 
     def test_stft_32000(self):
         single_data = self.load("data/240219_Rawdata/100km.mat", "ch1z")
-        plot_spectrogram(single_data, 32000)
+        show_spectrogram(single_data, 32000)
 
     def test_stft_1000(self):
         single_data = self.load("data/240219_Rawdata/Stop.mat", "ch1z")
         # single_data = self.load("data/100km.mat", "ch1z")
         single_data = self.convert_sample_rate(single_data, 32000, 1000)
-        plot_spectrogram(single_data[:10000], 1000, ylim=(0, 64))
+        show_spectrogram(single_data[:10000], 1000, ylim=(0, 64))
 
     def test_show_stop(self):
         self.show("data/240219_Rawdata/Stop.mat")
@@ -274,7 +274,7 @@ class TestVisualize(unittest.TestCase):
 
     def test_show_hs(self):
         data = self.load("data/240517_Rawdata/HS_data_serial.mat")
-        plot_signal(data[:5000], "HS_data")
+        show_signal(data[:5000], "HS_data")
 
     def test_show_ecg(self):
         loader = MatLoader(
@@ -283,7 +283,7 @@ class TestVisualize(unittest.TestCase):
             data_key="HS_data",
         )
         data = loader.load()["ch1z"].to_numpy()
-        plot_signal(data[:10000], "ECG_data")
+        show_signal(data[:10000], "ECG_data")
 
     def test_show_noise(self):
         self.show("data/240517_Rawdata/Noise_data_serial.mat")
@@ -295,7 +295,7 @@ class TestVisualize(unittest.TestCase):
         phase_shuffled_data = PhaseHalfShuffleRandomizer().shuffle(single_data)
         add_noise_data = AddUniformNoiseRandomizer().shuffle(single_data)
 
-        plot_signals(
+        show_signals(
             [
                 single_data,
                 sample_shuffled_data,
@@ -370,7 +370,7 @@ class TestVisualize(unittest.TestCase):
     def test_filter_240517(self):
         filter = ButterworthLowpassFilter(20, 1000)
         data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
-        plot_signals(
+        show_signals(
             [
                 data,
                 filter.apply(data),
@@ -381,7 +381,7 @@ class TestVisualize(unittest.TestCase):
     def test_bandpass_filter_240517_noise(self):
         filter = FIRBandpassFilter((25, 100), 1000)
         data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
-        plot_signals(
+        show_signals(
             [
                 data,
                 filter.apply(data),
@@ -392,7 +392,7 @@ class TestVisualize(unittest.TestCase):
     def test_bandpass_filter_240517_hs(self):
         filter = FIRBandpassFilter((25, 55), 1000)
         data = self.load("data/240517_Rawdata/HS_data_serial.mat")[:3000]
-        plot_signals(
+        show_signals(
             [
                 data,
                 filter.apply(data),
@@ -407,7 +407,7 @@ class TestVisualize(unittest.TestCase):
         new_data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[
             : 1000 * seconds
         ]
-        plot_signals(
+        show_signals(
             [
                 old_data,
                 new_data,
@@ -421,7 +421,7 @@ class TestVisualize(unittest.TestCase):
         seconds = 5
         old_data = self.load("data/240219_Rawdata/Stop.mat")[: 32000 * seconds]
         new_data = self.load("data/240517_Rawdata/HS_data_serial.mat")[: 1000 * seconds]
-        plot_signals(
+        show_signals(
             [
                 old_data,
                 new_data,
@@ -443,7 +443,7 @@ class TestVisualize(unittest.TestCase):
 
     def show(self, path: str, ch: str = "ch1z"):
         single_data = self.load(path, ch)
-        plot_signal(single_data, ch)
+        show_signal(single_data, ch)
 
     def load(self, path: str, ch: str = "ch1z"):
         return DatasetFactory.build_loader(path).load()[ch].to_numpy()

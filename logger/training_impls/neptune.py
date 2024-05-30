@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from logging import warning
 import os
+from matplotlib import pyplot as plt
 import neptune
 from logger.training_logger import Params, TrainingLogger
 
@@ -40,7 +41,8 @@ class NeptuneLogger(TrainingLogger):
         if not self.enabled:
             return
 
-        self.run[f"train/epoch_{epoch_idx}/loss"].log(epoch_loss)
+        self.run["train/epoch_loss"].log(epoch_loss)
+        self.run["train/validation_image"].append(plt.gcf())
 
     def on_finish(self):
         if not self.enabled:

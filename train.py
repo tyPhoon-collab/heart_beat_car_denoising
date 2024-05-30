@@ -1,4 +1,6 @@
 import os
+from matplotlib import pyplot as plt
+import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
@@ -13,6 +15,7 @@ from utils.gain_controller import (
     ProgressiveGainController,
 )
 from utils.model_saver import ModelSaver, WithDateModelSaver
+from utils.plot import plot_signals
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
 
@@ -24,6 +27,7 @@ def train_model(
     criterion: nn.Module,
     optimizer: optim.Optimizer,
     *,
+    val_dataloader: DataLoader | None = None,
     model_saver: ModelSaver | None = None,
     logger: TrainingLogger | None = None,
     epoch_size: int = 5,
@@ -75,7 +79,27 @@ def train_model(
         if model_saver is not None:
             model_saver.save(model, suffix=f"epoch_{epoch + 1}")
 
+        if val_dataloader is not None:
+            with torch.no_grad():
+                noisy, clean = map(lambda x: x.to(device), next(iter(val_dataloader)))
+                model.eval()
+
+                outputs = model(noisy)
+
+                cpu_noisy = noisy[0][0].cpu().numpy()
+                cpu_clean = clean[0][0].cpu().numpy()
+                cpu_outputs = outputs[0][0].cpu().numpy()
+
+                plot_signals(
+                    [cpu_noisy, cpu_clean, cpu_outputs],
+                    ["Noisy", "Clean", "Output"],
+                )
+                model.train()
+
         logger.on_epoch_end(epoch, loss)  # type: ignore
+
+        if val_dataloader is not None:
+            plt.clf()
 
     logger.on_finish()
 
