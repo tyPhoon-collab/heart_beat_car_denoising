@@ -24,8 +24,8 @@ print_separator() {
 }
 
 # 引数チェック
-if [ "$#" -lt 4 ]; then
-    print_error "Usage: $0 <ID> <MODEL> <LOSS_FN> <BATCH_SIZE> [<ANOTHER_TRAINING_OPTIONS>]"
+if [ "$#" -lt 5 ]; then
+    print_error "Usage: $0 <ID> <MODEL> <LOSS_FN> <BATCH_SIZE> <GAIN> [<ANOTHER_TRAINING_OPTIONS>]"
     exit 1
 fi
 
@@ -34,8 +34,9 @@ ID=$1
 MODEL=$2
 LOSS_FN=$3
 BATCH_SIZE=$4
+GAIN=$5
 
-shift 4
+shift 5
 
 ANOTHER_TRAINING_OPTIONS=$*
 
@@ -50,7 +51,7 @@ FIGURE_FILENAME="${ID}.png"
 print_separator
 print_yellow "Training the model"
 print_separator
-python cli.py train --model "$MODEL" --loss-fn "$LOSS_FN" --batch-size "$BATCH_SIZE" \
+python cli.py train --model "$MODEL" --loss-fn "$LOSS_FN" --batch-size "$BATCH_SIZE" --gain "$GAIN" \
     --checkpoint-dir "$CHECKPOINT_DIR" \
     --model-id "$ID" $ANOTHER_TRAINING_OPTIONS
 
@@ -63,7 +64,7 @@ fi
 print_separator
 print_yellow "Evaluating the model"
 print_separator
-python cli.py eval --model "$MODEL" --loss-fn "$LOSS_FN" --batch-size "$BATCH_SIZE" \
+python cli.py eval --model "$MODEL" --loss-fn "$LOSS_FN" --batch-size "$BATCH_SIZE" --gain "$GAIN" \
     --weights-path "$WEIGHTS_PATH" \
     --figure-filename "$FIGURE_FILENAME" \
     # --clean-audio-filename "$CLEAN_AUDIO_FILENAME" \
