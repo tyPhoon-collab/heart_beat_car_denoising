@@ -92,37 +92,6 @@ def get_randomizer_names() -> list[str]:
     return [randomizer.__name__ for randomizer in RANDOMIZER]
 
 
-def add_common_arguments(parser):
-    parser.add_argument(
-        "--model",
-        type=str,
-        required=True,
-        choices=get_model_names(),
-        help="Model name",
-    )
-    parser.add_argument(
-        "--loss-fn",
-        type=str,
-        required=True,
-        choices=get_loss_function_names(),
-        help="Loss function",
-    )
-    parser.add_argument("--batch-size", type=int, default=1, help="Batch size")
-    parser.add_argument(
-        "--gain",
-        type=float,
-        default=1.0,
-        help="Gain. If you want to use progressive gain, use --with-progressive-gain",
-    )
-    parser.add_argument(
-        "--randomizer",
-        type=str,
-        default="AddUniformNoiseRandomizer",
-        choices=get_randomizer_names(),
-        help="Randomizer",
-    )
-
-
 def train(args):
     load_local_dotenv()
 
@@ -149,8 +118,10 @@ def train(args):
     # データセットとデータローダーの準備
     train_dataset = DatasetFactory.create_240517_filtered(
         randomizer=randomizer,
-        gain_controller=gain_controller,
         train=True,
+        gain_controller=gain_controller,
+        split_samples=args.split_samples,
+        stride_samples=args.stride_samples,
     )
     train_dataloader = DataLoader(
         train_dataset,
@@ -194,8 +165,10 @@ def evaluate(args):
 
     # データセットとデータローダーの準備
     test_dataset = DatasetFactory.create_240517_filtered(
-        randomizer=randomizer,
         train=False,
+        randomizer=randomizer,
+        split_samples=args.split_samples,
+        stride_samples=args.stride_samples,
     )
     test_dataloader = DataLoader(
         test_dataset,
@@ -220,6 +193,49 @@ def evaluate(args):
                 ),
             ]
         ),
+    )
+
+
+def add_common_arguments(parser):
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        choices=get_model_names(),
+        help="Model name",
+    )
+    parser.add_argument(
+        "--loss-fn",
+        type=str,
+        required=True,
+        choices=get_loss_function_names(),
+        help="Loss function",
+    )
+    parser.add_argument("--batch-size", type=int, default=1, help="Batch size")
+    parser.add_argument(
+        "--gain",
+        type=float,
+        default=1.0,
+        help="Gain. If you want to use progressive gain, use --with-progressive-gain",
+    )
+    parser.add_argument(
+        "--stride-samples",
+        type=int,
+        default=None,
+        help="Stride in samples",
+    )
+    parser.add_argument(
+        "--split-samples",
+        type=int,
+        default=None,
+        help="Split in samples",
+    )
+    parser.add_argument(
+        "--randomizer",
+        type=str,
+        default="AddUniformNoiseRandomizer",
+        choices=get_randomizer_names(),
+        help="Randomizer",
     )
 
 

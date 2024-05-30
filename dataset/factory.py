@@ -5,9 +5,7 @@ import numpy as np
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.filter import FIRBandpassFilter
 from dataset.loader import MatLoader
-from dataset.randomizer import Randomizer
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
-from utils.gain_controller import GainController
 
 
 class DatasetFactory:
@@ -20,9 +18,8 @@ class DatasetFactory:
         noisy_data_modifier: Callable[[np.ndarray], np.ndarray] = lambda x: x,
         sample_rate: int | None = None,
         sample_rate_map: tuple[int, int] | None = None,
-        randomizer: Randomizer | None = None,
-        gain_controller: GainController | None = None,
         train=True,
+        **kwargs,
     ):
         assert sample_rate is not None or sample_rate_map is not None
 
@@ -46,9 +43,8 @@ class DatasetFactory:
                     output_rate=sample_rate_map[1],
                 )
             ),
-            randomizer=randomizer,
-            gain_controller=gain_controller,
             train=train,
+            **kwargs,
         )
 
     @classmethod
