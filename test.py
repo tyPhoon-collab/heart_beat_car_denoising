@@ -23,7 +23,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
-from utils.gain_controller import GainController
+from utils.gain_controller import ProgressiveGainController
 from utils.plot import (
     plot_signal,
     plot_signals,
@@ -276,6 +276,15 @@ class TestVisualize(unittest.TestCase):
         data = self.load("data/240517_Rawdata/HS_data_serial.mat")
         plot_signal(data[:5000], "HS_data")
 
+    def test_show_ecg(self):
+        loader = MatLoader(
+            "data/240517_Rawdata/HS_data.mat",
+            [f"ch{i}z" for i in range(36)],
+            data_key="HS_data",
+        )
+        data = loader.load()["ch1z"].to_numpy()
+        plot_signal(data[:10000], "ECG_data")
+
     def test_show_noise(self):
         self.show("data/240517_Rawdata/Noise_data_serial.mat")
 
@@ -423,7 +432,7 @@ class TestVisualize(unittest.TestCase):
 
 class TestGainController(unittest.TestCase):
     def test_gain_controller(self):
-        controller = GainController(epoch_from=0, epoch_to=4, max_gain=1.1)
+        controller = ProgressiveGainController(epoch_from=0, epoch_to=4, max_gain=1.1)
         self.assertEqual(controller.gain, 1)
 
         controller.set_gain_from_epoch(0)

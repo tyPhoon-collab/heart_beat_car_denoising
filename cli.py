@@ -35,7 +35,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 )
 from train import train_model
 from utils.device import load_local_dotenv
-from utils.gain_controller import GainController
+from utils.gain_controller import ProgressiveGainController
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Conv1DAutoencoder
@@ -139,7 +139,7 @@ def train(args):
     train_dataset = DatasetFactory.create_240517(
         randomizer=randomizer,
         gain_controller=(
-            GainController(epoch_to=4, max_gain=1.1)
+            ProgressiveGainController(epoch_to=4, max_gain=1.1)
             if args.with_progressive_gain
             else None
         ),

@@ -7,7 +7,11 @@ from dataset.randomizer import SampleShuffleRandomizer
 from logger.training_logger import Params, TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from utils.device import get_torch_device, load_local_dotenv
-from utils.gain_controller import GainController
+from utils.gain_controller import (
+    EpochSensitive,
+    GainController,
+    ProgressiveGainController,
+)
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
@@ -47,8 +51,8 @@ def train_model(
     only_first_batch = os.getenv("ONLY_FIRST_BATCH") == "1"
 
     for epoch in range(epoch_size):
-        if gain_controller is not None:
-            gain_controller.set_gain_from_epoch(epoch)
+        if gain_controller is not None and isinstance(gain_controller, EpochSensitive):
+            gain_controller.on_start_epoch(epoch)
 
         for noisy, clean in dataloader:
             noisy = noisy.to(device)
@@ -85,7 +89,7 @@ if __name__ == "__main__":
 
     train_dataset = DatasetFactory.create_240219(
         randomizer=SampleShuffleRandomizer(),
-        gain_controller=GainController(epoch_to=4, max_gain=1.1),
+        gain_controller=ProgressiveGainController(epoch_to=4, max_gain=1.1),
         train=True,
     )
     train_dataloader = DataLoader(

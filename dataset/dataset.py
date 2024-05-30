@@ -62,7 +62,7 @@ class NoisyHeartbeatDataset(Dataset):
         clean = self.clean_data[start:end]
         noise = self._randomize(self.noisy_data[start:end])
 
-        gain = self.gain_controller.gain if self.gain_controller else 1.0
+        gain = self.gain_controller.get_gain() if self.gain_controller else 1.0
 
         return (
             self._to_tensor(clean + noise * gain).unsqueeze(0),
