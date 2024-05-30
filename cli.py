@@ -213,7 +213,7 @@ def evaluate(args):
             loggers=[
                 FigureEvaluationLogger(filename=args.figure_filename),
                 AudioEvaluationLogger(
-                    sample_rate=test_dataset.sample_rate(),
+                    sample_rate=test_dataset.sample_rate,
                     audio_filename=args.audio_filename,
                     clean_audio_filename=args.clean_audio_filename,
                     noisy_audio_filename=args.noisy_audio_filename,

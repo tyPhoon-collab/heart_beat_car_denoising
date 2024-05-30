@@ -1,5 +1,5 @@
 from attr import dataclass
-from logger.training_logger import Params, TrainingLogger
+from logger.training_logger import TrainingLogger
 
 
 @dataclass
@@ -12,7 +12,7 @@ class CompositeTrainingLogger(TrainingLogger):
     def remove_logger(self, logger):
         self.loggers.remove(logger)
 
-    def on_start(self, params: Params):
+    def on_start(self, params: dict):
         for logger in self.loggers:
             logger.on_start(params)
 

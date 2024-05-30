@@ -1,8 +1,8 @@
-from logger.training_logger import Params, TrainingLogger
+from logger.training_logger import TrainingLogger
 
 
 class NoopTrainingLogger(TrainingLogger):
-    def on_start(self, params: Params):
+    def on_start(self, params: dict):
         pass
 
     def on_batch_end(self, batch_idx, loss):

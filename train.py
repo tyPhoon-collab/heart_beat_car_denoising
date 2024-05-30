@@ -4,9 +4,10 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
+from dataset.dataset import NoisyHeartbeatDataset
 from dataset.factory import DatasetFactory
 from dataset.randomizer import SampleShuffleRandomizer
-from logger.training_logger import Params, TrainingLogger
+from logger.training_logger import TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from utils.device import get_torch_device, load_local_dotenv
 from utils.gain_controller import (
@@ -33,21 +34,30 @@ def train_model(
     epoch_size: int = 5,
 ):
     logger = logger or TrainingLoggerFactory.noop()
-    gain_controller: GainController | None = dataloader.dataset.gain_controller  # type: ignore
+
+    if isinstance(dataloader.dataset, NoisyHeartbeatDataset):
+        dataset = dataloader.dataset
+    else:
+        raise TypeError("dataset is not an instance of NoisyHeartbeatDataset")
+
+    gain_controller: GainController | None = dataset.gain_controller
 
     device = get_torch_device()
     model.to(device)
 
-    params = Params(
-        learning_rate=optimizer.param_groups[0]["lr"],
-        model_name=model.__class__.__name__,
-        criterion_name=criterion.__class__.__name__,
-        optimizer_name=optimizer.__class__.__name__,
-        device_str=str(device),
-        batch_size=dataloader.batch_size,
-        epoch_size=epoch_size,
-        gain=str(gain_controller) if gain_controller is not None else None,
-    )
+    params = {
+        "learning_rate": optimizer.param_groups[0]["lr"],
+        "model_name": model.__class__.__name__,
+        "criterion_name": criterion.__class__.__name__,
+        "optimizer_name": optimizer.__class__.__name__,
+        "device": str(device),
+        "batch_size": dataloader.batch_size,
+        "epoch_size": epoch_size,
+        "gain": str(gain_controller) if gain_controller is not None else None,
+        "split_samples": dataset.split_samples,
+        "stride_samples": dataset.stride_samples,
+        "sample_rate": dataset.sample_rate,
+    }
 
     print(params)
 

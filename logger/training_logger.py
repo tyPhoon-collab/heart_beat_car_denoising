@@ -1,22 +1,9 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class Params:
-    learning_rate: float
-    model_name: str
-    criterion_name: str
-    optimizer_name: str
-    device_str: str
-    batch_size: int | None
-    epoch_size: int
-    gain: str | None
 
 
 class TrainingLogger(ABC):
     @abstractmethod
-    def on_start(self, params: Params):
+    def on_start(self, params: dict):
         """トレーニング開始時に呼ばれます。"""
         pass
 

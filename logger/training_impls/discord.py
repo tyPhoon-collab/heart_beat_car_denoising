@@ -4,7 +4,7 @@ import sys
 import traceback
 
 import requests
-from logger.training_logger import Params, TrainingLogger
+from logger.training_logger import TrainingLogger
 
 
 class DiscordLogger(TrainingLogger):
@@ -15,7 +15,7 @@ class DiscordLogger(TrainingLogger):
         if self.webhook_url is None:
             warning("Discord webhook URL is not set. Skipping notification.")
 
-    def on_start(self, params: Params):
+    def on_start(self, params: dict):
         self.send_discord_notification_on_error()
         self.send_discord_notification("Training started.")
 
