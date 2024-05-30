@@ -122,3 +122,9 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 - エポック数を増やす
 - 柔軟なMatLoaderを提供する機能を追加する
 - 適切なTransformerの学習環境を整える
+
+### 5/30
+
+- リファクタリング、neptuneへの統合の強化
+- ノイズゲインを0.25倍した場合は、ある程度の性能が見込まれた
+- バンドパスを掛けたデータで訓練、評価する

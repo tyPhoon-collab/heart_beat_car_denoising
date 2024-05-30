@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from dataset.factory import DatasetFactory
-from dataset.filter import ButterworthLowpassFilter
+from dataset.filter import ButterworthLowpassFilter, FIRBandpassFilter
 from dataset.loader import MatLoader
 from dataset.randomizer import (
     AddUniformNoiseRandomizer,
@@ -50,7 +50,7 @@ class TestDataSet(unittest.TestCase):
 
         dataloader = DataLoader(
             train_dataset,
-            batch_size=1,
+            batch_size=64,
             shuffle=True,
         )
 
@@ -370,6 +370,28 @@ class TestVisualize(unittest.TestCase):
     def test_filter_240517(self):
         filter = ButterworthLowpassFilter(20, 1000)
         data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
+        plot_signals(
+            [
+                data,
+                filter.apply(data),
+            ],
+            ["Original", "Filtered"],
+        )
+
+    def test_bandpass_filter_240517_noise(self):
+        filter = FIRBandpassFilter((25, 100), 1000)
+        data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
+        plot_signals(
+            [
+                data,
+                filter.apply(data),
+            ],
+            ["Original", "Filtered"],
+        )
+
+    def test_bandpass_filter_240517_hs(self):
+        filter = FIRBandpassFilter((25, 55), 1000)
+        data = self.load("data/240517_Rawdata/HS_data_serial.mat")[:3000]
         plot_signals(
             [
                 data,

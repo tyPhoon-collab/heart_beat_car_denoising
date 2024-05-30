@@ -1,5 +1,21 @@
 import numpy as np
 from scipy.signal import butter, filtfilt
+from scipy.signal import firwin, lfilter
+
+
+class FIRBandpassFilter:
+    def __init__(self, cutoff: tuple[float, float], fs: float):
+        self.fs = fs  # サンプリングレート (Hz)
+        self.lowcut, self.highcut = cutoff  # バンドパスフィルタの下限周波数 (Hz)
+        self.numtaps = 101  # フィルタのタップ数
+
+    def apply(self, data: np.ndarray) -> np.ndarray:
+        b = firwin(
+            self.numtaps, [self.lowcut, self.highcut], pass_zero=False, fs=self.fs
+        )
+
+        # フィルタの適用
+        return lfilter(b, 1.0, data)  # type: ignore
 
 
 class ButterworthLowpassFilter:
