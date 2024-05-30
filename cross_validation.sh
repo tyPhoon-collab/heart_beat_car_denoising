@@ -12,11 +12,3 @@
 # bash train_and_eval.sh SAET_L1 PixelShuffleConv1DAutoencoderWithTransformer L1Loss BATCH_SIZE GAIN --without-shuffle
 # bash train_and_eval.sh SAET_SL1 PixelShuffleConv1DAutoencoderWithTransformer CombinedLoss BATCH_SIZE GAIN --without-shuffle
 
-bash train_and_eval.sh 0.25_AE_CL Conv1DAutoencoder CombinedLoss 64 0.25 --epoch-size 5 --learning-rate 0.0001
-# bash train_and_eval.sh 0.25_AE_L1 Conv1DAutoencoder L1Loss 64 0.25 --epoch-size 5 --learning-rate 0.0001
-
-bash train_and_eval.sh 0.50_AE_CL Conv1DAutoencoder CombinedLoss 64 0.5 --epoch-size 5 --learning-rate 0.0001
-
-bash train_and_eval.sh 0.75_AE_CL Conv1DAutoencoder CombinedLoss 64 0.75 --epoch-size 5 --learning-rate 0.0001
-
-bash train_and_eval.sh AE_CL Conv1DAutoencoder CombinedLoss 64 1 --epoch-size 5 --learning-rate 0.0001
