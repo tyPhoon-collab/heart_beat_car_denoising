@@ -8,8 +8,10 @@ class Params:
     model_name: str
     criterion_name: str
     optimizer_name: str
+    device_str: str
     batch_size: int | None
     epoch_size: int
+    gain: str | None
 
 
 class TrainingLogger(ABC):

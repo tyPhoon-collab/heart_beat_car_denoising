@@ -21,6 +21,9 @@ class ConstantGainController(GainController):
     def get_gain(self):
         return self.gain
 
+    def __str__(self) -> str:
+        return f"ConstantGainController(gain={self.gain})"
+
 
 @dataclass
 class ProgressiveGainController(GainController, EpochSensitive):
@@ -36,6 +39,9 @@ class ProgressiveGainController(GainController, EpochSensitive):
 
     def get_gain(self):
         return self.gain
+
+    def __str__(self) -> str:
+        return f"ProgressiveGainController(epoch_from={self.epoch_from}, epoch_to={self.epoch_to}, min_gain={self.min_gain}, max_gain={self.max_gain}, gain={self.gain})"  # noqa
 
     def on_start_epoch(self, epoch_idx):
         self.set_gain_from_epoch(epoch_idx)

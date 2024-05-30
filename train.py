@@ -29,26 +29,30 @@ def train_model(
     epoch_size: int = 5,
 ):
     logger = logger or TrainingLoggerFactory.noop()
+    gain_controller: GainController | None = dataloader.dataset.gain_controller  # type: ignore
+
+    device = get_torch_device()
+    model.to(device)
 
     params = Params(
         learning_rate=optimizer.param_groups[0]["lr"],
         model_name=model.__class__.__name__,
         criterion_name=criterion.__class__.__name__,
         optimizer_name=optimizer.__class__.__name__,
+        device_str=str(device),
         batch_size=dataloader.batch_size,
         epoch_size=epoch_size,
+        gain=str(gain_controller) if gain_controller is not None else None,
     )
+
+    print(params)
 
     logger.on_start(params)
 
-    device = get_torch_device()
-    model.to(device)
-
     model.train()
 
-    gain_controller: GainController | None = dataloader.dataset.gain_controller  # type: ignore
-
-    only_first_batch = os.getenv("ONLY_FIRST_BATCH") == "1"
+    if os.getenv("ONLY_FIRST_BATCH") == "1":
+        dataloader = [next(iter(dataloader))]  # type: ignore
 
     for epoch in range(epoch_size):
         if gain_controller is not None and isinstance(gain_controller, EpochSensitive):
@@ -65,9 +69,6 @@ def train_model(
             optimizer.step()
 
             logger.on_batch_end(epoch, loss)
-
-            if only_first_batch:
-                break
 
         print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
 
