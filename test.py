@@ -129,7 +129,7 @@ class TestModels(unittest.TestCase):
         optimizer = optim.Adam(model.parameters(), lr=0.001)
 
         # Dummy data for demonstration
-        x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
+        x = torch.randn(1, 1, 5120 + (8 - 1) * 512)  # Batch size, Channels, Length
         x = x.to(torch.float32)
 
         # Forward pass
