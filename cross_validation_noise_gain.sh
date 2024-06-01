@@ -1,25 +1,56 @@
 #!/bin/bash
 
-bash train_and_eval.sh 0.25_WUN_CL WaveUNet CombinedLoss 64 --gain 0.25 --epoch-size 5 --learning-rate 0.0001
+DEFAULT_EPOCH_SIZE=10
+LEARNING_RATE=0.0001
 
-bash train_and_eval.sh 0.50_WUN_CL WaveUNet CombinedLoss 64 --gain 0.5 --epoch-size 5 --learning-rate 0.0001
+# for transformer model
+STRIDE_SAMPLES=512
+SPLIT_SAMPLES=$((5120 + (8 - 1) * STRIDE_SAMPLES))
 
-bash train_and_eval.sh 0.75_WUN_CL WaveUNet CombinedLoss 64 --gain 0.75 --epoch-size 5 --learning-rate 0.0001
+train_model() {
+  local model_id=$1
+  local model_type=$2
+  local gain=$3
 
-bash train_and_eval.sh WUN_CL WaveUNet CombinedLoss 64 --epoch-size 5 --learning-rate 0.0001
+  if [ -n "$gain" ]; then
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --gain "${gain}" --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+  else
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+  fi
+}
 
-bash train_and_eval.sh 0.25_AE_CL Conv1DAutoencoder CombinedLoss 64 --gain 0.25 --epoch-size 5 --learning-rate 0.0001
+train_model_with_stride_split() {
+  local model_id=$1
+  local model_type=$2
+  local gain=$3
 
-bash train_and_eval.sh 0.50_AE_CL Conv1DAutoencoder CombinedLoss 64 --gain 0.5 --epoch-size 5 --learning-rate 0.0001
+  if [ -n "$gain" ]; then
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --gain "${gain}" --stride-samples $STRIDE_SAMPLES --split-samples $SPLIT_SAMPLES --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+  else
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --stride-samples $STRIDE_SAMPLES --split-samples $SPLIT_SAMPLES --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+  fi
+}
 
-bash train_and_eval.sh 0.75_AE_CL Conv1DAutoencoder CombinedLoss 64 --gain 0.75 --epoch-size 5 --learning-rate 0.0001
+# WaveUNet models
+for gain in 0.25 0.5 0.75; do
+  train_model "${gain}_WUN_CL" "WaveUNet" "${gain}"
+done
+train_model "WUN_CL" "WaveUNet" ""
 
-bash train_and_eval.sh AE_CL Conv1DAutoencoder CombinedLoss 64 --epoch-size 5 --learning-rate 0.0001
+# Conv1DAutoencoder models
+for gain in 0.25 0.5 0.75; do
+  train_model "${gain}_AE_CL" "Conv1DAutoencoder" "${gain}"
+done
+train_model "AE_CL" "Conv1DAutoencoder" ""
 
-bash train_and_eval.sh 0.25_SAE_CL PixelShuffleConv1DAutoencoder CombinedLoss 64 --gain 0.25 --epoch-size 5 --learning-rate 0.0001
+# PixelShuffleConv1DAutoencoder models
+for gain in 0.25 0.5 0.75; do
+  train_model "${gain}_SAE_CL" "PixelShuffleConv1DAutoencoder" "${gain}"
+done
+train_model "SAE_CL" "PixelShuffleConv1DAutoencoder" ""
 
-bash train_and_eval.sh 0.50_SAE_CL PixelShuffleConv1DAutoencoder CombinedLoss 64 --gain 0.5 --epoch-size 5 --learning-rate 0.0001
-
-bash train_and_eval.sh 0.75_SAE_CL PixelShuffleConv1DAutoencoder CombinedLoss 64 --gain 0.75 --epoch-size 5 --learning-rate 0.0001
-
-bash train_and_eval.sh SAE_CL PixelShuffleConv1DAutoencoder CombinedLoss 64 --epoch-size 5 --learning-rate 0.0001
+# PixelShuffleConv1DAutoencoderWithTransformer models
+for gain in 0.25 0.5 0.75; do
+  train_model_with_stride_split "${gain}_TransSAE_CL" "PixelShuffleConv1DAutoencoderWithTransformer" "${gain}"
+done
+train_model_with_stride_split "TransSAE_CL" "PixelShuffleConv1DAutoencoderWithTransformer" ""
