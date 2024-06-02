@@ -2,6 +2,7 @@
 
 DEFAULT_EPOCH_SIZE=10
 LEARNING_RATE=0.0001
+BATCH_SIZE=64
 
 # for transformer model
 STRIDE_SAMPLES=512
@@ -13,9 +14,9 @@ train_model() {
   local gain=$3
 
   if [ -n "$gain" ]; then
-    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --gain "${gain}" --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss $BATCH_SIZE --gain "${gain}" --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
   else
-    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss $BATCH_SIZE --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
   fi
 }
 
@@ -25,9 +26,9 @@ train_model_with_stride_split() {
   local gain=$3
 
   if [ -n "$gain" ]; then
-    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --gain "${gain}" --stride-samples $STRIDE_SAMPLES --split-samples $SPLIT_SAMPLES --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss $BATCH_SIZE --gain "${gain}" --stride-samples $STRIDE_SAMPLES --split-samples $SPLIT_SAMPLES --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
   else
-    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss 64 --stride-samples $STRIDE_SAMPLES --split-samples $SPLIT_SAMPLES --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
+    bash train_and_eval.sh "${model_id}" "${model_type}" CombinedLoss $BATCH_SIZE --stride-samples $STRIDE_SAMPLES --split-samples $SPLIT_SAMPLES --epoch-size $DEFAULT_EPOCH_SIZE --learning-rate $LEARNING_RATE
   fi
 }
 
