@@ -126,5 +126,11 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 ### 5/30
 
 - リファクタリング、neptuneへの統合の強化
+  - [neptune](https://app.neptune.ai/o/typhoon/org/heart-beat-car-denoising/runs/table?viewId=9c30a6de-9bfa-42dd-9786-285c972793ef&detailsTab=images)への招待
 - ノイズゲインを0.25倍した場合は、ある程度の性能が見込まれた
 - バンドパスを掛けたデータで訓練、評価する
+
+### 6/2
+
+- 0.25, 0.50, 0.75, 1.0倍のノイズゲインに変更した場合の検証
+  - WaveUNetかつ0.5の時の精度が良さそう
