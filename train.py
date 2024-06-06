@@ -1,3 +1,4 @@
+from math import inf
 import os
 from matplotlib import pyplot as plt
 import torch
@@ -68,13 +69,18 @@ def train_model(
     if os.getenv("ONLY_FIRST_BATCH") == "1":
         dataloader = [next(iter(dataloader))]  # type: ignore
 
+    def save_model(model: nn.Module, suffix: str):
+        if model_saver is not None:
+            model_saver.save(model, suffix=suffix)
+
+    lowest_loss = inf
+
     for epoch in range(epoch_size):
         if gain_controller is not None and isinstance(gain_controller, EpochSensitive):
             gain_controller.on_start_epoch(epoch)
 
-        for noisy, clean in dataloader:
-            noisy = noisy.to(device)
-            clean = clean.to(device)
+        for batch in dataloader:
+            noisy, clean = map(lambda x: x.to(device), batch)
 
             optimizer.zero_grad()
             outputs = model(noisy)
@@ -84,10 +90,16 @@ def train_model(
 
             logger.on_batch_end(epoch, loss)
 
-        print(f"Epoch {epoch + 1}, Loss: {loss.item():.4f}")  # type: ignore
+        loss_item = loss.item()  # type: ignore
 
-        if model_saver is not None:
-            model_saver.save(model, suffix=f"epoch_{epoch + 1}")
+        print(f"Epoch {epoch + 1}, Loss: {loss_item:.4f}")
+
+        if lowest_loss > loss_item:
+            lowest_loss = loss_item
+            save_model(model, suffix="best")
+
+        # 以下はエポックごとのモデルを保存するコードだが、ファイルサイズが大きくなるので、一旦コメント化
+        # save_model(model, suffix=f"epoch_{epoch + 1}")
 
         if val_dataloader is not None:
             with torch.no_grad():

@@ -73,7 +73,7 @@ done
 
 FOLDER_NAME="${MODEL}_${LOSS_FN}"
 CHECKPOINT_DIR="output/checkpoint/$FOLDER_NAME"
-WEIGHTS_PATH="$CHECKPOINT_DIR/$ID/model_weights_epoch_5.pth"
+WEIGHTS_PATH="$CHECKPOINT_DIR/$ID/model_weights_best.pth"
 FIGURE_FILENAME="${ID}.png"
 
 COMMON_OPTIONS="--model $MODEL --loss-fn $LOSS_FN --batch-size $BATCH_SIZE $GAIN $STRIDE_SAMPLES $SPLIT_SAMPLES"

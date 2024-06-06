@@ -27,9 +27,8 @@ def eval_model(
     model.eval()
 
     with torch.no_grad():
-        for noisy, clean in dataloader:
-            noisy = noisy.to(device)
-            clean = clean.to(device)
+        for batch in dataloader:
+            noisy, clean = map(lambda x: x.to(device), batch)
 
             outputs = model(noisy)
 
