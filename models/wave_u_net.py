@@ -43,10 +43,11 @@ class WaveUNet(nn.Module):
         skip_connections = skip_connections[::-1]
         # Decoder
         for i, layer in enumerate(self.decoder_layers):
-            x = F.leaky_relu(layer(x), 0.2)
+            x = layer(x)
             if (
                 i < len(self.decoder_layers) - 1
             ):  # Skip connection for all except last layer
+                x = F.leaky_relu(x, 0.2)
                 x = torch.cat(
                     [x, skip_connections[i + 1]], 1
                 )  # Skip the first connection
