@@ -26,8 +26,8 @@ class DatasetFactory:
         clean_data_loader = cls.build_loader(clean_file_path)
         noisy_data_loader = cls.build_loader(noisy_file_path)
 
-        clean_data = clean_data_modifier(clean_data_loader.load()["ch1z"].to_numpy())
-        noisy_data = noisy_data_modifier(noisy_data_loader.load()["ch1z"].to_numpy())
+        clean_data = cls.load(clean_data_modifier, clean_data_loader)
+        noisy_data = cls.load(noisy_data_modifier, noisy_data_loader)
 
         return NoisyHeartbeatDataset(
             clean_data=clean_data,
@@ -75,6 +75,10 @@ class DatasetFactory:
             sample_rate=1000,
             **kwargs,
         )
+
+    @classmethod
+    def load(cls, modifier, loader):
+        return modifier(loader.load()["ch1z"].to_numpy())
 
     @classmethod
     def build_loader(cls, path: str):

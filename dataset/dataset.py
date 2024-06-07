@@ -17,8 +17,8 @@ class NoisyHeartbeatDataset(Dataset):
     randomizer: Randomizer | None  # 指定した場合、getitemでnoisy_dataをランダマイズ
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
-    split_samples: int | None = None
-    stride_samples: int | None = None
+    split_samples: int = 5120
+    stride_samples: int = 32
     gain_controller: GainController | None = None
 
     def __post_init__(self):
@@ -26,8 +26,6 @@ class NoisyHeartbeatDataset(Dataset):
             self.__preprocess(self.clean_data),
             self.__preprocess(self.noisy_data),
         )
-        self.split_samples = self.split_samples or 5120
-        self.stride_samples = self.stride_samples or 32
 
     @property
     def sample_rate(self):

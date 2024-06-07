@@ -1,3 +1,4 @@
+import json
 from math import inf
 import os
 from matplotlib import pyplot as plt
@@ -22,6 +23,15 @@ from utils.timeit import timeit
 from models.wave_u_net import WaveUNet
 
 
+def load_pretrained_model(model: nn.Module, path: str) -> nn.Module:
+    if os.path.exists(path):
+        model.load_state_dict(torch.load(path))
+        print(f"Loaded pretrained model from {path}")
+    else:
+        print(f"Pretrained model path {path} does not exist. Starting from scratch.")
+    return model
+
+
 @timeit
 def train_model(
     model: nn.Module,
@@ -33,6 +43,7 @@ def train_model(
     model_saver: ModelSaver | None = None,
     logger: TrainingLogger | None = None,
     epoch_size: int = 5,
+    pretrained_weights_path: str | None = None,
 ):
     logger = logger or TrainingLoggerFactory.noop()
 
@@ -42,6 +53,9 @@ def train_model(
         raise TypeError("dataset is not an instance of NoisyHeartbeatDataset")
 
     gain_controller: GainController | None = dataset.gain_controller
+
+    if pretrained_weights_path is not None:
+        model = load_pretrained_model(model, pretrained_weights_path)
 
     device = get_torch_device()
     model.to(device)
@@ -58,9 +72,10 @@ def train_model(
         "split_samples": dataset.split_samples,
         "stride_samples": dataset.stride_samples,
         "sample_rate": dataset.sample_rate,
+        "pretrained": "yes" if pretrained_weights_path is not None else "no",
     }
 
-    print(params)
+    print(json.dumps(params, indent=4))
 
     logger.on_start(params)
 
