@@ -72,8 +72,8 @@ def train_model(
         "split_samples": dataset.split_samples,
         "stride_samples": dataset.stride_samples,
         "sample_rate": dataset.sample_rate,
-        "init_with_pretrained_weights": (
-            "yes" if pretrained_weights_path is not None else "no"
+        "init": (
+            "pretrained_weights" if pretrained_weights_path is not None else "default"
         ),
     }
 
