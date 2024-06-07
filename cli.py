@@ -33,6 +33,10 @@ from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
+from models.transformer_pixel_shuffle_auto_encoder_norm import (
+    PixelShuffleConv1DAutoencoderWithTransformerNorm,
+)
+from models.wave_u_net_norm import WaveUNetNorm
 from train import train_model
 from utils.device import load_local_dotenv
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
@@ -44,9 +48,11 @@ from eval import eval_model
 
 MODEL = [
     WaveUNet,
+    WaveUNetNorm,
     Conv1DAutoencoder,
     PixelShuffleConv1DAutoencoder,
     PixelShuffleConv1DAutoencoderWithTransformer,
+    PixelShuffleConv1DAutoencoderWithTransformerNorm,
 ]
 LOSS_FN = [nn.L1Loss, nn.SmoothL1Loss, CombinedLoss]
 RANDOMIZER = [
