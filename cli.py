@@ -14,6 +14,7 @@ Usage:
 """
 
 import argparse
+import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -125,6 +126,10 @@ def train(args):
         if args.with_progressive_gain
         else ConstantGainController(gain=args.gain)
     )
+
+    if args.with_progressive_gain:
+        load_pretrained_model(model, args.pretrained_model_path)
+
     # データセットとデータローダーの準備
     train_dataset = DatasetFactory.create_240517_filtered(
         randomizer=randomizer,
@@ -204,6 +209,15 @@ def evaluate(args):
             ]
         ),
     )
+
+
+def load_pretrained_model(model: nn.Module, path: str) -> nn.Module:
+    if os.path.exists(path):
+        model.load_state_dict(torch.load(path))
+        print(f"Loaded pretrained model from {path}")
+    else:
+        print(f"Pretrained model path {path} does not exist. Starting from scratch.")
+    return model
 
 
 def add_common_arguments(parser):
@@ -296,6 +310,12 @@ def main():
         type=float,
         default=0.01,
         help="Weight decay",
+    )
+    parser_train.add_argument(
+        "--pretrained-weights-path",
+        type=str,
+        default=None,
+        help="Path to the pretrained weights",
     )
     parser_train.set_defaults(func=train)
 
