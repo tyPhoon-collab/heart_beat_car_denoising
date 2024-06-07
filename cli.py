@@ -121,8 +121,8 @@ def train(args):
         else ConstantGainController(gain=args.gain)
     )
 
-    if args.pretrained_model_path is not None:
-        load_pretrained_model(model, args.pretrained_model_path)
+    if args.pretrained_weights_path is not None:
+        load_pretrained_model(model, args.pretrained_weights_path)
 
     # データセットとデータローダーの準備
     train_dataset = DatasetFactory.create_240517_filtered(
