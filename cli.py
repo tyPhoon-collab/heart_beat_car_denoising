@@ -115,7 +115,11 @@ def train(args):
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr=args.learning_rate,
+        weight_decay=args.weight_decay,
+    )
     gain_controller = (
         ProgressiveGainController(epoch_to=4, max_gain=args.gain)
         if args.with_progressive_gain
@@ -286,6 +290,12 @@ def main():
         action="store_true",
         default=False,
         help="Disable shuffling",
+    )
+    parser_train.add_argument(
+        "--weight-decay",
+        type=float,
+        default=0.01,
+        help="Weight decay",
     )
     parser_train.set_defaults(func=train)
 
