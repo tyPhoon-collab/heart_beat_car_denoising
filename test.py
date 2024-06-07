@@ -22,11 +22,7 @@ from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
-from models.transformer_pixel_shuffle_auto_encoder_norm import (
-    PixelShuffleConv1DAutoencoderWithTransformerNorm,
-)
 from models.wave_u_net import WaveUNet
-from models.wave_u_net_norm import WaveUNetNorm
 from utils.gain_controller import ProgressiveGainController
 from utils.plot import (
     show_signal,
@@ -122,43 +118,10 @@ class TestModels(unittest.TestCase):
         output = model(example_input)
         print(output.shape)  # Should be torch.Size([1, 1, 5120])
 
-    def test_wave_u_net_norm(self):
-        # Create model and example input tensor
-        model = WaveUNetNorm()
-
-        example_input = torch.rand(1, 1, 256 * 20)  # (batch_size, channels, length)
-        # Get the model output
-        output = model(example_input)
-        print(output.shape)  # Should be torch.Size([1, 1, 5120])
-
     def test_transformer_pixel_shuffle_auto_encoder(self):
 
         # Model instantiation
         model = PixelShuffleConv1DAutoencoderWithTransformer()
-        print(model)
-
-        # Define the loss function and optimizer
-        criterion = nn.MSELoss()
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-        # Dummy data for demonstration
-        x = torch.randn(1, 1, 5120 + (8 - 1) * 512)  # Batch size, Channels, Length
-        x = x.to(torch.float32)
-
-        # Forward pass
-        outputs = model(x)
-        loss = criterion(outputs, x)
-        print(f"Loss: {loss.item()}")
-
-        # Backward pass and optimization
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-    def test_transformer_pixel_shuffle_auto_encoder_norm(self):
-
-        # Model instantiation
-        model = PixelShuffleConv1DAutoencoderWithTransformerNorm()
         print(model)
 
         # Define the loss function and optimizer
