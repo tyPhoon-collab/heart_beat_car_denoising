@@ -134,3 +134,21 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 
 - 0.25, 0.50, 0.75, 1.0倍のノイズゲインに変更した場合の検証
   - WaveUNetかつ0.5の時の精度が良さそう
+
+### 6/7
+
+- BatchNormやPReLUの実験
+  - BatchNormは振幅が極端に大きくなる
+- 両端が極端に大きくなる
+  - biasの影響？
+- 今後の方針
+  - 両端のピークを抑制する
+    - output_paddingなど、decoderを確認する
+  - 事前学習
+    - gainが0の状態で学習したモデルを事前学習モデルとして読み込む
+      - 例）0_WUN_CLを読み込んで学習する
+  - プログレッシブ学習[0, 0.5]
+  - epoch数を増やしてみる
+  - AdamWをためしてみる
+  - 警告の抑制
+    - Dockerの環境を再構築など
