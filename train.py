@@ -119,9 +119,10 @@ def train_model(
         # save_model(model, suffix=f"epoch_{epoch + 1}")
 
         if val_dataloader is not None:
+            model.eval()
+
             with torch.no_grad():
                 noisy, clean = map(lambda x: x.to(device), next(iter(val_dataloader)))
-                model.eval()
 
                 outputs = model(noisy)
 
@@ -133,7 +134,8 @@ def train_model(
                     [cpu_noisy, cpu_clean, cpu_outputs],
                     ["Noisy", "Clean", "Output"],
                 )
-                model.train()
+
+            model.train()
 
         logger.on_epoch_end(epoch, loss)  # type: ignore
 
