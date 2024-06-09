@@ -5,7 +5,10 @@ import numpy as np
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.filter import FIRBandpassFilter
 from dataset.loader import MatLoader
-from dataset.sampling_rate_converter import ScipySamplingRateConverter
+from dataset.sampling_rate_converter import (
+    NoSamplingRateConverter,
+    ScipySamplingRateConverter,
+)
 
 
 class DatasetFactory:
@@ -33,10 +36,7 @@ class DatasetFactory:
             clean_data=clean_data,
             noisy_data=noisy_data,
             sampling_rate_converter=(
-                ScipySamplingRateConverter(
-                    input_rate=sample_rate,  # type: ignore
-                    output_rate=sample_rate,  # type: ignore
-                )
+                NoSamplingRateConverter(rate=sample_rate)  # type: ignore
                 if sample_rate_map is None
                 else ScipySamplingRateConverter(
                     input_rate=sample_rate_map[0],
@@ -67,11 +67,12 @@ class DatasetFactory:
 
     @classmethod
     def create_240517_filtered(cls, **kwargs):
+        modifier = FIRBandpassFilter((25, 55), 1000).apply
         return cls.create(
             clean_file_path="data/240517_Rawdata/HS_data_serial.mat",
             noisy_file_path="data/240517_Rawdata/Noise_data_serial.mat",
-            clean_data_modifier=FIRBandpassFilter((25, 55), 1000).apply,
-            noisy_data_modifier=FIRBandpassFilter((25, 55), 1000).apply,
+            clean_data_modifier=modifier,
+            noisy_data_modifier=modifier,
             sample_rate=1000,
             **kwargs,
         )
