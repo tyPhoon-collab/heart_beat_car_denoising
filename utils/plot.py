@@ -38,6 +38,36 @@ def show_signal(signal, label, filename=None):
     show_signals([signal], [label], filename)
 
 
+def show_wavelet(
+    waveform: np.ndarray,
+    wavelets: np.ndarray,
+    max_scale: int,
+    filename=None,
+):
+    fig, (ax_top, ax_bottom) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+    # 元の波形のプロット
+    ax_top.plot(waveform)
+    ax_top.set_title("Original Waveform")
+    ax_top.set_xlabel("Sample")
+    ax_top.set_ylabel("Amplitude")
+
+    # CWTの結果のプロット
+    ax_bottom.imshow(
+        wavelets,
+        extent=[0, len(waveform), 1, max_scale],
+        cmap="PRGn",
+        aspect="auto",
+        vmax=abs(wavelets).max(),
+        vmin=-abs(wavelets).max(),
+    )
+    ax_bottom.set_title("Continuous Wavelet Transform (CWT)")
+    ax_bottom.set_xlabel("Sample")
+    ax_bottom.set_ylabel("Scale")
+
+    _finalize_plot(filename)
+
+
 def show_spectrogram(
     audio_data,
     sr,

@@ -16,7 +16,7 @@ from dataset.randomizer import (
     PhaseHalfShuffleRandomizer,
 )
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
-from loss.combine import CombinedLoss
+from loss.combine import CombinedLoss, wavelet_transform
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.transformer_pixel_shuffle_auto_encoder import (
@@ -28,6 +28,7 @@ from utils.plot import (
     show_signal,
     show_signals,
     show_spectrogram,
+    show_wavelet,
 )
 from utils.sound import save_signal_to_wav_scipy
 
@@ -276,6 +277,12 @@ class TestVisualize(unittest.TestCase):
         data = self.load("data/240517_Rawdata/HS_data_serial.mat")
         show_signal(data[:5000], "HS_data")
 
+    def test_show_hs_wavelet(self):
+        self.show_wavelet(
+            "data/240517_Rawdata/HS_data_serial.mat",
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
     def test_show_ecg(self):
         loader = MatLoader(
             "data/240517_Rawdata/HS_data.mat",
@@ -287,6 +294,12 @@ class TestVisualize(unittest.TestCase):
 
     def test_show_noise(self):
         self.show("data/240517_Rawdata/Noise_data_serial.mat")
+
+    def test_show_noise_wavelet(self):
+        self.show_wavelet(
+            "data/240517_Rawdata/Noise_data_serial.mat",
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
 
     def test_show_all_randomize(self):
         single_data = self.load("data/240219_Rawdata/100km.mat")[: 32000 * 5]
@@ -444,6 +457,18 @@ class TestVisualize(unittest.TestCase):
     def show(self, path: str, ch: str = "ch1z"):
         single_data = self.load(path, ch)
         show_signal(single_data, ch)
+
+    def show_wavelet(self, path: str, ch: str = "ch1z", modifier=None):
+        waveform = self.load(path, ch)
+
+        if modifier is not None:
+            waveform = modifier(waveform)
+
+        cwt_coeffs = wavelet_transform(torch.tensor(waveform), np.arange(1, 37))
+        print(cwt_coeffs[0])
+        print(cwt_coeffs[1])
+        cwt_result = cwt_coeffs[0].numpy()
+        show_wavelet(waveform, cwt_result, 36)
 
     def load(self, path: str, ch: str = "ch1z"):
         return DatasetFactory.build_loader(path).load()[ch].to_numpy()
