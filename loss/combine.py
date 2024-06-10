@@ -6,19 +6,19 @@ import pywt
 
 
 # GPU上でWavelet変換を行う関数
-def wavelet_transform(signal: torch.Tensor, widths, wavelet_name="morl"):
+def wavelet_transform(signal: torch.Tensor, scales, wavelet_name="morl"):
     wavelet = pywt.ContinuousWavelet(wavelet_name)  # type: ignore
-    cwt_coeffs = ptwt.cwt(signal, widths, wavelet)
+    cwt_coeffs = ptwt.cwt(signal, scales, wavelet)
     return cwt_coeffs
 
 
 # カスタム損失関数の定義
 class CombinedLoss(nn.Module):
-    def __init__(self, alpha=0.5, widths=np.arange(1, 37)):
+    def __init__(self, alpha=0.5, scales=np.arange(1, 37)):
         super(CombinedLoss, self).__init__()
         self.l1_loss = nn.L1Loss()
         self.alpha = alpha
-        self.widths = torch.tensor(widths, dtype=torch.float32)
+        self.widths = torch.tensor(scales, dtype=torch.float32)
 
     def forward(self, outputs, targets):
         # 波形のL1Lossを計算
