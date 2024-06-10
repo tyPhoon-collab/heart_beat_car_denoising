@@ -9,12 +9,7 @@
 - .env
   - ロガー用の変数を置く
     - [サンプル](#envファイルのサンプル)
-    - REMOTE_LOGGING
-    - ONLY_FIRST_BATCH
-    - DISCORD_WEBHOOK_URL
-    - NEPTUNE_PROJECT_NAME
-    - NEPTUNE_API_TOKEN
-  - なくても動く
+    - なくても動く
 - dataフォルダ
   - 杉浦先生が用意したMAT形式のデータを置く
     - data/
@@ -52,8 +47,10 @@ python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss \
 ## .envファイルのサンプル
 
 ```bash
-REMOTE_LOGGING=1
 ONLY_FIRST_BATCH=0
+REMOTE_LOGGING=1
+DISCORD_LOGGING=1
+NEPTUNE_LOGGING=1
 DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/xxx.../xxx..."
 NEPTUNE_PROJECT_NAME="xxx/yyy"
 NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="

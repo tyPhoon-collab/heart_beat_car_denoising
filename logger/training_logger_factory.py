@@ -17,7 +17,15 @@ class TrainingLoggerFactory:
         if not cls.__is_enable_env():
             return cls.noop()
 
-        return CompositeTrainingLogger([NeptuneLogger(), DiscordLogger()])
+        loggers = []
+
+        if os.getenv("NEPTUNE_LOGGING") == "1":
+            loggers.append(NeptuneLogger())
+
+        if os.getenv("DISCORD_LOGGING") == "1":
+            loggers.append(DiscordLogger())
+
+        return CompositeTrainingLogger(loggers)
 
     @classmethod
     def __is_enable_env(cls) -> bool:
