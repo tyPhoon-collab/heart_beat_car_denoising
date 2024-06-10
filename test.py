@@ -283,6 +283,13 @@ class TestVisualize(unittest.TestCase):
             modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
         )
 
+    def test_show_hs_spectrogram(self):
+        self.show_spectrogram(
+            "data/240517_Rawdata/HS_data_serial.mat",
+            sample_rate=1000,
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
     def test_show_ecg(self):
         loader = MatLoader(
             "data/240517_Rawdata/HS_data.mat",
@@ -470,6 +477,16 @@ class TestVisualize(unittest.TestCase):
         cwt_result = cwt_coeffs[0].numpy()
         show_wavelet(waveform, cwt_result, 36)
 
+    def show_spectrogram(
+        self, path: str, sample_rate: int, ch: str = "ch1z", modifier=None
+    ):
+        waveform = self.load(path, ch)
+
+        if modifier is not None:
+            waveform = modifier(waveform)
+
+        show_spectrogram(waveform, sample_rate, ylim=(0, 512))
+
     def load(self, path: str, ch: str = "ch1z"):
         return DatasetFactory.build_loader(path).load()[ch].to_numpy()
 
@@ -504,6 +521,136 @@ class TestRandomizer(unittest.TestCase):
         rand = PhaseShuffleRandomizer().shuffle(a)
         self.assertEqual(len(a), len(rand))
         print(rand)
+
+
+class TestPyTorchFlow(unittest.TestCase):
+    def test_pytorch_flow(self):
+        from torch.utils.data import Dataset
+        import matplotlib.pyplot as plt
+
+        # データセットクラス
+        class NoisySignalDataset(Dataset):
+            def __init__(self, clean_signals, noisy_signals):
+                self.clean_signals = clean_signals
+                self.noisy_signals = noisy_signals
+
+            def __len__(self):
+                return len(self.clean_signals)
+
+            def __getitem__(self, idx):
+                clean = self.clean_signals[idx]
+                noisy = self.noisy_signals[idx]
+                return torch.tensor(noisy, dtype=torch.float32).unsqueeze(
+                    0
+                ), torch.tensor(clean, dtype=torch.float32).unsqueeze(0)
+
+        # 自己符号化器モデル
+        class SimpleAutoencoder(nn.Module):
+            def __init__(self):
+                super(SimpleAutoencoder, self).__init__()
+                self.encoder = nn.Sequential(
+                    nn.Conv1d(1, 16, kernel_size=3, stride=2, padding=1),
+                    nn.ReLU(),
+                    nn.Conv1d(16, 32, kernel_size=3, stride=2, padding=1),
+                    nn.ReLU(),
+                    nn.Conv1d(32, 64, kernel_size=3, stride=2, padding=1),
+                    nn.ReLU(),
+                    nn.Conv1d(64, 128, kernel_size=3, stride=2, padding=1),
+                    nn.ReLU(),
+                )
+                self.decoder = nn.Sequential(
+                    nn.ConvTranspose1d(
+                        128, 64, kernel_size=3, stride=2, padding=1, output_padding=1
+                    ),
+                    nn.ReLU(),
+                    nn.ConvTranspose1d(
+                        64, 32, kernel_size=3, stride=2, padding=1, output_padding=1
+                    ),
+                    nn.ReLU(),
+                    nn.ConvTranspose1d(
+                        32, 16, kernel_size=3, stride=2, padding=1, output_padding=1
+                    ),
+                    nn.ReLU(),
+                    nn.ConvTranspose1d(
+                        16, 1, kernel_size=3, stride=2, padding=1, output_padding=1
+                    ),
+                )
+
+            def forward(self, x):
+                x = self.encoder(x)
+                x = self.decoder(x)
+                return x
+
+        # データ生成（サイン波にノイズを加えたデータ）
+        def generate_data(num_samples, length):
+            np.random.seed(0)
+            t = np.linspace(0, 1.0, length)
+            clean_signals = [np.sin(2 * np.pi * 5 * t) for _ in range(num_samples)]
+            noisy_signals = [
+                clean + 0.5 * np.random.randn(length) for clean in clean_signals
+            ]
+            return np.array(clean_signals), np.array(noisy_signals)
+
+        # device = "cuda"
+        device = "cpu"
+
+        # ハイパーパラメータ
+        num_samples = 1000
+        signal_length = 5120
+        batch_size = 16
+        num_epochs = 10
+        learning_rate = 0.001
+
+        # データ生成
+        clean_signals, noisy_signals = generate_data(num_samples, signal_length)
+        dataset = NoisySignalDataset(clean_signals, noisy_signals)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        # モデル、損失関数、最適化手法の設定
+        model = SimpleAutoencoder()
+        model.to(device)
+        criterion = nn.MSELoss()
+        # criterion = nn.L1Loss()
+        # criterion = CombinedLoss()
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+        # トレーニングループ
+        for epoch in range(num_epochs):
+            for batch in dataloader:
+                noisy, clean = map(lambda x: x.to(device), batch)
+                optimizer.zero_grad()
+                outputs = model(noisy)
+                loss = criterion(outputs.to(device), clean)
+                loss.backward()
+                optimizer.step()
+
+            print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")  # type: ignore
+
+        # テストデータに対するモデルの適用
+        test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
+        test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
+        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+        # 結果のプロット
+        model.eval()
+
+        with torch.no_grad():
+            for idx, batch in enumerate(test_dataloader):
+                noisy, clean = map(lambda x: x.to(device), batch)
+
+                denoised = model(noisy).cpu().squeeze().numpy()
+
+                plt.figure(figsize=(12, 4))
+                plt.subplot(1, 3, 1)
+                plt.plot(noisy.cpu().squeeze().numpy())
+                plt.title("Noisy Signal")
+                plt.subplot(1, 3, 2)
+                plt.plot(clean.cpu().squeeze().numpy())
+                plt.title("Clean Signal")
+                plt.subplot(1, 3, 3)
+                plt.plot(denoised)
+                plt.title("Denoised Signal")
+                plt.savefig("output/fig/sample.png")
 
 
 if __name__ == "__main__":
