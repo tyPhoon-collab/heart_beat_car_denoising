@@ -23,6 +23,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
+from utils.device import get_torch_device
 from utils.gain_controller import ProgressiveGainController
 from utils.plot import (
     show_signal,
@@ -528,7 +529,6 @@ class TestPyTorchFlow(unittest.TestCase):
         from torch.utils.data import Dataset
         import matplotlib.pyplot as plt
 
-        # データセットクラス
         class NoisySignalDataset(Dataset):
             def __init__(self, clean_signals, noisy_signals):
                 self.clean_signals = clean_signals
@@ -544,7 +544,6 @@ class TestPyTorchFlow(unittest.TestCase):
                     0
                 ), torch.tensor(clean, dtype=torch.float32).unsqueeze(0)
 
-        # 自己符号化器モデル
         class SimpleAutoencoder(nn.Module):
             def __init__(self):
                 super(SimpleAutoencoder, self).__init__()
@@ -591,18 +590,15 @@ class TestPyTorchFlow(unittest.TestCase):
             ]
             return np.array(clean_signals), np.array(noisy_signals)
 
-        # device = "cuda"
-        device = "cpu"
+        device = get_torch_device()
 
-        # ハイパーパラメータ
-        num_samples = 1000
         signal_length = 5120
         batch_size = 16
         num_epochs = 10
         learning_rate = 0.001
 
         # データ生成
-        clean_signals, noisy_signals = generate_data(num_samples, signal_length)
+        clean_signals, noisy_signals = generate_data(1000, signal_length)
         dataset = NoisySignalDataset(clean_signals, noisy_signals)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -618,6 +614,7 @@ class TestPyTorchFlow(unittest.TestCase):
         for epoch in range(num_epochs):
             for batch in dataloader:
                 noisy, clean = map(lambda x: x.to(device), batch)
+
                 optimizer.zero_grad()
                 outputs = model(noisy)
                 loss = criterion(outputs.to(device), clean)
@@ -635,22 +632,21 @@ class TestPyTorchFlow(unittest.TestCase):
         model.eval()
 
         with torch.no_grad():
-            for idx, batch in enumerate(test_dataloader):
-                noisy, clean = map(lambda x: x.to(device), batch)
+            noisy, clean = map(lambda x: x.to(device), next(iter(test_dataloader)))
 
-                denoised = model(noisy).cpu().squeeze().numpy()
+            denoised = model(noisy).cpu().squeeze().numpy()
 
-                plt.figure(figsize=(12, 4))
-                plt.subplot(1, 3, 1)
-                plt.plot(noisy.cpu().squeeze().numpy())
-                plt.title("Noisy Signal")
-                plt.subplot(1, 3, 2)
-                plt.plot(clean.cpu().squeeze().numpy())
-                plt.title("Clean Signal")
-                plt.subplot(1, 3, 3)
-                plt.plot(denoised)
-                plt.title("Denoised Signal")
-                plt.savefig("output/fig/sample.png")
+            plt.figure(figsize=(12, 4))
+            plt.subplot(1, 3, 1)
+            plt.plot(noisy.cpu().squeeze().numpy())
+            plt.title("Noisy Signal")
+            plt.subplot(1, 3, 2)
+            plt.plot(clean.cpu().squeeze().numpy())
+            plt.title("Clean Signal")
+            plt.subplot(1, 3, 3)
+            plt.plot(denoised)
+            plt.title("Denoised Signal")
+            plt.savefig("output/fig/sample.png")
 
 
 if __name__ == "__main__":
