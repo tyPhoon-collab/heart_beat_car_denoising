@@ -45,15 +45,50 @@ class MatLoader(Loader):
         return df
 
 
+_cached_dict = dict()
+
+
 @dataclass
-class CacheableLoader(Loader):
+class GlobalCacheableLoader(Loader):
     loader: Loader
-    cache_data: pd.DataFrame | None = field(default=None, init=False)
+    logging: bool = True
+
+    def __post_init__(self):
+        assert not isinstance(self.loader, GlobalCacheableLoader)
 
     def load(self):
-        if self.cache_data is None:
-            self.cache_data = self.loader.load()
-        return self.cache_data
+        key = self.loader_key
+
+        cache_data = _cached_dict.get(key)
+
+        if cache_data is None:
+            cache_data = self.loader.load()
+            _cached_dict[key] = cache_data
+        elif self.logging:
+            print(f"Loaded from cache: {key}")
+
+        return cache_data
+
+    @property
+    def loader_key(self):
+        if isinstance(self.loader, MatLoader):
+            return (
+                f"{self.loader.file_path}:{self.loader.data_key},{self.loader.columns}"
+            )
+        else:
+            return self.loader.__class__.__name__
+
+
+def cacheable(func):
+    def wrapper(*args, **kwargs):
+        loader = func(*args, **kwargs)
+        cacheable_loader = GlobalCacheableLoader(loader)
+        print(
+            f"Converted: {loader.__class__.__name__} to {cacheable_loader.__class__.__name__}"
+        )
+        return cacheable_loader
+
+    return wrapper
 
 
 if __name__ == "__main__":
@@ -65,15 +100,3 @@ if __name__ == "__main__":
     )
     data = loader.load()
     print(data)
-
-
-def cacheable(func):
-    def wrapper(*args, **kwargs):
-        loader = func(*args, **kwargs)
-        cacheable_loader = CacheableLoader(loader)
-        print(
-            f"Converted: {loader.__class__.__name__} to {cacheable_loader.__class__.__name__}"
-        )
-        return cacheable_loader
-
-    return wrapper
