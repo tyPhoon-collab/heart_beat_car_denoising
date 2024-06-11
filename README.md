@@ -48,6 +48,7 @@ python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss \
 
 ```bash
 ONLY_FIRST_BATCH=0
+STDOUT_LOGGING=1
 REMOTE_LOGGING=1
 DISCORD_LOGGING=1
 NEPTUNE_LOGGING=1

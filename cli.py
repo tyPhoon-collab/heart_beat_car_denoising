@@ -96,7 +96,7 @@ def train(args):
     load_local_dotenv()
 
     # ロガーとモデルセーバーの準備
-    logger = TrainingLoggerFactory.remote()
+    logger = TrainingLoggerFactory.env()
 
     model_id = args.model_id
     model_saver = (

@@ -4,6 +4,7 @@ from logger.training_impls.composite import CompositeTrainingLogger
 from logger.training_impls.discord import DiscordLogger
 from logger.training_impls.neptune import NeptuneLogger
 from logger.training_impls.noop import NoopTrainingLogger
+from logger.training_impls.stdout import StdoutTrainingLogger
 from logger.training_logger import TrainingLogger
 
 
@@ -13,22 +14,28 @@ class TrainingLoggerFactory:
         return NoopTrainingLogger()
 
     @classmethod
-    def remote(cls) -> TrainingLogger:
-        if not cls.__is_enable_env():
-            return cls.noop()
+    def stdout(cls) -> TrainingLogger:
+        return StdoutTrainingLogger()
+
+    @classmethod
+    def env(cls) -> TrainingLogger:
+        is_enable_remote_logging = cls.__is_enable_remote_logging()
 
         loggers = []
 
-        if os.getenv("NEPTUNE_LOGGING") == "1":
+        if os.getenv("STDOUT_LOGGING") == "1":
+            loggers.append(StdoutTrainingLogger())
+
+        if is_enable_remote_logging and os.getenv("NEPTUNE_LOGGING") == "1":
             loggers.append(NeptuneLogger())
 
-        if os.getenv("DISCORD_LOGGING") == "1":
+        if is_enable_remote_logging and os.getenv("DISCORD_LOGGING") == "1":
             loggers.append(DiscordLogger())
 
         return CompositeTrainingLogger(loggers)
 
     @classmethod
-    def __is_enable_env(cls) -> bool:
+    def __is_enable_remote_logging(cls) -> bool:
         logging_env_value = os.getenv("REMOTE_LOGGING")
         is_enable = logging_env_value == "1"
         if not is_enable:

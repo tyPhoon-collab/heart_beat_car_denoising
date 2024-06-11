@@ -1,4 +1,3 @@
-import json
 from math import inf
 import os
 from matplotlib import pyplot as plt
@@ -45,7 +44,7 @@ def train_model(
     epoch_size: int = 5,
     pretrained_weights_path: str | None = None,
 ):
-    logger = logger or TrainingLoggerFactory.noop()
+    logger = logger or TrainingLoggerFactory.stdout()
 
     if isinstance(dataloader.dataset, NoisyHeartbeatDataset):
         dataset = dataloader.dataset
@@ -77,8 +76,6 @@ def train_model(
         ),
     }
 
-    print(json.dumps(params, indent=4))
-
     logger.on_start(params)
 
     model.train()
@@ -108,8 +105,6 @@ def train_model(
             logger.on_batch_end(epoch, loss)
 
         loss_item = loss.item()  # type: ignore
-
-        print(f"Epoch {epoch + 1}, Loss: {loss_item:.4f}")
 
         if lowest_loss > loss_item:
             lowest_loss = loss_item
@@ -149,7 +144,7 @@ if __name__ == "__main__":
     load_local_dotenv()
 
     model_saver = WithDateModelSaver(base_directory="output/checkpoint")
-    logger = TrainingLoggerFactory.remote()
+    logger = TrainingLoggerFactory.env()
 
     model = WaveUNet()
 
