@@ -24,7 +24,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 )
 from models.wave_u_net import WaveUNet
 from utils.device import get_torch_device
-from utils.gain_controller import ProgressiveGainController
+from utils.gain_controller import ConstantGainController, ProgressiveGainController
 from utils.plot import (
     show_signal,
     show_signals,
@@ -590,17 +590,51 @@ class TestPyTorchFlow(unittest.TestCase):
             ]
             return np.array(clean_signals), np.array(noisy_signals)
 
+        def build_loaders():
+            # signal_length = 5120
+
+            # clean_signals, noisy_signals = generate_data(1000, signal_length)
+            # dataset = NoisySignalDataset(clean_signals, noisy_signals)
+            # dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+            # test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
+            # test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
+            # test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+            # return dataloader, test_dataloader
+
+            randomizer = SampleShuffleRandomizer()
+            gain_controller = ConstantGainController(gain=0)
+            split_samples = 5120
+            stride_samples = 32
+
+            dataset = DatasetFactory.create_240517_filtered(
+                randomizer=randomizer,
+                train=True,
+                gain_controller=gain_controller,
+                split_samples=split_samples,
+                stride_samples=stride_samples,
+            )
+            dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+            test_dataset = DatasetFactory.create_240517_filtered(
+                randomizer=randomizer,
+                train=False,
+                gain_controller=gain_controller,
+                split_samples=split_samples,
+                stride_samples=stride_samples,
+            )
+            test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+            return dataloader, test_dataloader
+
         device = get_torch_device()
 
-        signal_length = 5120
         batch_size = 16
         num_epochs = 10
         learning_rate = 0.001
 
-        # データ生成
-        clean_signals, noisy_signals = generate_data(1000, signal_length)
-        dataset = NoisySignalDataset(clean_signals, noisy_signals)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        dataloader, test_dataloader = build_loaders()
 
         # モデル、損失関数、最適化手法の設定
         model = SimpleAutoencoder()
@@ -622,11 +656,6 @@ class TestPyTorchFlow(unittest.TestCase):
                 optimizer.step()
 
             print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")  # type: ignore
-
-        # テストデータに対するモデルの適用
-        test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
-        test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
-        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         # 結果のプロット
         model.eval()
