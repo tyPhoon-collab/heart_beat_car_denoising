@@ -526,24 +526,6 @@ class TestRandomizer(unittest.TestCase):
 
 class TestPyTorchFlow(unittest.TestCase):
     def test_pytorch_flow(self):
-        from torch.utils.data import Dataset
-        import matplotlib.pyplot as plt
-
-        class NoisySignalDataset(Dataset):
-            def __init__(self, clean_signals, noisy_signals):
-                self.clean_signals = clean_signals
-                self.noisy_signals = noisy_signals
-
-            def __len__(self):
-                return len(self.clean_signals)
-
-            def __getitem__(self, idx):
-                clean = self.clean_signals[idx]
-                noisy = self.noisy_signals[idx]
-                return torch.tensor(noisy, dtype=torch.float32).unsqueeze(
-                    0
-                ), torch.tensor(clean, dtype=torch.float32).unsqueeze(0)
-
         class SimpleAutoencoder(nn.Module):
             def __init__(self):
                 super(SimpleAutoencoder, self).__init__()
@@ -580,61 +562,14 @@ class TestPyTorchFlow(unittest.TestCase):
                 x = self.decoder(x)
                 return x
 
-        # データ生成（サイン波にノイズを加えたデータ）
-        def generate_data(num_samples, length):
-            np.random.seed(0)
-            t = np.linspace(0, 1.0, length)
-            clean_signals = [np.sin(2 * np.pi * 5 * t) for _ in range(num_samples)]
-            noisy_signals = [
-                clean + 0.5 * np.random.randn(length) for clean in clean_signals
-            ]
-            return np.array(clean_signals), np.array(noisy_signals)
-
-        def build_loaders():
-            # signal_length = 5120
-
-            # clean_signals, noisy_signals = generate_data(1000, signal_length)
-            # dataset = NoisySignalDataset(clean_signals, noisy_signals)
-            # dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-            # test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
-            # test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
-            # test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-
-            # return dataloader, test_dataloader
-
-            randomizer = SampleShuffleRandomizer()
-            gain_controller = ConstantGainController(gain=0)
-            split_samples = 5120
-            stride_samples = 32
-
-            dataset = DatasetFactory.create_240517_filtered(
-                randomizer=randomizer,
-                train=True,
-                gain_controller=gain_controller,
-                split_samples=split_samples,
-                stride_samples=stride_samples,
-            )
-            dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-            test_dataset = DatasetFactory.create_240517_filtered(
-                randomizer=randomizer,
-                train=False,
-                gain_controller=gain_controller,
-                split_samples=split_samples,
-                stride_samples=stride_samples,
-            )
-            test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-
-            return dataloader, test_dataloader
-
         device = get_torch_device()
 
         batch_size = 16
         num_epochs = 10
         learning_rate = 0.001
 
-        dataloader, test_dataloader = build_loaders()
+        dataloader, test_dataloader = self.build_simple_loaders(batch_size)
+        dataloader, test_dataloader = self.build_loaders(batch_size)
 
         # モデル、損失関数、最適化手法の設定
         model = SimpleAutoencoder()
@@ -650,8 +585,8 @@ class TestPyTorchFlow(unittest.TestCase):
                 noisy, clean = map(lambda x: x.to(device), batch)
 
                 optimizer.zero_grad()
-                outputs = model(noisy)
-                loss = criterion(outputs.to(device), clean)
+                output = model(noisy)
+                loss = criterion(output.to(device), clean)
                 loss.backward()
                 optimizer.step()
 
@@ -663,19 +598,93 @@ class TestPyTorchFlow(unittest.TestCase):
         with torch.no_grad():
             noisy, clean = map(lambda x: x.to(device), next(iter(test_dataloader)))
 
-            denoised = model(noisy).cpu().squeeze().numpy()
+            output = model(noisy).cpu().squeeze().numpy()
+            self.plot(
+                noisy.cpu().squeeze().numpy(),
+                clean.cpu().squeeze().numpy(),
+                output,
+            )
 
-            plt.figure(figsize=(12, 4))
-            plt.subplot(1, 3, 1)
-            plt.plot(noisy.cpu().squeeze().numpy())
-            plt.title("Noisy Signal")
-            plt.subplot(1, 3, 2)
-            plt.plot(clean.cpu().squeeze().numpy())
-            plt.title("Clean Signal")
-            plt.subplot(1, 3, 3)
-            plt.plot(denoised)
-            plt.title("Denoised Signal")
-            plt.savefig("output/fig/sample.png")
+    def build_loaders(self, batch_size):
+        randomizer = SampleShuffleRandomizer()
+        gain_controller = ConstantGainController(gain=0)
+        split_samples = 5120
+        stride_samples = 32
+
+        dataset = DatasetFactory.create_240517_filtered(
+            randomizer=randomizer,
+            train=True,
+            gain_controller=gain_controller,
+            split_samples=split_samples,
+            stride_samples=stride_samples,
+        )
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        test_dataset = DatasetFactory.create_240517_filtered(
+            randomizer=randomizer,
+            train=False,
+            gain_controller=gain_controller,
+            split_samples=split_samples,
+            stride_samples=stride_samples,
+        )
+        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+        return dataloader, test_dataloader
+
+    def build_simple_loaders(self, batch_size):
+        from torch.utils.data import Dataset
+
+        class NoisySignalDataset(Dataset):
+            def __init__(self, clean_signals, noisy_signals):
+                self.clean_signals = clean_signals
+                self.noisy_signals = noisy_signals
+
+            def __len__(self):
+                return len(self.clean_signals)
+
+            def __getitem__(self, idx):
+                clean = self.clean_signals[idx]
+                noisy = self.noisy_signals[idx]
+                return torch.tensor(noisy, dtype=torch.float32).unsqueeze(
+                    0
+                ), torch.tensor(clean, dtype=torch.float32).unsqueeze(0)
+
+        # データ生成（サイン波にノイズを加えたデータ）
+        def generate_data(num_samples, length):
+            np.random.seed(0)
+            t = np.linspace(0, 1.0, length)
+            clean_signals = [np.sin(2 * np.pi * 5 * t) for _ in range(num_samples)]
+            noisy_signals = [
+                clean + 0.5 * np.random.randn(length) for clean in clean_signals
+            ]
+            return np.array(clean_signals), np.array(noisy_signals)
+
+        signal_length = 5120
+
+        clean_signals, noisy_signals = generate_data(1000, signal_length)
+        dataset = NoisySignalDataset(clean_signals, noisy_signals)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
+        test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
+        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+        return dataloader, test_dataloader
+
+    def plot(self, noisy, clean, output):
+        import matplotlib.pyplot as plt
+
+        plt.figure(figsize=(12, 4))
+        plt.subplot(1, 3, 1)
+        plt.plot(noisy)
+        plt.title("Noisy Signal")
+        plt.subplot(1, 3, 2)
+        plt.plot(clean)
+        plt.title("Clean Signal")
+        plt.subplot(1, 3, 3)
+        plt.plot(output)
+        plt.title("Denoised Signal")
+        plt.savefig("output/fig/sample.png")
 
 
 if __name__ == "__main__":
