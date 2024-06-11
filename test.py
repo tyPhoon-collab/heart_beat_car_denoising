@@ -34,6 +34,10 @@ from utils.plot import (
 from utils.sound import save_signal_to_wav_scipy
 
 
+def load(path: str, ch: str = "ch1z"):
+    return DatasetFactory.build_loader(path).load()[ch].to_numpy()
+
+
 class TestDataSet(unittest.TestCase):
     def test_data_set(self):
         randomizer = SampleShuffleRandomizer()
@@ -239,101 +243,15 @@ class TestLoader(unittest.TestCase):
         print(data)
 
 
-class TestVisualize(unittest.TestCase):
+class TestAudio(unittest.TestCase):
     def test_sound_all(self):
         self.convert_to_wav("data/240219_Rawdata/Stop.mat", "stop_32000.wav")
         self.convert_to_wav("data/240219_Rawdata/Idling.mat", "idling_32000.wav")
         self.convert_to_wav("data/240219_Rawdata/100km.mat", "100km_32000.wav")
 
-        self.convert_to_wav(
-            "data/240219_Rawdata/Stop.mat", "stop_1024.wav", output_rate=1024
-        )
-        self.convert_to_wav(
-            "data/240219_Rawdata/Idling.mat", "idling_1024.wav", output_rate=1024
-        )
-        self.convert_to_wav(
-            "data/240219_Rawdata/100km.mat", "100km_1024.wav", output_rate=1024
-        )
-
-    def test_stft_32000(self):
-        single_data = self.load("data/240219_Rawdata/100km.mat", "ch1z")
-        show_spectrogram(single_data, 32000)
-
-    def test_stft_1000(self):
-        single_data = self.load("data/240219_Rawdata/Stop.mat", "ch1z")
-        # single_data = self.load("data/100km.mat", "ch1z")
-        single_data = self.convert_sample_rate(single_data, 32000, 1000)
-        show_spectrogram(single_data[:10000], 1000, ylim=(0, 64))
-
-    def test_show_stop(self):
-        self.show("data/240219_Rawdata/Stop.mat")
-
-    def test_show_idling(self):
-        self.show("data/240219_Rawdata/Idling.mat")
-
-    def test_show_100km(self):
-        self.show("data/240219_Rawdata/100km.mat")
-
-    def test_show_hs(self):
-        data = self.load("data/240517_Rawdata/HS_data_serial.mat")
-        show_signal(data[:5000], "HS_data")
-
-    def test_show_hs_wavelet(self):
-        self.show_wavelet(
-            "data/240517_Rawdata/HS_data_serial.mat",
-            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
-        )
-
-    def test_show_hs_spectrogram(self):
-        self.show_spectrogram(
-            "data/240517_Rawdata/HS_data_serial.mat",
-            sample_rate=1000,
-            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
-        )
-
-    def test_show_ecg(self):
-        loader = MatLoader(
-            "data/240517_Rawdata/HS_data.mat",
-            [f"ch{i}z" for i in range(36)],
-            data_key="HS_data",
-        )
-        data = loader.load()["ch1z"].to_numpy()
-        show_signal(data[:10000], "ECG_data")
-
-    def test_show_noise(self):
-        self.show("data/240517_Rawdata/Noise_data_serial.mat")
-
-    def test_show_noise_wavelet(self):
-        self.show_wavelet(
-            "data/240517_Rawdata/Noise_data_serial.mat",
-            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
-        )
-
-    def test_show_all_randomize(self):
-        single_data = self.load("data/240219_Rawdata/100km.mat")[: 32000 * 5]
-        # single_data = self.convert_sample_rate(single_data, 32000, 1000)
-        sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
-        phase_shuffled_data = PhaseHalfShuffleRandomizer().shuffle(single_data)
-        add_noise_data = AddUniformNoiseRandomizer().shuffle(single_data)
-
-        show_signals(
-            [
-                single_data,
-                sample_shuffled_data,
-                phase_shuffled_data,
-                add_noise_data,
-            ],
-            [
-                "Original",
-                "Sample Shuffled",
-                "Phase Shuffled",
-                "Add Noise",
-            ],
-        )
-
     def test_sound_240219_randomize(self):
         output_sample_rate = 3000
-        single_data = self.load("data/240219_Rawdata/100km.mat")
+        single_data = load("data/240219_Rawdata/100km.mat")
         single_data = self.convert_sample_rate(
             single_data,
             32000,
@@ -388,9 +306,113 @@ class TestVisualize(unittest.TestCase):
             "Noise.wav",
         )
 
+    def convert_to_wav(
+        self,
+        filename: str,
+        output_filename: str,
+        *,
+        output_rate=32000,
+    ):
+        single_data = load(filename, "ch1z")
+        single_data = self.convert_sample_rate(single_data, 32000, output_rate)
+        save_signal_to_wav_scipy(single_data, output_rate, output_filename)
+
+    def convert_sample_rate(self, signal: np.ndarray, input_rate, output_rate):
+        return ScipySamplingRateConverter(input_rate, output_rate).convert(signal)
+
+
+class TestVisualize(unittest.TestCase):
+    def test_show_stop(self):
+        self.show("data/240219_Rawdata/Stop.mat")
+
+    def test_show_idling(self):
+        self.show("data/240219_Rawdata/Idling.mat")
+
+    def test_show_100km(self):
+        self.show("data/240219_Rawdata/100km.mat")
+
+    def test_show_100km_spectrogram_32000(self):
+        single_data = load("data/240219_Rawdata/100km.mat", "ch1z")
+        show_spectrogram(single_data, 32000)
+
+    def test_show_stop_spectrogram_1000(self):
+        single_data = load("data/240219_Rawdata/Stop.mat", "ch1z")
+        # single_data = load("data/100km.mat", "ch1z")
+        single_data = self.convert_sample_rate(single_data, 32000, 1000)
+        show_spectrogram(single_data[:10000], 1000, ylim=(0, 64))
+
+    def test_show_hs(self):
+        data = load("data/240517_Rawdata/HS_data_serial.mat")
+        show_signal(data[:5000], "HS_data")
+
+    def test_show_hs_filtered(self):
+        self.show(
+            "data/240517_Rawdata/HS_data_serial.mat",
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
+    def test_show_hs_wavelet(self):
+        self.show_wavelet(
+            "data/240517_Rawdata/HS_data_serial.mat",
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
+    def test_show_hs_spectrogram(self):
+        self.show_spectrogram(
+            "data/240517_Rawdata/HS_data_serial.mat",
+            sample_rate=1000,
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
+    def test_show_ecg(self):
+        loader = MatLoader(
+            "data/240517_Rawdata/HS_data.mat",
+            [f"ch{i}z" for i in range(36)],
+            data_key="HS_data",
+        )
+        data = loader.load()["ch1z"].to_numpy()
+        show_signal(data[:10000], "ECG_data")
+
+    def test_show_noise(self):
+        self.show("data/240517_Rawdata/Noise_data_serial.mat")
+
+    def test_show_noise_filtered(self):
+        self.show(
+            "data/240517_Rawdata/Noise_data_serial.mat",
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
+    def test_show_noise_wavelet(self):
+        self.show_wavelet(
+            "data/240517_Rawdata/Noise_data_serial.mat",
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+        )
+
+    def test_show_all_randomize(self):
+        single_data = load("data/240219_Rawdata/100km.mat")[: 32000 * 5]
+        # single_data = self.convert_sample_rate(single_data, 32000, 1000)
+        sample_shuffled_data = SampleShuffleRandomizer().shuffle(single_data)
+        phase_shuffled_data = PhaseHalfShuffleRandomizer().shuffle(single_data)
+        add_noise_data = AddUniformNoiseRandomizer().shuffle(single_data)
+
+        show_signals(
+            [
+                single_data,
+                sample_shuffled_data,
+                phase_shuffled_data,
+                add_noise_data,
+            ],
+            [
+                "Original",
+                "Sample Shuffled",
+                "Phase Shuffled",
+                "Add Noise",
+            ],
+        )
+
     def test_filter_240517(self):
         filter = ButterworthLowpassFilter(20, 1000)
-        data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
+        data = load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
         show_signals(
             [
                 data,
@@ -401,7 +423,7 @@ class TestVisualize(unittest.TestCase):
 
     def test_bandpass_filter_240517_noise(self):
         filter = FIRBandpassFilter((25, 100), 1000)
-        data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
+        data = load("data/240517_Rawdata/Noise_data_serial.mat")[:3000]
         show_signals(
             [
                 data,
@@ -412,7 +434,7 @@ class TestVisualize(unittest.TestCase):
 
     def test_bandpass_filter_240517_hs(self):
         filter = FIRBandpassFilter((25, 55), 1000)
-        data = self.load("data/240517_Rawdata/HS_data_serial.mat")[:3000]
+        data = load("data/240517_Rawdata/HS_data_serial.mat")[:3000]
         show_signals(
             [
                 data,
@@ -424,10 +446,8 @@ class TestVisualize(unittest.TestCase):
     def test_compare_noise_240219_240517(self):
         filter = ButterworthLowpassFilter(20, 1000)
         seconds = 10
-        old_data = self.load("data/240219_Rawdata/100km.mat")[: 32000 * seconds]
-        new_data = self.load("data/240517_Rawdata/Noise_data_serial.mat")[
-            : 1000 * seconds
-        ]
+        old_data = load("data/240219_Rawdata/100km.mat")[: 32000 * seconds]
+        new_data = load("data/240517_Rawdata/Noise_data_serial.mat")[: 1000 * seconds]
         show_signals(
             [
                 old_data,
@@ -440,8 +460,8 @@ class TestVisualize(unittest.TestCase):
     def test_compare_hs_240219_240517(self):
         filter = ButterworthLowpassFilter(80, 1000)
         seconds = 5
-        old_data = self.load("data/240219_Rawdata/Stop.mat")[: 32000 * seconds]
-        new_data = self.load("data/240517_Rawdata/HS_data_serial.mat")[: 1000 * seconds]
+        old_data = load("data/240219_Rawdata/Stop.mat")[: 32000 * seconds]
+        new_data = load("data/240517_Rawdata/HS_data_serial.mat")[: 1000 * seconds]
         show_signals(
             [
                 old_data,
@@ -458,16 +478,23 @@ class TestVisualize(unittest.TestCase):
         *,
         output_rate=32000,
     ):
-        single_data = self.load(filename, "ch1z")
+        single_data = load(filename, "ch1z")
         single_data = self.convert_sample_rate(single_data, 32000, output_rate)
         save_signal_to_wav_scipy(single_data, output_rate, output_filename)
 
-    def show(self, path: str, ch: str = "ch1z"):
-        single_data = self.load(path, ch)
-        show_signal(single_data, ch)
+    def convert_sample_rate(self, signal: np.ndarray, input_rate, output_rate):
+        return ScipySamplingRateConverter(input_rate, output_rate).convert(signal)
+
+    def show(self, path: str, ch: str = "ch1z", modifier=None):
+        waveform = load(path, ch)
+
+        if modifier is not None:
+            waveform = modifier(waveform)
+
+        show_signal(waveform, ch)
 
     def show_wavelet(self, path: str, ch: str = "ch1z", modifier=None):
-        waveform = self.load(path, ch)
+        waveform = load(path, ch)
 
         if modifier is not None:
             waveform = modifier(waveform)
@@ -481,18 +508,12 @@ class TestVisualize(unittest.TestCase):
     def show_spectrogram(
         self, path: str, sample_rate: int, ch: str = "ch1z", modifier=None
     ):
-        waveform = self.load(path, ch)
+        waveform = load(path, ch)
 
         if modifier is not None:
             waveform = modifier(waveform)
 
         show_spectrogram(waveform, sample_rate, ylim=(0, 512))
-
-    def load(self, path: str, ch: str = "ch1z"):
-        return DatasetFactory.build_loader(path).load()[ch].to_numpy()
-
-    def convert_sample_rate(self, signal: np.ndarray, input_rate, output_rate):
-        return ScipySamplingRateConverter(input_rate, output_rate).convert(signal)
 
 
 class TestGainController(unittest.TestCase):
