@@ -61,6 +61,7 @@ def train_model(
 
     params = {
         "learning_rate": optimizer.param_groups[0]["lr"],
+        "weight_decay": optimizer.param_groups[0]["weight_decay"],
         "model_name": model.__class__.__name__,
         "criterion_name": criterion.__class__.__name__,
         "optimizer_name": optimizer.__class__.__name__,

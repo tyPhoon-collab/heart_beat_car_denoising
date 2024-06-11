@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import pandas as pd
 import scipy.io
 from abc import ABC, abstractmethod
