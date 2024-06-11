@@ -4,7 +4,7 @@ from typing import Callable
 import numpy as np
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.filter import FIRBandpassFilter
-from dataset.loader import MatLoader
+from dataset.loader import MatLoader, cacheable
 from dataset.sampling_rate_converter import (
     NoSamplingRateConverter,
     ScipySamplingRateConverter,
@@ -82,6 +82,7 @@ class DatasetFactory:
         return modifier(loader.load()["ch1z"].to_numpy())
 
     @classmethod
+    @cacheable
     def build_loader(cls, path: str):
         """
         先方からのデータ形式が毎回異なる。差分を吸収してMatLoaderとして扱えるようにする関数

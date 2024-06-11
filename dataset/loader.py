@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import pandas as pd
 import scipy.io
 from abc import ABC, abstractmethod
@@ -45,6 +45,17 @@ class MatLoader(Loader):
         return df
 
 
+@dataclass
+class CacheableLoader(Loader):
+    loader: Loader
+    cache_data: pd.DataFrame | None = field(default=None, init=False)
+
+    def load(self):
+        if self.cache_data is None:
+            self.cache_data = self.loader.load()
+        return self.cache_data
+
+
 if __name__ == "__main__":
     loader = MatLoader(
         "data/240517_Rawdata/HS_data.mat",
@@ -54,3 +65,15 @@ if __name__ == "__main__":
     )
     data = loader.load()
     print(data)
+
+
+def cacheable(func):
+    def wrapper(*args, **kwargs):
+        loader = func(*args, **kwargs)
+        cacheable_loader = CacheableLoader(loader)
+        print(
+            f"Converted: {loader.__class__.__name__} to {cacheable_loader.__class__.__name__}"
+        )
+        return cacheable_loader
+
+    return wrapper
