@@ -23,6 +23,7 @@ from models.transformer_pixel_shuffle_auto_encoder import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
+from train import train_model
 from utils.device import get_torch_device
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
 from utils.plot import (
@@ -586,32 +587,43 @@ class TestPyTorchFlow(unittest.TestCase):
         device = get_torch_device()
 
         batch_size = 16
-        num_epochs = 10
-        learning_rate = 0.001
+        num_epochs = 5
+        learning_rate = 0.0001
 
-        dataloader, test_dataloader = self.build_simple_loaders(batch_size)
-        # dataloader, test_dataloader = self.build_loaders(batch_size)
+        # dataloader, test_dataloader = self.build_simple_loaders(batch_size)
+        dataloader, test_dataloader = self.build_loaders(batch_size)
 
         # モデル、損失関数、最適化手法の設定
-        model = SimpleAutoencoder()
+        # model = SimpleAutoencoder()
+        # model = WaveUNet()
+        model = Conv1DAutoencoder()
         model.to(device)
-        criterion = nn.MSELoss()
+        # criterion = nn.MSELoss()
         # criterion = nn.L1Loss()
-        # criterion = CombinedLoss()
+        criterion = CombinedLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-        # トレーニングループ
-        for epoch in range(num_epochs):
-            for batch in dataloader:
-                noisy, clean = map(lambda x: x.to(device), batch)
+        train_model(
+            model,
+            dataloader,
+            criterion,
+            optimizer,
+            val_dataloader=test_dataloader,
+            epoch_size=num_epochs,
+        )
 
-                optimizer.zero_grad()
-                output = model(noisy)
-                loss = criterion(output.to(device), clean)
-                loss.backward()
-                optimizer.step()
+        # 以下は通常のトレーニングループ。比べたいときにコメントアウトする
+        # for epoch in range(num_epochs):
+        #     for batch in dataloader:
+        #         noisy, clean = map(lambda x: x.to(device), batch)
 
-            print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")  # type: ignore
+        #         optimizer.zero_grad()
+        #         output = model(noisy)
+        #         loss = criterion(output.to(device), clean)
+        #         loss.backward()
+        #         optimizer.step()
+
+        #     print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")  # type: ignore
 
         # 結果のプロット
         model.eval()
@@ -696,7 +708,7 @@ class TestPyTorchFlow(unittest.TestCase):
         show_signals(
             [noisy, clean, output],
             ["Noisy", "Clean", "Output"],
-            filename="output/fig/sample.png",
+            filename="sample.png",
         )
 
 
