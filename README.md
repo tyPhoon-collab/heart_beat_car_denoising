@@ -150,3 +150,8 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
   - AdamWをためしてみる
   - 警告の抑制
     - Dockerの環境を再構築など
+
+### 6/11
+
+- 警告の抑制
+  - 最新のimageを使用した際に、警告が出るとのこと。古いimageを採用
