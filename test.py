@@ -590,7 +590,7 @@ class TestPyTorchFlow(unittest.TestCase):
         learning_rate = 0.001
 
         dataloader, test_dataloader = self.build_simple_loaders(batch_size)
-        dataloader, test_dataloader = self.build_loaders(batch_size)
+        # dataloader, test_dataloader = self.build_loaders(batch_size)
 
         # モデル、損失関数、最適化手法の設定
         model = SimpleAutoencoder()
@@ -693,19 +693,11 @@ class TestPyTorchFlow(unittest.TestCase):
         return dataloader, test_dataloader
 
     def plot(self, noisy, clean, output):
-        import matplotlib.pyplot as plt
-
-        plt.figure(figsize=(12, 4))
-        plt.subplot(1, 3, 1)
-        plt.plot(noisy)
-        plt.title("Noisy Signal")
-        plt.subplot(1, 3, 2)
-        plt.plot(clean)
-        plt.title("Clean Signal")
-        plt.subplot(1, 3, 3)
-        plt.plot(output)
-        plt.title("Denoised Signal")
-        plt.savefig("output/fig/sample.png")
+        show_signals(
+            [noisy, clean, output],
+            ["Noisy", "Clean", "Output"],
+            filename="output/fig/sample.png",
+        )
 
 
 if __name__ == "__main__":
