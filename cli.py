@@ -35,7 +35,11 @@ from models.transformer_pixel_shuffle_auto_encoder import (
 )
 from train import train_model
 from utils.device import load_local_dotenv
-from utils.gain_controller import ConstantGainController, ProgressiveGainController
+from utils.gain_controller import (
+    ConstantGainController,
+    GainController,
+    ProgressiveGainController,
+)
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Conv1DAutoencoder
@@ -114,8 +118,8 @@ def train(args):
         lr=args.learning_rate,
         weight_decay=args.weight_decay,
     )
-    gain_controller = (
-        ProgressiveGainController(epoch_to=4, max_gain=args.gain)
+    gain_controller: GainController = (
+        ProgressiveGainController(epoch_to=args.epoch_to - 1, max_gain=args.gain)
         if args.with_progressive_gain
         else ConstantGainController(gain=args.gain)
     )
@@ -280,6 +284,12 @@ def main():
         "--with-progressive-gain",
         action="store_true",
         help="Enable progressive gain",
+    )
+    parser_train.add_argument(
+        "--epoch-to",
+        type=int,
+        default=5,
+        help="Number of epochs to progressive gain. If --with-progressive-gain is not stored, this option is ignored.",
     )
     parser_train.add_argument(
         "--without-shuffle",
