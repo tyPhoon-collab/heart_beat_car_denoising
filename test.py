@@ -18,10 +18,10 @@ from dataset.randomizer import (
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
 from loss.abs_weighted_combined import AbsWeightedCombinedLoss
 from loss.combine import CombinedLoss, wavelet_transform
-from models.auto_encoder import Conv1DAutoencoder
-from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
+from models.auto_encoder import Autoencoder
+from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
-    PixelShuffleConv1DAutoencoderWithTransformer,
+    PixelShuffleAutoencoderTransformer,
 )
 from models.legacy.wave_u_net import WaveUNet
 from models.wave_u_net_enhance import WaveUNetEnhance
@@ -151,7 +151,7 @@ class TestModels(unittest.TestCase):
 
     def test_pixel_shuffle_auto_encoder_transformer(self):
         # Model instantiation
-        model = PixelShuffleConv1DAutoencoderWithTransformer()
+        model = PixelShuffleAutoencoderTransformer()
         print(model)
 
         # Define the loss function and optimizer
@@ -174,7 +174,7 @@ class TestModels(unittest.TestCase):
 
     def test_pixel_shuffle_auto_encoder(self):
         # Model instantiation
-        model = PixelShuffleConv1DAutoencoder()
+        model = PixelShuffleAutoencoder()
         print(model)
 
         # Define the loss function and optimizer
@@ -197,7 +197,7 @@ class TestModels(unittest.TestCase):
 
     def test_auto_encoder(self):
         # Model instantiation
-        model = Conv1DAutoencoder()
+        model = Autoencoder()
         print(model)
 
         # Define the loss function and optimizer
@@ -642,7 +642,7 @@ class TestPyTorchFlow(unittest.TestCase):
         # モデル、損失関数、最適化手法の設定
         # model = SimpleAutoencoder()
         # model = WaveUNet()
-        model = Conv1DAutoencoder()
+        model = Autoencoder()
         model.to(device)
         # criterion = nn.MSELoss()
         # criterion = nn.L1Loss()

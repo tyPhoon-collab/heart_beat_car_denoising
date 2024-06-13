@@ -1,9 +1,9 @@
 import torch.nn as nn
 
 
-class Conv1DAutoencoder(nn.Module):
+class Autoencoder(nn.Module):
     def __init__(self):
-        super(Conv1DAutoencoder, self).__init__()
+        super(Autoencoder, self).__init__()
         # Encoder layers
         self.encoder = nn.Sequential(
             nn.Conv1d(

@@ -31,9 +31,9 @@ class PixelUnshuffle1d(nn.Module):
         return x
 
 
-class PixelShuffleConv1DAutoencoder(nn.Module):
+class PixelShuffleAutoencoder(nn.Module):
     def __init__(self):
-        super(PixelShuffleConv1DAutoencoder, self).__init__()
+        super(PixelShuffleAutoencoder, self).__init__()
         self.encoder = nn.Sequential(
             nn.Conv1d(
                 1, 16, kernel_size=3, stride=1, padding=1

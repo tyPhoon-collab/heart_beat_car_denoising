@@ -31,9 +31,9 @@ from logger.evaluation_impls.figure import FigureEvaluationLogger
 from loss.abs_weighted import AbsWeightedLoss
 from loss.abs_weighted_combined import AbsWeightedCombinedLoss
 from loss.combine import CombinedLoss
-from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
+from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
-    PixelShuffleConv1DAutoencoderWithTransformer,
+    PixelShuffleAutoencoderTransformer,
 )
 from models.wave_u_net_enhance import WaveUNetEnhance
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
@@ -46,16 +46,16 @@ from utils.gain_controller import (
 )
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
-from models.auto_encoder import Conv1DAutoencoder
+from models.auto_encoder import Autoencoder
 from eval import eval_model
 
 MODEL = [
     # WaveUNet,
     WaveUNetEnhance,
     WaveUNetEnhanceTransformer,
-    Conv1DAutoencoder,
-    PixelShuffleConv1DAutoencoder,
-    PixelShuffleConv1DAutoencoderWithTransformer,
+    Autoencoder,
+    PixelShuffleAutoencoder,
+    PixelShuffleAutoencoderTransformer,
 ]
 LOSS_FN = [
     nn.L1Loss,

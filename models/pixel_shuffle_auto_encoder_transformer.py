@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
+from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 
 
 class PositionalEncoding(nn.Module):
@@ -39,9 +39,9 @@ class TransformerBlock(nn.Module):
         return x
 
 
-class PixelShuffleConv1DAutoencoderWithTransformer(PixelShuffleConv1DAutoencoder):
+class PixelShuffleAutoencoderTransformer(PixelShuffleAutoencoder):
     def __init__(self):
-        super(PixelShuffleConv1DAutoencoderWithTransformer, self).__init__()
+        super(PixelShuffleAutoencoderTransformer, self).__init__()
 
         self.positional_encoding = PositionalEncoding(d_model=2048)
         self.transformer = TransformerBlock(d_model=2048, nhead=8)
