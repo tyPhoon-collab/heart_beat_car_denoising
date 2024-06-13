@@ -2,19 +2,19 @@
 import numpy as np
 import torch
 from loss.wavelet_transform import wavelet_transform
-from loss.abs_weighted import AbsWeightedLoss
+from loss.weighted import WeightedLoss
 import torch.nn as nn
 
 
-class AbsWeightedCombinedLoss(nn.Module):
+class WeightedCombinedLoss(nn.Module):
     def __init__(self, alpha=0.5, peak_weight=None, scales=np.arange(1, 37)):
-        super(AbsWeightedCombinedLoss, self).__init__()
+        super(WeightedCombinedLoss, self).__init__()
         weighted_loss_args = {}
 
         if peak_weight is not None:
             weighted_loss_args["peak_weight"] = peak_weight
 
-        self.wl1_loss = AbsWeightedLoss(*weighted_loss_args)
+        self.wl1_loss = WeightedLoss(*weighted_loss_args)
         self.l1_loss = nn.L1Loss()
         self.alpha = alpha
         self.widths = torch.tensor(scales, dtype=torch.float32)

@@ -2,9 +2,9 @@ import torch.nn as nn
 import torch
 
 
-class AbsWeightedLoss(nn.Module):
+class WeightedLoss(nn.Module):
     def __init__(self, peak_weight=0.25):
-        super(AbsWeightedLoss, self).__init__()
+        super(WeightedLoss, self).__init__()
         assert peak_weight >= 0 and peak_weight <= 1
         self.peak_weight = peak_weight
 

@@ -16,7 +16,7 @@ from dataset.randomizer import (
     PhaseHalfShuffleRandomizer,
 )
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
-from loss.abs_weighted_combined import AbsWeightedCombinedLoss
+from loss.weighted_combined import WeightedCombinedLoss
 from loss.combine import CombinedLoss, wavelet_transform
 from models.auto_encoder import Autoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
@@ -93,11 +93,11 @@ class TestLoss(unittest.TestCase):
         self.mock_train(criterion)
 
     def test_abs_weighted_loss(self):
-        criterion = AbsWeightedCombinedLoss()
+        criterion = WeightedCombinedLoss()
         self.mock_train(criterion)
 
     def test_abs_weighted_combined_loss(self):
-        criterion = AbsWeightedCombinedLoss(alpha=0.5)
+        criterion = WeightedCombinedLoss(alpha=0.5)
         self.mock_train(criterion)
 
     def mock_train(self, criterion):

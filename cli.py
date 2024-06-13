@@ -28,8 +28,8 @@ from torch.utils.data import DataLoader
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
-from loss.abs_weighted import AbsWeightedLoss
-from loss.abs_weighted_combined import AbsWeightedCombinedLoss
+from loss.weighted import WeightedLoss
+from loss.weighted_combined import WeightedCombinedLoss
 from loss.combine import CombinedLoss
 from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
@@ -61,8 +61,8 @@ LOSS_FN = [
     nn.L1Loss,
     nn.SmoothL1Loss,
     CombinedLoss,
-    AbsWeightedLoss,
-    AbsWeightedCombinedLoss,
+    WeightedLoss,
+    WeightedCombinedLoss,
 ]
 RANDOMIZER = [
     SampleShuffleRandomizer,
