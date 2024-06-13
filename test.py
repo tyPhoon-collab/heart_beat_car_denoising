@@ -16,13 +16,16 @@ from dataset.randomizer import (
     PhaseHalfShuffleRandomizer,
 )
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
+from loss.abs_weighted_combined import AbsWeightedCombinedLoss
 from loss.combine import CombinedLoss, wavelet_transform
 from models.auto_encoder import Conv1DAutoencoder
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
-from models.transformer_pixel_shuffle_auto_encoder import (
+from models.pixel_shuffle_auto_encoder_transformer import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
 from models.wave_u_net import WaveUNet
+from models.wave_u_net_enhance import WaveUNetEnhance
+from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 from train import train_model
 from utils.device import get_torch_device
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
@@ -85,7 +88,19 @@ class TestDataSet(unittest.TestCase):
 
 
 class TestLoss(unittest.TestCase):
-    def test_loss(self):
+    def test_combined_loss(self):
+        criterion = CombinedLoss()
+        self.mock_train(criterion)
+
+    def test_abs_weighted_loss(self):
+        criterion = AbsWeightedCombinedLoss()
+        self.mock_train(criterion)
+
+    def test_abs_weighted_combined_loss(self):
+        criterion = AbsWeightedCombinedLoss(alpha=0.5)
+        self.mock_train(criterion)
+
+    def mock_train(self, criterion):
         class SimpleModel(nn.Module):
             def __init__(self):
                 super(SimpleModel, self).__init__()
@@ -96,7 +111,6 @@ class TestLoss(unittest.TestCase):
 
         # モデル、損失関数、最適化手法の初期化
         model = SimpleModel()
-        criterion = CombinedLoss(alpha=0.5)
         optimizer = optim.SGD(model.parameters(), lr=0.01)
 
         # ダミーデータの作成
@@ -125,8 +139,17 @@ class TestModels(unittest.TestCase):
         output = model(example_input)
         print(output.shape)  # Should be torch.Size([1, 1, 5120])
 
-    def test_transformer_pixel_shuffle_auto_encoder(self):
+    def test_wave_u_net_enhance(self):
+        # Create model and example input tensor
+        model = WaveUNetEnhance()
 
+        # example_input = torch.rand(1, 1, 256 * 20)  # (batch_size, channels, length)
+        example_input = torch.rand(1, 1, 4096)  # (batch_size, channels, length)
+        # Get the model output
+        output = model(example_input)
+        print(output.shape)  # Should be torch.Size([1, 1, 5120])
+
+    def test_pixel_shuffle_auto_encoder_transformer(self):
         # Model instantiation
         model = PixelShuffleConv1DAutoencoderWithTransformer()
         print(model)
@@ -182,6 +205,29 @@ class TestModels(unittest.TestCase):
         optimizer = optim.Adam(model.parameters(), lr=0.001)
 
         # Dummy data for demonstration
+        x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
+        x = x.to(torch.float32)
+
+        # Forward pass
+        outputs = model(x)
+        loss = criterion(outputs, x)
+        print(f"Loss: {loss.item()}")
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    def test_wave_u_net_transformer(self):
+        model = WaveUNetEnhanceTransformer()
+        print(model)
+
+        # Define the loss function and optimizer
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+        # Dummy data for demonstration
+        # x = torch.randn(1, 1, 5120 + (8 - 1) * 512)  # Batch size, Channels, Length
         x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
         x = x.to(torch.float32)
 

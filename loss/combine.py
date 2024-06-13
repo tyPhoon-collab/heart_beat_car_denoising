@@ -1,15 +1,8 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import ptwt
-import pywt
 
-
-# GPU上でWavelet変換を行う関数
-def wavelet_transform(signal: torch.Tensor, scales, wavelet_name="morl"):
-    wavelet = pywt.ContinuousWavelet(wavelet_name)  # type: ignore
-    cwt_coeffs = ptwt.cwt(signal, scales, wavelet)
-    return cwt_coeffs
+from loss.wavelet_transform import wavelet_transform
 
 
 # カスタム損失関数の定義

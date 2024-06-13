@@ -28,11 +28,15 @@ from torch.utils.data import DataLoader
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
+from loss.abs_weighted import AbsWeightedLoss
+from loss.abs_weighted_combined import AbsWeightedCombinedLoss
 from loss.combine import CombinedLoss
 from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
-from models.transformer_pixel_shuffle_auto_encoder import (
+from models.pixel_shuffle_auto_encoder_transformer import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
+from models.wave_u_net_enhance import WaveUNetEnhance
+from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 from train import train_model
 from utils.device import load_local_dotenv
 from utils.gain_controller import (
@@ -48,11 +52,19 @@ from eval import eval_model
 
 MODEL = [
     WaveUNet,
+    WaveUNetEnhance,
+    WaveUNetEnhanceTransformer,
     Conv1DAutoencoder,
     PixelShuffleConv1DAutoencoder,
     PixelShuffleConv1DAutoencoderWithTransformer,
 ]
-LOSS_FN = [nn.L1Loss, nn.SmoothL1Loss, CombinedLoss]
+LOSS_FN = [
+    nn.L1Loss,
+    nn.SmoothL1Loss,
+    CombinedLoss,
+    AbsWeightedLoss,
+    AbsWeightedCombinedLoss,
+]
 RANDOMIZER = [
     SampleShuffleRandomizer,
     PhaseShuffleRandomizer,
