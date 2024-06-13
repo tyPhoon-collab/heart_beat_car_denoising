@@ -12,10 +12,10 @@ from logger.training_logger import TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from utils.device import get_torch_device, load_local_dotenv
 from utils.gain_controller import (
-    EpochSensitive,
     GainController,
     ProgressiveGainController,
 )
+from utils.epoch_sensitive import EpochSensitive
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.plot import plot_signals
 from utils.timeit import timeit

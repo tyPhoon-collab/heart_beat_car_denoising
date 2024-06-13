@@ -1,16 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from utils.epoch_sensitive import EpochSensitive
+
 
 class GainController(ABC):
     @abstractmethod
     def get_gain(self) -> float:
-        pass
-
-
-class EpochSensitive(ABC):
-    @abstractmethod
-    def on_start_epoch(self, epoch_idx):
         pass
 
 
