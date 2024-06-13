@@ -7,7 +7,7 @@ from datetime import datetime
 
 class ModelSaver(ABC):
     @abstractmethod
-    def save(self, model: nn.Module, *, suffix: str | None):
+    def save(self, model: nn.Module, *, suffix: str | None) -> str:
         pass
 
 
@@ -22,7 +22,8 @@ class WithDateModelSaver(ModelSaver):
         suffix = f"_{suffix}" if suffix else ""
         path = os.path.join(self.save_directory, f"model_weights{suffix}.pth")
         torch.save(model.state_dict(), path)
-        print(f"Model saved to {path}")
+
+        return path
 
 
 class WithIdModelSaver(ModelSaver):
@@ -35,4 +36,5 @@ class WithIdModelSaver(ModelSaver):
         suffix = f"_{suffix}" if suffix else ""
         path = os.path.join(self.save_directory, f"model_weights{suffix}.pth")
         torch.save(model.state_dict(), path)
-        print(f"Model saved to {path}")
+
+        return path

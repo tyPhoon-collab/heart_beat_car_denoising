@@ -16,3 +16,6 @@ class StdoutTrainingLogger(TrainingLogger):
 
     def on_finish(self):
         print("Finish training")
+
+    def on_model_saved(self, path: str):
+        print(f"Model saved to {path}")

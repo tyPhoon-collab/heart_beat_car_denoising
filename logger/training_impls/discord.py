@@ -28,6 +28,9 @@ class DiscordLogger(TrainingLogger):
     def on_finish(self):
         self.send_discord_notification("Training finished successfully.")
 
+    def on_model_saved(self, path: str):
+        pass
+
     def send_discord_notification(self, message):
         if self.webhook_url is None:
             return

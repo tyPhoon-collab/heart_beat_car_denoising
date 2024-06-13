@@ -13,3 +13,6 @@ class NoopTrainingLogger(TrainingLogger):
 
     def on_finish(self):
         pass
+
+    def on_model_saved(self, path: str):
+        pass

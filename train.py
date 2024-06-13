@@ -86,7 +86,8 @@ def train_model(
 
     def save_model(model: nn.Module, suffix: str):
         if model_saver is not None:
-            model_saver.save(model, suffix=suffix)
+            path = model_saver.save(model, suffix=suffix)
+            logger.on_model_saved(path)
 
     lowest_loss = inf
 

@@ -21,3 +21,7 @@ class TrainingLogger(ABC):
     def on_finish(self):
         """トレーニングが正常に終了した時に呼ばれます。"""
         pass
+
+    @abstractmethod
+    def on_model_saved(self, path: str):
+        pass

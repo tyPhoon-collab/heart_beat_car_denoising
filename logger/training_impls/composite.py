@@ -27,3 +27,7 @@ class CompositeTrainingLogger(TrainingLogger):
     def on_finish(self):
         for logger in self.loggers:
             logger.on_finish()
+
+    def on_model_saved(self, path: str):
+        for logger in self.loggers:
+            logger.on_model_saved(path)
