@@ -47,11 +47,10 @@ from utils.gain_controller import (
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Conv1DAutoencoder
-from models.wave_u_net import WaveUNet
 from eval import eval_model
 
 MODEL = [
-    WaveUNet,
+    # WaveUNet,
     WaveUNetEnhance,
     WaveUNetEnhanceTransformer,
     Conv1DAutoencoder,

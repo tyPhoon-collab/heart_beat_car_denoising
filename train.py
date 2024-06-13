@@ -19,7 +19,7 @@ from utils.gain_controller import (
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.plot import plot_signals
 from utils.timeit import timeit
-from models.wave_u_net import WaveUNet
+from models.legacy.wave_u_net import WaveUNet
 
 
 def load_pretrained_model(model: nn.Module, path: str) -> nn.Module:

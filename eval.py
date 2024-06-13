@@ -5,7 +5,7 @@ from dataset.factory import DatasetFactory
 from dataset.randomizer import SampleShuffleRandomizer
 from logger.evaluation_impls.noop import NoopEvaluationLogger
 from logger.evaluation_logger import EvaluationLogger
-from models.wave_u_net import WaveUNet
+from models.legacy.wave_u_net import WaveUNet
 from utils.device import get_torch_device
 from utils.timeit import timeit
 

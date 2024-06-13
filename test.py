@@ -23,7 +23,7 @@ from models.pixel_shuffle_auto_encoder import PixelShuffleConv1DAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
     PixelShuffleConv1DAutoencoderWithTransformer,
 )
-from models.wave_u_net import WaveUNet
+from models.legacy.wave_u_net import WaveUNet
 from models.wave_u_net_enhance import WaveUNetEnhance
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 from train import train_model
