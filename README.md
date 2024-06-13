@@ -155,3 +155,30 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 
 - 警告の抑制
   - 最新のimageを使用した際に、警告が出るとのこと。古いimageを採用
+
+### 6/13
+
+- WaveUNetがどうしても扱いづらい
+  - [このモデル](https://github.com/haoxiangsnr/Wave-U-Net-for-Speech-Enhancement/blob/master/model/unet_basic.py)を借用、実験
+- もっと滑らかな progressive gain を試す 0-20 40
+
+- 計算量の観点からWaveformのL1Lossのみを考慮する
+- 出力値が0に収束
+- ピークを保持できるような損失関数を設計する
+  - 絶対値の比を考慮するWeightedLossを作成
+- 今後の方針
+  - コードの整理をする
+  - ピークを考慮した損失関数を用いる
+    - WeightedLossとWeightedCombinedLossを用いる
+    - peak_weight値の調整
+  - 新しいWaveUNetモデルを用いる
+  - 新しいTransformerモデルを試す
+  - プログレッシブpeak_weightの実装
+- 必要なデータ
+  - 新しいWaveUNetモデルで各ゲインを試す
+  - 最も精度が良い単一のモデルに対する各ゲイン
+    - 波形とL1Loss
+  - 損失関数毎の結果
+    - L1Loss
+    - WeightedLoss
+  - プログレッシブ学習の結果
