@@ -63,5 +63,5 @@ for i in "${!loss_types[@]}"; do
     exp_name="TP_${prog_max_gain}_${model_alias}_${alias}"
     pretrained_path="output/checkpoint/${model}_${loss_type}/0_${model_alias}_${alias}/model_weights_best.pth"
     print_green "Running progressive training for loss $loss_source"
-    bash train_and_eval.sh $exp_name $model $loss_type $batch_size --learning-rate $learning_rate --with-progressive-gain --epoch-size $prog_epoch_size --progressive-epoch-to $prog_epoch_to --gain $prog_max_gain --pretrained-weights-path $pretrained_path
+    bash train_and_eval.sh $exp_name $model $loss_type $batch_size --learning-rate $learning_rate --with-progressive-gain --epoch-size $prog_epoch_size --epoch-to $prog_epoch_to --gain $prog_max_gain --pretrained-weights-path $pretrained_path
 done
