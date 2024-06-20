@@ -179,6 +179,7 @@ def evaluate(args):
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
+    gain_controller: GainController = ConstantGainController(gain=args.gain)
 
     # モデルの重みのロード
     if args.weights_path:
@@ -188,6 +189,7 @@ def evaluate(args):
     test_dataset = DatasetFactory.create_240517_filtered(
         train=False,
         randomizer=randomizer,
+        gain_controller=gain_controller,
         split_samples=args.split_samples,
         stride_samples=args.stride_samples,
     )
