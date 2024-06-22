@@ -183,3 +183,8 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
     - L1Loss
     - WeightedLoss
   - プログレッシブ学習の結果
+
+### 6/20
+
+- epoch 100 progressive 50 pertainedにprogressiveのものを使用する
+- Transformerを用いるWaveUNetを実装、良い結果を確認
