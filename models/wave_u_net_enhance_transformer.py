@@ -31,5 +31,5 @@ class WaveUNetEnhanceTransformer(WaveUNetEnhanceBase):
         # Reshape for Transformer (batch, sequence, feature)
         o = middle.permute(2, 0, 1)
         o = self.transformer_encoder(o)
-        o = middle.permute(1, 2, 0)
+        o = o.permute(1, 2, 0)
         return o
