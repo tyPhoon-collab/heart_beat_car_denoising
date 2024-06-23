@@ -37,7 +37,7 @@ from models.pixel_shuffle_auto_encoder_transformer import (
 )
 from models.wave_u_net_enhance import WaveUNetEnhance
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
-from train import train_model
+from solver import SimpleSolver
 from utils.device import load_local_dotenv
 from utils.gain_controller import (
     ConstantGainController,
@@ -52,7 +52,6 @@ from utils.model_save_validator import (
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Autoencoder
-from eval import eval_model
 
 MODEL = [
     # WaveUNet,
@@ -176,9 +175,10 @@ def train(args):
         shuffle=False,
     )
 
+    solver = SimpleSolver(model)
+
     # モデルの訓練
-    train_model(
-        model,
+    solver.train(
         train_dataloader,
         criterion,
         optimizer,
@@ -216,12 +216,12 @@ def evaluate(args):
         shuffle=False,
     )
 
+    solver = SimpleSolver(model)
     # モデルの評価
-    eval_model(
-        model,
-        args.weights_path,
+    solver.evaluate(
         test_dataloader,
         criterion,
+        state_dict_path=args.weights_path,
         logger=CompositeEvaluationLogger(
             loggers=[
                 FigureEvaluationLogger(filename=args.figure_filename),

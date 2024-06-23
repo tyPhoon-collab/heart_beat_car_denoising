@@ -26,7 +26,7 @@ from models.pixel_shuffle_auto_encoder_transformer import (
 from models.legacy.wave_u_net import WaveUNet
 from models.wave_u_net_enhance import WaveUNetEnhance
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
-from train import train_model
+from solver import SimpleSolver
 from utils.device import get_torch_device
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
 from utils.plot import (
@@ -651,8 +651,7 @@ class TestPyTorchFlow(unittest.TestCase):
         criterion = CombinedLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-        train_model(
-            model,
+        SimpleSolver(model).train(
             dataloader,
             criterion,
             optimizer,

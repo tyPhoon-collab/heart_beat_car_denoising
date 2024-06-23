@@ -7,7 +7,7 @@ from datetime import datetime
 
 class ModelSaver(ABC):
     @abstractmethod
-    def save(self, model: nn.Module, *, suffix: str | None) -> str:
+    def save(self, model: nn.Module, *, suffix: str | None = None) -> str:
         pass
 
 
@@ -16,7 +16,7 @@ class WithDateModelSaver(ModelSaver):
         today = datetime.now().strftime("%Y-%m-%d_%H-%M")
         self.save_directory = os.path.join(base_directory, today)
 
-    def save(self, model: nn.Module, *, suffix: str | None):
+    def save(self, model: nn.Module, *, suffix: str | None = None):
         os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
 
         suffix = f"_{suffix}" if suffix else ""
@@ -30,7 +30,7 @@ class WithIdModelSaver(ModelSaver):
     def __init__(self, base_directory: str, id: str):
         self.save_directory = os.path.join(base_directory, id)
 
-    def save(self, model: nn.Module, *, suffix: str | None):
+    def save(self, model: nn.Module, *, suffix: str | None = None):
         os.makedirs(self.save_directory, exist_ok=True)  # ディレクトリがなければ作成
 
         suffix = f"_{suffix}" if suffix else ""
