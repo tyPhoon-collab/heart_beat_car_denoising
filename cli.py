@@ -44,6 +44,7 @@ from utils.gain_controller import (
     GainController,
     ProgressiveGainController,
 )
+from utils.model_save_validator import BestModelSaveValidator
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Autoencoder
@@ -130,7 +131,7 @@ def train(args):
         weight_decay=args.weight_decay,
     )
     gain_controller: GainController = (
-        ProgressiveGainController(epoch_to=args.epoch_to - 1, max_gain=args.gain)
+        ProgressiveGainController(epoch_index_to=args.epoch_to - 1, max_gain=args.gain)
         if args.with_progressive_gain
         else ConstantGainController(gain=args.gain)
     )
@@ -167,6 +168,9 @@ def train(args):
         criterion,
         optimizer,
         model_saver=model_saver,
+        model_save_validator=BestModelSaveValidator(
+            epoch_index_from=args.epoch_to - 1 if args.with_progressive_gain else 0
+        ),
         logger=logger,
         epoch_size=args.epoch_size,
         val_dataloader=val_dataloader,
@@ -302,7 +306,8 @@ def main():
         "--epoch-to",
         type=int,
         default=5,
-        help="Number of epochs to progressive gain. If --with-progressive-gain is not stored, this option is ignored.",
+        help="Number of epochs to progressive gain. not index. "
+        "If --with-progressive-gain is not stored, this option is ignored.",
     )
     parser_train.add_argument(
         "--without-shuffle",

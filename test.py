@@ -565,7 +565,9 @@ class TestVisualize(unittest.TestCase):
 
 class TestGainController(unittest.TestCase):
     def test_gain_controller(self):
-        controller = ProgressiveGainController(epoch_from=0, epoch_to=4, max_gain=1.1)
+        controller = ProgressiveGainController(
+            epoch_index_from=0, epoch_index_to=4, max_gain=1.1
+        )
         self.assertEqual(controller.gain, 1)
 
         controller.set_gain_from_epoch(0)

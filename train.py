@@ -1,4 +1,3 @@
-from math import inf
 import os
 from matplotlib import pyplot as plt
 import torch
@@ -16,6 +15,7 @@ from utils.gain_controller import (
     ProgressiveGainController,
 )
 from utils.epoch_sensitive import EpochSensitive
+from utils.model_save_validator import ModelSaveValidator
 from utils.model_saver import ModelSaver, WithDateModelSaver
 from utils.plot import plot_signals
 from utils.timeit import timeit
@@ -40,6 +40,7 @@ def train_model(
     *,
     val_dataloader: DataLoader | None = None,
     model_saver: ModelSaver | None = None,
+    model_save_validator: ModelSaveValidator | None = None,
     logger: TrainingLogger | None = None,
     epoch_size: int = 5,
     pretrained_weights_path: str | None = None,
@@ -84,16 +85,13 @@ def train_model(
     if os.getenv("ONLY_FIRST_BATCH") == "1":
         dataloader = [next(iter(dataloader))]  # type: ignore
 
-    def save_model(model: nn.Module, suffix: str):
-        if model_saver is not None:
-            path = model_saver.save(model, suffix=suffix)
-            logger.on_model_saved(path)
-
-    lowest_loss = inf
-
     for epoch in range(epoch_size):
         if gain_controller is not None and isinstance(gain_controller, EpochSensitive):
             gain_controller.on_start_epoch(epoch)
+        if model_save_validator is not None and isinstance(
+            model_save_validator, EpochSensitive
+        ):
+            model_save_validator.on_start_epoch(epoch)
 
         for batch in dataloader:
             noisy, clean = map(lambda x: x.to(device), batch)
@@ -108,12 +106,11 @@ def train_model(
 
         loss_item = loss.item()  # type: ignore
 
-        if lowest_loss > loss_item:
-            lowest_loss = loss_item
-            save_model(model, suffix="best")
-
-        # 以下はエポックごとのモデルを保存するコードだが、ファイルサイズが大きくなるので、一旦コメント化
-        # save_model(model, suffix=f"epoch_{epoch + 1}")
+        if model_saver is not None:
+            if model_save_validator is None or model_save_validator.validate(loss_item):
+                suffix = model_save_validator.suffix if model_save_validator else None
+                path = model_saver.save(model, suffix=suffix)
+                logger.on_model_saved(path)
 
         if val_dataloader is not None:
             model.eval()
@@ -152,7 +149,7 @@ if __name__ == "__main__":
 
     train_dataset = DatasetFactory.create_240219(
         randomizer=SampleShuffleRandomizer(),
-        gain_controller=ProgressiveGainController(epoch_to=4, max_gain=1.1),
+        gain_controller=ProgressiveGainController(epoch_index_to=4, max_gain=1.1),
         train=True,
     )
     train_dataloader = DataLoader(

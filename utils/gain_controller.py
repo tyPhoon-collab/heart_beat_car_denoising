@@ -27,8 +27,8 @@ class ProgressiveGainController(GainController, EpochSensitive):
     epochの値によって、min_gainからmax_gainの間で線形に変化させる
     """
 
-    epoch_from: int = 0
-    epoch_to: int = 0
+    epoch_index_from: int = 0
+    epoch_index_to: int = 0
     min_gain: float = 0.0
     max_gain: float = 1.0
     gain: float = 1.0
@@ -37,7 +37,7 @@ class ProgressiveGainController(GainController, EpochSensitive):
         return self.gain
 
     def __str__(self) -> str:
-        return f"ProgressiveGainController(epoch=[{self.epoch_from}, {self.epoch_to}], gain=[{self.min_gain}, {self.max_gain}])"  # noqa
+        return f"ProgressiveGainController(epoch=[{self.epoch_index_from}, {self.epoch_index_to}], gain=[{self.min_gain}, {self.max_gain}])"  # noqa
 
     def on_start_epoch(self, epoch_idx):
         self.set_gain_from_epoch(epoch_idx)
@@ -47,11 +47,13 @@ class ProgressiveGainController(GainController, EpochSensitive):
         print(f"Set gain: {self.gain} (epoch: {epoch_idx})")
 
     def __calculate_gain(self, epoch: int) -> float:
-        if epoch <= self.epoch_from:
+        if epoch <= self.epoch_index_from:
             return self.min_gain
-        elif epoch >= self.epoch_to:
+        elif epoch >= self.epoch_index_to:
             return self.max_gain
         else:
             # Calculate the gain linearly between min_gain and max_gain
-            progress = (epoch - self.epoch_from) / (self.epoch_to - self.epoch_from)
+            progress = (epoch - self.epoch_index_from) / (
+                self.epoch_index_to - self.epoch_index_from
+            )
             return self.min_gain + (self.max_gain - self.min_gain) * progress
