@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from math import inf
 
 from utils.epoch_sensitive import EpochSensitive
@@ -13,6 +14,28 @@ class ModelSaveValidator(ABC):
     @abstractmethod
     def suffix(self) -> str:
         pass
+
+
+@dataclass
+class AnyCompositeModelSaveValidator(ModelSaveValidator, EpochSensitive):
+    validators: list[ModelSaveValidator]
+
+    @property
+    def suffix(self) -> str:
+        return self._suffix
+
+    def validate(self, loss_item: float) -> bool:
+        for v in self.validators:
+            if v.validate(loss_item):
+                self._suffix = v.suffix
+                return True
+
+        return False
+
+    def on_start_epoch(self, epoch_idx):
+        for v in self.validators:
+            if isinstance(v, EpochSensitive):
+                v.on_start_epoch(epoch_idx)
 
 
 class BestModelSaveValidator(ModelSaveValidator, EpochSensitive):
@@ -41,3 +64,22 @@ class BestModelSaveValidator(ModelSaveValidator, EpochSensitive):
             self.lowest_loss = inf
 
         self.enable = epoch_idx >= self.epoch_index_from
+
+
+@dataclass
+class SpecificEpochModelSaveValidator(ModelSaveValidator, EpochSensitive):
+    epoch_index: int
+    suffix_label: str
+
+    @property
+    def suffix(self) -> str:
+        return self.suffix_label
+
+    def validate(self, loss_item: float) -> bool:
+        if not self.enable:
+            return False
+
+        return True
+
+    def on_start_epoch(self, epoch_idx):
+        self.enable = epoch_idx == self.epoch_index

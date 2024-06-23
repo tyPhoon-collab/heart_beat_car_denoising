@@ -44,7 +44,11 @@ from utils.gain_controller import (
     GainController,
     ProgressiveGainController,
 )
-from utils.model_save_validator import BestModelSaveValidator
+from utils.model_save_validator import (
+    AnyCompositeModelSaveValidator,
+    BestModelSaveValidator,
+    SpecificEpochModelSaveValidator,
+)
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 from models.auto_encoder import Autoencoder
@@ -120,6 +124,17 @@ def train(args):
         if model_id is None
         else WithIdModelSaver(base_directory=args.checkpoint_dir, id=model_id)
     )
+    model_save_validator = AnyCompositeModelSaveValidator(
+        validators=[
+            BestModelSaveValidator(
+                epoch_index_from=args.epoch_to - 1,
+            ),
+            SpecificEpochModelSaveValidator(
+                epoch_index=args.epoch_size - 1,
+                suffix_label="last",
+            ),
+        ]
+    )
 
     # モデルと損失関数の選択
     model = get_model(args.model)
@@ -168,9 +183,7 @@ def train(args):
         criterion,
         optimizer,
         model_saver=model_saver,
-        model_save_validator=BestModelSaveValidator(
-            epoch_index_from=args.epoch_to - 1 if args.with_progressive_gain else 0
-        ),
+        model_save_validator=model_save_validator,
         logger=logger,
         epoch_size=args.epoch_size,
         val_dataloader=val_dataloader,
