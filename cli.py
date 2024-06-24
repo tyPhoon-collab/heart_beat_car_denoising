@@ -88,7 +88,7 @@ def prepare_data_loader(args, train, randomizer, gain_controller):
     dataloader = DataLoader(
         dataset,
         batch_size=args.batch_size,
-        shuffle=not args.without_shuffle,
+        shuffle=train,
     )
     return dataloader
 
@@ -279,12 +279,6 @@ def main():
         type=float,
         default=0,
         help="Minimum gain. If --with-progressive-gain is not stored, this option is ignored.",
-    )
-    parser_train.add_argument(
-        "--without-shuffle",
-        action="store_true",
-        default=False,
-        help="Disable shuffling",
     )
     parser_train.add_argument(
         "--weight-decay",
