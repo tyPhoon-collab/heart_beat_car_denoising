@@ -1,42 +1,21 @@
-"""
-Model Training and Evaluation CLI
-
-Usage:
-    Training the model:
-    python cli.py train --model Conv1DAutoencoder --loss-fn SmoothL1Loss --checkpoint-dir <path-to-checkpoint-dir>
-
-    Evaluating the model:
-    python cli.py eval --model Conv1DAutoencoder --loss-fn SmoothL1Loss --weights-path <path-to-weights-file> \
-        [--figure-filename <figure-path>] \
-        [--clean-audio-filename <clean-audio-path>] \
-        [--noisy-audio-filename <noisy-audio-path>] \
-        [--audio-filename <output-audio-path>]
-"""
-
 import argparse
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from dataset.factory import DatasetFactory
-from dataset.randomizer import (
-    AddUniformNoiseRandomizer,
-    Randomizer,
-    SampleShuffleRandomizer,
-    PhaseShuffleRandomizer,
+from cli_options import (
+    LOSS_FN,
+    LOSS_FN_NAMES,
+    MODEL,
+    MODEL_NAMES,
+    RANDOMIZER,
+    RANDOMIZER_NAMES,
 )
+from dataset.factory import DatasetFactory
+from dataset.randomizer import Randomizer
 from torch.utils.data import DataLoader
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
-from loss.weighted import WeightedLoss
-from loss.weighted_combined import WeightedCombinedLoss
-from loss.combine import CombinedLoss
-from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
-from models.pixel_shuffle_auto_encoder_transformer import (
-    PixelShuffleAutoencoderTransformer,
-)
-from models.wave_u_net_enhance import WaveUNetEnhance
-from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 from solver import SimpleSolver
 from utils.device import load_local_dotenv
 from utils.gain_controller import (
@@ -51,28 +30,6 @@ from utils.model_save_validator import (
 )
 from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
-from models.auto_encoder import Autoencoder
-
-MODEL = [
-    # WaveUNet,
-    WaveUNetEnhance,
-    WaveUNetEnhanceTransformer,
-    Autoencoder,
-    PixelShuffleAutoencoder,
-    PixelShuffleAutoencoderTransformer,
-]
-LOSS_FN = [
-    nn.L1Loss,
-    nn.SmoothL1Loss,
-    CombinedLoss,
-    WeightedLoss,
-    WeightedCombinedLoss,
-]
-RANDOMIZER = [
-    SampleShuffleRandomizer,
-    PhaseShuffleRandomizer,
-    AddUniformNoiseRandomizer,
-]
 
 
 def get_model(model_name: str) -> nn.Module:
@@ -99,85 +56,81 @@ def get_randomizer(randomizer_name: str) -> Randomizer:
         raise ValueError(f"Unknown randomizer: {randomizer_name}")
 
 
-def get_model_names() -> list[str]:
-    return [model.__name__ for model in MODEL]
-
-
-def get_loss_function_names() -> list[str]:
-    return [loss_fn.__name__ for loss_fn in LOSS_FN]
-
-
-def get_randomizer_names() -> list[str]:
-    return [randomizer.__name__ for randomizer in RANDOMIZER]
-
-
-def train(args):
-    load_local_dotenv()
-
-    # ロガーとモデルセーバーの準備
-    logger = TrainingLoggerFactory.env()
-
+def prepare_saver(args):
     model_id = args.model_id
     model_saver = (
         WithDateModelSaver(base_directory=args.checkpoint_dir)
         if model_id is None
         else WithIdModelSaver(base_directory=args.checkpoint_dir, id=model_id)
     )
-    model_save_validator = AnyCompositeModelSaveValidator(
-        validators=[
-            BestModelSaveValidator(
-                epoch_index_from=args.epoch_to - 1,
-            ),
-            SpecificEpochModelSaveValidator(
-                epoch_index=args.epoch_size - 1,
-                suffix_label="last",
-            ),
-        ]
+
+    best_considered_epoch_from = (
+        args.progressive_epoch_to + 1 if args.with_progressive_gain else 1
     )
 
-    # モデルと損失関数の選択
+    model_save_validator = AnyCompositeModelSaveValidator(
+        validators=[
+            BestModelSaveValidator(epoch_index_from=(best_considered_epoch_from)),
+            SpecificEpochModelSaveValidator.last(args.epoch_size),
+        ]
+    )
+    return model_saver, model_save_validator
+
+
+def prepare_data_loader(args, train, randomizer, gain_controller):
+    dataset = DatasetFactory.create_240517_filtered(
+        randomizer=randomizer,
+        train=train,
+        gain_controller=gain_controller,
+        split_samples=args.split_samples,
+        stride_samples=args.stride_samples,
+    )
+    dataloader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=not args.without_shuffle,
+    )
+    return dataloader
+
+
+def prepare_train_data_loaders(args, randomizer, gain_controller):
+    train_dataloader = prepare_data_loader(
+        args,
+        train=True,
+        randomizer=randomizer,
+        gain_controller=gain_controller,
+    )
+    val_dataloader = prepare_data_loader(
+        args,
+        train=False,
+        randomizer=randomizer,
+        gain_controller=gain_controller,
+    )
+    return train_dataloader, val_dataloader
+
+
+def train(args):
+    load_local_dotenv()
+    logger = TrainingLoggerFactory.env()
+
+    model_saver, model_save_validator = prepare_saver(args)
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
+
     optimizer = optim.Adam(
         model.parameters(),
         lr=args.learning_rate,
         weight_decay=args.weight_decay,
     )
-    gain_controller: GainController = (
-        ProgressiveGainController(epoch_index_to=args.epoch_to - 1, max_gain=args.gain)
-        if args.with_progressive_gain
-        else ConstantGainController(gain=args.gain)
-    )
-
-    # データセットとデータローダーの準備
-    train_dataset = DatasetFactory.create_240517_filtered(
-        randomizer=randomizer,
-        train=True,
-        gain_controller=gain_controller,
-        split_samples=args.split_samples,
-        stride_samples=args.stride_samples,
-    )
-    train_dataloader = DataLoader(
-        train_dataset,
-        batch_size=args.batch_size,
-        shuffle=not args.without_shuffle,
-    )
-
-    val_dataset = DatasetFactory.create_240517_filtered(
-        randomizer=randomizer,
-        gain_controller=gain_controller,
-        train=False,
-    )
-    val_dataloader = DataLoader(
-        val_dataset,
-        batch_size=args.batch_size,
-        shuffle=False,
+    gain_controller = prepare_train_gain_controller(args)
+    train_dataloader, val_dataloader = prepare_train_data_loaders(
+        args,
+        randomizer,
+        gain_controller,
     )
 
     solver = SimpleSolver(model)
-
-    # モデルの訓練
     solver.train(
         train_dataloader,
         criterion,
@@ -191,33 +144,34 @@ def train(args):
     )
 
 
+def prepare_train_gain_controller(args) -> GainController:
+    return (
+        ProgressiveGainController(
+            epoch_index_to=args.progressive_epoch_to - 1,
+            min_gain=args.min_gain,
+            max_gain=args.gain,
+        )
+        if args.with_progressive_gain
+        else ConstantGainController(gain=args.gain)
+    )
+
+
 def evaluate(args):
-    # モデルと損失関数の選択
     model = get_model(args.model)
     criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
-    gain_controller: GainController = ConstantGainController(gain=args.gain)
+    gain_controller = ConstantGainController(gain=args.gain)
 
-    # モデルの重みのロード
-    if args.weights_path:
-        model.load_state_dict(torch.load(args.weights_path))
+    model.load_state_dict(torch.load(args.weights_path))
 
-    # データセットとデータローダーの準備
-    test_dataset = DatasetFactory.create_240517_filtered(
+    test_dataloader = prepare_data_loader(
+        args,
         train=False,
         randomizer=randomizer,
         gain_controller=gain_controller,
-        split_samples=args.split_samples,
-        stride_samples=args.stride_samples,
-    )
-    test_dataloader = DataLoader(
-        test_dataset,
-        batch_size=args.batch_size,
-        shuffle=False,
     )
 
     solver = SimpleSolver(model)
-    # モデルの評価
     solver.evaluate(
         test_dataloader,
         criterion,
@@ -226,7 +180,7 @@ def evaluate(args):
             loggers=[
                 FigureEvaluationLogger(filename=args.figure_filename),
                 AudioEvaluationLogger(
-                    sample_rate=test_dataset.sample_rate,
+                    sample_rate=test_dataloader.dataset.sample_rate,  # type: ignore
                     audio_filename=args.audio_filename,
                     clean_audio_filename=args.clean_audio_filename,
                     noisy_audio_filename=args.noisy_audio_filename,
@@ -241,14 +195,14 @@ def add_common_arguments(parser):
         "--model",
         type=str,
         required=True,
-        choices=get_model_names(),
+        choices=MODEL_NAMES,
         help="Model name",
     )
     parser.add_argument(
         "--loss-fn",
         type=str,
         required=True,
-        choices=get_loss_function_names(),
+        choices=LOSS_FN_NAMES,
         help="Loss function",
     )
     parser.add_argument("--batch-size", type=int, default=1, help="Batch size")
@@ -274,7 +228,7 @@ def add_common_arguments(parser):
         "--randomizer",
         type=str,
         default="AddUniformNoiseRandomizer",
-        choices=get_randomizer_names(),
+        choices=RANDOMIZER_NAMES,
         help="Randomizer",
     )
 
@@ -282,8 +236,6 @@ def add_common_arguments(parser):
 def main():
     parser = argparse.ArgumentParser(description="Model Training and Evaluation CLI")
     subparsers = parser.add_subparsers(help="sub-command help")
-
-    # トレーニングサブコマンド
     parser_train = subparsers.add_parser("train", help="Train the model")
     add_common_arguments(parser_train)
     parser_train.add_argument(
@@ -316,11 +268,17 @@ def main():
         help="Enable progressive gain",
     )
     parser_train.add_argument(
-        "--epoch-to",
+        "--progressive-epoch-to",
         type=int,
         default=5,
         help="Number of epochs to progressive gain. not index. "
         "If --with-progressive-gain is not stored, this option is ignored.",
+    )
+    parser_train.add_argument(
+        "--min-gain",
+        type=float,
+        default=0,
+        help="Minimum gain. If --with-progressive-gain is not stored, this option is ignored.",
     )
     parser_train.add_argument(
         "--without-shuffle",
@@ -342,7 +300,6 @@ def main():
     )
     parser_train.set_defaults(func=train)
 
-    # 推論サブコマンド
     parser_eval = subparsers.add_parser("eval", help="Evaluate the model")
     add_common_arguments(parser_eval)
     parser_eval.add_argument(
@@ -376,7 +333,6 @@ def main():
         help="Filename of the output audio",
     )
     parser_eval.set_defaults(func=evaluate)
-
     args = parser.parse_args()
     args.func(args)
 

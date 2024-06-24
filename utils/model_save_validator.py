@@ -71,6 +71,13 @@ class SpecificEpochModelSaveValidator(ModelSaveValidator, EpochSensitive):
     epoch_index: int
     suffix_label: str
 
+    @classmethod
+    def last(cls, epoch_size: int):
+        return SpecificEpochModelSaveValidator(
+            epoch_index=epoch_size - 1,
+            suffix_label="last",
+        )
+
     @property
     def suffix(self) -> str:
         return self.suffix_label
