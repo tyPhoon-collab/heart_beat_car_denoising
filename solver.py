@@ -94,7 +94,7 @@ class SimpleSolver:
 
             if model_saver:
                 path = self._save_model_if_needed(
-                    epoch_index,
+                    loss,  # type: ignore
                     model_saver,
                     model_save_validator,
                 )
