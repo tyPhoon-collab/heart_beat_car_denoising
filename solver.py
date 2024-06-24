@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 import os
 from matplotlib import pyplot as plt
 import torch
@@ -10,6 +9,7 @@ from logger.evaluation_impls.noop import NoopEvaluationLogger
 from logger.training_logger import TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from logger.evaluation_logger import EvaluationLogger
+from utils.context_manager import change_to_eval_mode_temporary
 from utils.device import get_torch_device
 from utils.load import load_local_dotenv
 from utils.epoch_sensitive import EpochSensitive
@@ -223,15 +223,3 @@ class SimpleSolver:
         with change_to_eval_mode_temporary(self.model):
             with torch.no_grad():
                 self._plot(*self._process_batch(next(iter(val_dataloader))))
-
-
-@contextmanager
-def change_to_eval_mode_temporary(model: nn.Module):
-    """Temporarily set the model to evaluation mode and then restore it."""
-    was_training = model.training
-    model.eval()
-    try:
-        yield
-    finally:
-        if was_training:
-            model.train()
