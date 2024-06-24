@@ -10,7 +10,8 @@ from logger.evaluation_impls.noop import NoopEvaluationLogger
 from logger.training_logger import TrainingLogger
 from logger.training_logger_factory import TrainingLoggerFactory
 from logger.evaluation_logger import EvaluationLogger
-from utils.device import get_torch_device, load_local_dotenv
+from utils.device import get_torch_device
+from utils.load import load_local_dotenv
 from utils.epoch_sensitive import EpochSensitive
 from utils.gain_controller import GainController
 from utils.model_save_validator import ModelSaveValidator

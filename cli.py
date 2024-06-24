@@ -17,7 +17,7 @@ from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
 from solver import SimpleSolver
-from utils.device import load_local_dotenv
+from utils.load import load_local_dotenv
 from utils.gain_controller import (
     ConstantGainController,
     GainController,
