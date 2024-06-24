@@ -58,4 +58,4 @@ class NeptuneLogger(TrainingLogger):
     @_check_enable
     def on_model_saved(self, path: str):
         if self.enable_saving_model_state:
-            self.run["model/weights"].upload(path)
+            self.run[f"model/{os.path.basename(path)}"].upload(path)
