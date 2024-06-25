@@ -8,9 +8,3 @@ try:
     print(torch.cuda.get_device_name())
 except ImportError:
     print(" 'torch' module have not been installed.")
-
-# try:
-#     import tensorflow as tf
-#     tf.test.is_gpu_available()
-# except ImportError:
-#     print(" 'tensorflow' module have not been installed.")
