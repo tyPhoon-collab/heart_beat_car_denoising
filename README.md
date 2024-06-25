@@ -188,3 +188,7 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
 
 - epoch 100 progressive 50 pertainedにprogressiveのものを使用する
 - Transformerを用いるWaveUNetを実装、良い結果を確認
+
+### 6/24
+
+- 今後の状況に耐えうるようにリファクタリング
