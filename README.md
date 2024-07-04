@@ -195,3 +195,28 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
   - ソルバークラスの導入
 - モデルの保存時にバリデーションできる機能の追加
   - プログレッシブ学習のとき、適切な重みが保存されるようになった
+
+### 6/27
+
+- Diffusionの実装
+  - 5120に対応させる
+  - 訓練時の損失関数を独自のものにする
+  - 生成時の初期データをnoisyにする
+
+### 7/4
+
+- Diffusionは来週まで
+  - とりあえず動かしてみる
+- トランスフォーマーのハイパーパラメータを変更する
+  - num_encoder_layers
+    - 2,4,6
+  - 時間軸方向のTransformerも考える
+    - [参考](https://www.semanticscholar.org/paper/TSTNN%3A-Two-Stage-Transformer-Based-Neural-Network-Wang-He/43efa8b1bf77033da9d3b94de512749eacf8176c)
+  - time方向のnhead
+    - 中間層の次元数はレイヤーを7にした関係で40
+    - 20-40
+- ハイパーパラメータの検証フレームワーク
+  - [ray tune](https://pytorch.org/tutorials/beginner/hyperparameter_tuning_tutorial.html)
+  - optuna
+- nnabla
+- 最新のTransformerモデルで検証する

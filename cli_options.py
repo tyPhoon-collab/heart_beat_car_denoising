@@ -14,11 +14,15 @@ from models.pixel_shuffle_auto_encoder_transformer import (
 from models.wave_u_net_enhance import WaveUNetEnhance
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 from models.auto_encoder import Autoencoder
+from models.wave_u_net_enhance_two_stage_transformer import (
+    WaveUNetEnhanceTwoStageTransformer,
+)
 
 
 MODEL = [
     WaveUNetEnhance,
     WaveUNetEnhanceTransformer,
+    WaveUNetEnhanceTwoStageTransformer,
     Autoencoder,
     PixelShuffleAutoencoder,
     PixelShuffleAutoencoderTransformer,
