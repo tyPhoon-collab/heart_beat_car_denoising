@@ -283,7 +283,7 @@ def main():
     parser_train.add_argument(
         "--weight-decay",
         type=float,
-        default=0.01,
+        default=0,
         help="Weight decay",
     )
     parser_train.add_argument(
