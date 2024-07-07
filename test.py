@@ -385,7 +385,7 @@ class TestSolver(unittest.TestCase):
     def test_diffusion_solver(self):
         model = GaussianDiffusion(criterion=WeightedLoss())
         solver = DiffusionSolver(model)
-        dataloader, test_dataloader = build_loaders(64)
+        dataloader, test_dataloader = build_loaders(1)
         optimizer = optim.Adam(model.parameters(), lr=0.00025)
 
         solver.train(dataloader, optimizer)

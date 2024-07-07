@@ -1,7 +1,6 @@
 from random import random
 from denoising_diffusion_pytorch import GaussianDiffusion1D, Unet1D
 import torch
-from einops import reduce
 import torch.nn as nn
 
 
@@ -28,7 +27,7 @@ class GaussianDiffusion(GaussianDiffusion1D):
             dim_mults=(1, 2, 4, 8),
             channels=1,
         )
-        super().__init__(unet, seq_length=5120, timesteps=1000, objective="pred_v")
+        super().__init__(unet, seq_length=5120, timesteps=100, objective="pred_v")
 
         self.criterion = criterion
 
@@ -37,9 +36,11 @@ class GaussianDiffusion(GaussianDiffusion1D):
 
         x_start = None
 
-        for t in range(self.num_timesteps, 0, -1):
+        for t in reversed(range(0, self.num_timesteps)):
             self_cond = x_start if self.self_condition else None
             img, x_start = self.p_sample(img, t, self_cond)
+
+        return img
 
     def p_losses(self, x_start, t, noise=None):
         b, c, n = x_start.shape
@@ -74,7 +75,6 @@ class GaussianDiffusion(GaussianDiffusion1D):
             raise ValueError(f"unknown objective {self.objective}")
 
         loss = self.criterion(model_out, target)
-        loss = reduce(loss, "b ... -> b", "mean")
 
         loss = loss * extract(self.loss_weight, t, loss.shape)
         return loss.mean()
