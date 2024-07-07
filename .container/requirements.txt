@@ -8,3 +8,4 @@ neptune
 python-dotenv
 librosa
 ptwt
+denoising-diffusion-pytorch

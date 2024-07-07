@@ -16,9 +16,12 @@ from dataset.randomizer import (
     PhaseHalfShuffleRandomizer,
 )
 from dataset.sampling_rate_converter import ScipySamplingRateConverter
+from loss.weighted import WeightedLoss
 from loss.weighted_combined import WeightedCombinedLoss
 from loss.combine import CombinedLoss, wavelet_transform
 from models.auto_encoder import Autoencoder
+from models.diffusion import DiffusionModel
+from models.gaussian_diffusion import GaussianDiffusion
 from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
     PixelShuffleAutoencoderTransformer,
@@ -26,7 +29,10 @@ from models.pixel_shuffle_auto_encoder_transformer import (
 from models.legacy.wave_u_net import WaveUNet
 from models.wave_u_net_enhance import WaveUNetEnhance
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
-from solver import SimpleSolver
+from models.wave_u_net_enhance_two_stage_transformer import (
+    WaveUNetEnhanceTwoStageTransformer,
+)
+from solver import DiffusionSolver, SimpleSolver
 from utils.device import get_torch_device
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
 from utils.plot import (
@@ -36,10 +42,79 @@ from utils.plot import (
     show_wavelet,
 )
 from utils.sound import save_signal_to_wav_scipy
+from denoising_diffusion_pytorch import Unet1D, GaussianDiffusion1D
 
 
 def load(path: str, ch: str = "ch1z"):
     return DatasetFactory.build_loader(path).load()[ch].to_numpy()
+
+
+def build_loaders(batch_size):
+    randomizer = SampleShuffleRandomizer()
+    gain_controller = ConstantGainController(gain=0)
+    split_samples = 5120
+    stride_samples = 32
+
+    dataset = DatasetFactory.create_240517_filtered(
+        randomizer=randomizer,
+        train=True,
+        gain_controller=gain_controller,
+        split_samples=split_samples,
+        stride_samples=stride_samples,
+    )
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    test_dataset = DatasetFactory.create_240517_filtered(
+        randomizer=randomizer,
+        train=False,
+        gain_controller=gain_controller,
+        split_samples=split_samples,
+        stride_samples=stride_samples,
+    )
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+    return dataloader, test_dataloader
+
+
+def build_simple_loaders(batch_size):
+    from torch.utils.data import Dataset
+
+    class NoisySignalDataset(Dataset):
+        def __init__(self, clean_signals, noisy_signals):
+            self.clean_signals = clean_signals
+            self.noisy_signals = noisy_signals
+
+        def __len__(self):
+            return len(self.clean_signals)
+
+        def __getitem__(self, idx):
+            clean = self.clean_signals[idx]
+            noisy = self.noisy_signals[idx]
+            return torch.tensor(noisy, dtype=torch.float32).unsqueeze(0), torch.tensor(
+                clean, dtype=torch.float32
+            ).unsqueeze(0)
+
+    # データ生成（サイン波にノイズを加えたデータ）
+    def generate_data(num_samples, length):
+        np.random.seed(0)
+        t = np.linspace(0, 1.0, length)
+        clean_signals = [np.sin(2 * np.pi * 5 * t) for _ in range(num_samples)]
+        noisy_signals = [
+            clean + 0.5 * np.random.randn(length) for clean in clean_signals
+        ]
+        return np.array(clean_signals), np.array(noisy_signals)
+
+    signal_length = 5120
+
+    clean_signals, noisy_signals = generate_data(1000, signal_length)
+    dataset = NoisySignalDataset(clean_signals, noisy_signals)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
+    test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+    return dataloader, test_dataloader
 
 
 class TestDataSet(unittest.TestCase):
@@ -226,8 +301,6 @@ class TestModels(unittest.TestCase):
         criterion = nn.MSELoss()
         optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-        # Dummy data for demonstration
-        # x = torch.randn(1, 1, 5120 + (8 - 1) * 512)  # Batch size, Channels, Length
         x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
         x = x.to(torch.float32)
 
@@ -240,6 +313,44 @@ class TestModels(unittest.TestCase):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+    def test_wave_u_net_2_stage_transformer(self):
+        model = WaveUNetEnhanceTwoStageTransformer()
+        print(model)
+
+        # Define the loss function and optimizer
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+        x = torch.randn(1, 1, 5120)  # Batch size, Channels, Length
+        x = x.to(torch.float32)
+
+        # Forward pass
+        outputs = model(x)
+        loss = criterion(outputs, x)
+        print(f"Loss: {loss.item()}")
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    def test_diffusion_model(self):
+        model = Unet1D(dim=64, dim_mults=(1, 2, 4, 8), channels=1)
+
+        diffusion = GaussianDiffusion1D(
+            model, seq_length=5120, timesteps=1000, objective="pred_v"
+        )
+
+        training_seq = torch.rand(1, 1, 5120)  # features are normalized from 0 to 1
+
+        loss = diffusion(training_seq)
+        loss.backward()
+
+        print(loss.item())
+
+        sampled_seq = diffusion.sample(batch_size=4)
+        print(sampled_seq.shape)
 
 
 class TestSampleRateConverter(unittest.TestCase):
@@ -269,6 +380,17 @@ class TestSampleRateConverter(unittest.TestCase):
                 "Converted Signal",
             ],
         )
+
+
+class TestSolver(unittest.TestCase):
+    def test_diffusion_solver(self):
+        model = GaussianDiffusion(criterion=WeightedLoss())
+        solver = DiffusionSolver(model)
+        dataloader, test_dataloader = build_loaders(64)
+        optimizer = optim.Adam(model.parameters(), lr=0.00025)
+
+        solver.train(dataloader, optimizer)
+        solver.evaluate(test_dataloader)
 
 
 class TestLoader(unittest.TestCase):
@@ -395,7 +517,7 @@ class TestVisualize(unittest.TestCase):
     def test_show_hs_filtered(self):
         self.show(
             "data/240517_Rawdata/HS_data_serial.mat",
-            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000]),
+            modifier=lambda x: FIRBandpassFilter((25, 55), 1000).apply(x),
         )
 
     def test_show_hs_wavelet(self):
@@ -518,6 +640,18 @@ class TestVisualize(unittest.TestCase):
             ["Stop 240219", "HS 240517", "HS 240517 Filtered"],
         )
 
+    def test_show_threshold(self):
+        data = FIRBandpassFilter((25, 55), 1000).apply(
+            load("data/240517_Rawdata/HS_data_serial.mat")
+        )
+        data = torch.tensor(data[:5000])
+        max_abs_target = torch.max(torch.abs(data))
+        normalized_target = torch.abs(data) / max_abs_target
+
+        threshold_normalized_target = torch.zeros_like(normalized_target)
+        threshold_normalized_target[normalized_target >= 0.1] = 1
+        show_signal(data * threshold_normalized_target, "data")
+
     def convert_to_wav(
         self,
         filename: str,
@@ -638,8 +772,8 @@ class TestPyTorchFlow(unittest.TestCase):
         num_epochs = 5
         learning_rate = 0.0001
 
-        # dataloader, test_dataloader = self.build_simple_loaders(batch_size)
-        dataloader, test_dataloader = self.build_loaders(batch_size)
+        # dataloader, test_dataloader = build_simple_loaders(batch_size)
+        dataloader, test_dataloader = build_loaders(batch_size)
 
         # モデル、損失関数、最適化手法の設定
         # model = SimpleAutoencoder()
@@ -651,9 +785,8 @@ class TestPyTorchFlow(unittest.TestCase):
         criterion = CombinedLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-        SimpleSolver(model).train(
+        SimpleSolver(model, criterion).train(
             dataloader,
-            criterion,
             optimizer,
             val_dataloader=test_dataloader,
             epoch_size=num_epochs,
@@ -684,72 +817,6 @@ class TestPyTorchFlow(unittest.TestCase):
                 clean.cpu().squeeze().numpy(),
                 output,
             )
-
-    def build_loaders(self, batch_size):
-        randomizer = SampleShuffleRandomizer()
-        gain_controller = ConstantGainController(gain=0)
-        split_samples = 5120
-        stride_samples = 32
-
-        dataset = DatasetFactory.create_240517_filtered(
-            randomizer=randomizer,
-            train=True,
-            gain_controller=gain_controller,
-            split_samples=split_samples,
-            stride_samples=stride_samples,
-        )
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-        test_dataset = DatasetFactory.create_240517_filtered(
-            randomizer=randomizer,
-            train=False,
-            gain_controller=gain_controller,
-            split_samples=split_samples,
-            stride_samples=stride_samples,
-        )
-        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-
-        return dataloader, test_dataloader
-
-    def build_simple_loaders(self, batch_size):
-        from torch.utils.data import Dataset
-
-        class NoisySignalDataset(Dataset):
-            def __init__(self, clean_signals, noisy_signals):
-                self.clean_signals = clean_signals
-                self.noisy_signals = noisy_signals
-
-            def __len__(self):
-                return len(self.clean_signals)
-
-            def __getitem__(self, idx):
-                clean = self.clean_signals[idx]
-                noisy = self.noisy_signals[idx]
-                return torch.tensor(noisy, dtype=torch.float32).unsqueeze(
-                    0
-                ), torch.tensor(clean, dtype=torch.float32).unsqueeze(0)
-
-        # データ生成（サイン波にノイズを加えたデータ）
-        def generate_data(num_samples, length):
-            np.random.seed(0)
-            t = np.linspace(0, 1.0, length)
-            clean_signals = [np.sin(2 * np.pi * 5 * t) for _ in range(num_samples)]
-            noisy_signals = [
-                clean + 0.5 * np.random.randn(length) for clean in clean_signals
-            ]
-            return np.array(clean_signals), np.array(noisy_signals)
-
-        signal_length = 5120
-
-        clean_signals, noisy_signals = generate_data(1000, signal_length)
-        dataset = NoisySignalDataset(clean_signals, noisy_signals)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-        test_clean_signals, test_noisy_signals = generate_data(10, signal_length)
-        test_dataset = NoisySignalDataset(test_clean_signals, test_noisy_signals)
-        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-
-        return dataloader, test_dataloader
 
     def plot(self, noisy, clean, output):
         show_signals(

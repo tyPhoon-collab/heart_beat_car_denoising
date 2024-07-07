@@ -17,6 +17,7 @@ from models.auto_encoder import Autoencoder
 from models.wave_u_net_enhance_two_stage_transformer import (
     WaveUNetEnhanceTwoStageTransformer,
 )
+from denoising_diffusion_pytorch import GaussianDiffusion1D
 
 
 MODEL = [
@@ -26,6 +27,7 @@ MODEL = [
     Autoencoder,
     PixelShuffleAutoencoder,
     PixelShuffleAutoencoderTransformer,
+    GaussianDiffusion1D,
 ]
 LOSS_FN = [
     nn.L1Loss,

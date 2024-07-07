@@ -16,7 +16,8 @@ from torch.utils.data import DataLoader
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
-from solver import SimpleSolver
+from models.gaussian_diffusion import GaussianDiffusion
+from solver import DiffusionSolver, SimpleSolver, Solver
 from utils.load import load_local_dotenv
 from utils.gain_controller import (
     ConstantGainController,
@@ -54,6 +55,15 @@ def get_randomizer(randomizer_name: str) -> Randomizer:
         return randomizer_dict[randomizer_name]()
     else:
         raise ValueError(f"Unknown randomizer: {randomizer_name}")
+
+
+def build_solver(args, model) -> Solver:
+    criterion = get_loss_function(args.loss_fn)
+
+    if isinstance(model, GaussianDiffusion):
+        return DiffusionSolver(model)
+    else:
+        return SimpleSolver(model, criterion)
 
 
 def prepare_saver(args):
@@ -115,7 +125,6 @@ def train(args):
 
     model_saver, model_save_validator = prepare_saver(args)
     model = get_model(args.model)
-    criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
 
     optimizer = optim.Adam(
@@ -130,10 +139,9 @@ def train(args):
         gain_controller,
     )
 
-    solver = SimpleSolver(model)
+    solver = build_solver(args, model)
     solver.train(
         train_dataloader,
-        criterion,
         optimizer,
         model_saver=model_saver,
         model_save_validator=model_save_validator,
@@ -158,7 +166,6 @@ def prepare_train_gain_controller(args) -> GainController:
 
 def evaluate(args):
     model = get_model(args.model)
-    criterion = get_loss_function(args.loss_fn)
     randomizer = get_randomizer(args.randomizer)
     gain_controller = ConstantGainController(gain=args.gain)
 
@@ -171,10 +178,9 @@ def evaluate(args):
         gain_controller=gain_controller,
     )
 
-    solver = SimpleSolver(model)
+    solver = build_solver(args, model)
     solver.evaluate(
         test_dataloader,
-        criterion,
         state_dict_path=args.weights_path,
         logger=CompositeEvaluationLogger(
             loggers=[
