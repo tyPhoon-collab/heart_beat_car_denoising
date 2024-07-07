@@ -17,31 +17,31 @@ from models.auto_encoder import Autoencoder
 from models.wave_u_net_enhance_two_stage_transformer import (
     WaveUNetEnhanceTwoStageTransformer,
 )
-from denoising_diffusion_pytorch import GaussianDiffusion1D
 
 
-MODEL = [
-    WaveUNetEnhance,
-    WaveUNetEnhanceTransformer,
-    WaveUNetEnhanceTwoStageTransformer,
-    Autoencoder,
-    PixelShuffleAutoencoder,
-    PixelShuffleAutoencoderTransformer,
-    GaussianDiffusion1D,
-]
-LOSS_FN = [
-    nn.L1Loss,
-    nn.SmoothL1Loss,
-    CombinedLoss,
-    WeightedLoss,
-    WeightedCombinedLoss,
-]
-RANDOMIZER = [
-    SampleShuffleRandomizer,
-    PhaseShuffleRandomizer,
-    AddUniformNoiseRandomizer,
-]
+MODEL = {
+    "WaveUNetEnhance": WaveUNetEnhance,
+    "WaveUNetEnhanceTransformer": WaveUNetEnhanceTransformer,
+    "WaveUNetEnhanceTwoStageTransformer": WaveUNetEnhanceTwoStageTransformer,
+    "Autoencoder": Autoencoder,
+    "PixelShuffleAutoencoder": PixelShuffleAutoencoder,
+    "PixelShuffleAutoencoderTransformer": PixelShuffleAutoencoderTransformer,
+}
 
-MODEL_NAMES = [model.__name__ for model in MODEL]
-LOSS_FN_NAMES = [loss_fn.__name__ for loss_fn in LOSS_FN]
-RANDOMIZER_NAMES = [randomizer.__name__ for randomizer in RANDOMIZER]
+LOSS_FN = {
+    "L1Loss": nn.L1Loss,
+    "SmoothL1Loss": nn.SmoothL1Loss,
+    "CombinedLoss": CombinedLoss,
+    "WeightedLoss": WeightedLoss,
+    "WeightedCombinedLoss": WeightedCombinedLoss,
+}
+
+RANDOMIZER = {
+    "SampleShuffleRandomizer": SampleShuffleRandomizer,
+    "PhaseShuffleRandomizer": PhaseShuffleRandomizer,
+    "AddUniformNoiseRandomizer": AddUniformNoiseRandomizer,
+}
+
+MODEL_NAMES = [key for key in MODEL]
+LOSS_FN_NAMES = [key for key in LOSS_FN]
+RANDOMIZER_NAMES = [key for key in RANDOMIZER]
