@@ -299,7 +299,7 @@ class DiffusionSolver(BaseSolver):
 
     def calculate_loss(self, batch) -> Any:
         _, clean = batch
-        self.model(clean)
+        self.model(clean.to(self.device))
 
     @timeit
     def evaluate(

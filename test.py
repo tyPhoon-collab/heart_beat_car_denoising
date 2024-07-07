@@ -20,7 +20,6 @@ from loss.weighted import WeightedLoss
 from loss.weighted_combined import WeightedCombinedLoss
 from loss.combine import CombinedLoss, wavelet_transform
 from models.auto_encoder import Autoencoder
-from models.diffusion import DiffusionModel
 from models.gaussian_diffusion import GaussianDiffusion
 from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
