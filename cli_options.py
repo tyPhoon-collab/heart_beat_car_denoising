@@ -7,6 +7,7 @@ from dataset.randomizer import (
 from loss.weighted import WeightedLoss
 from loss.weighted_combined import WeightedCombinedLoss
 from loss.combine import CombinedLoss
+from models.gaussian_diffusion import GaussianDiffusion
 from models.pixel_shuffle_auto_encoder import PixelShuffleAutoencoder
 from models.pixel_shuffle_auto_encoder_transformer import (
     PixelShuffleAutoencoderTransformer,
@@ -26,6 +27,9 @@ MODEL = {
     "Autoencoder": Autoencoder,
     "PixelShuffleAutoencoder": PixelShuffleAutoencoder,
     "PixelShuffleAutoencoderTransformer": PixelShuffleAutoencoderTransformer,
+    "GaussianDiffusion": lambda: GaussianDiffusion(
+        nn.MSELoss()
+    ),  # criterionは仮置き。CLIで上書きされる
 }
 
 LOSS_FN = {

@@ -31,6 +31,12 @@ class GaussianDiffusion(GaussianDiffusion1D):
 
         self.criterion = criterion
 
+    def set_criterion(self, criterion: nn.Module):
+        """
+        Sets the loss function for the model. For CLI usage.
+        """
+        self.criterion = criterion
+
     def evaluate(self, noisy: torch.Tensor):
         img = noisy
 

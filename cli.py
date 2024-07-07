@@ -58,6 +58,7 @@ def build_solver(args, model) -> Solver:
     criterion = get_loss_function(args.loss_fn)
 
     if isinstance(model, GaussianDiffusion):
+        model.set_criterion(criterion)
         return DiffusionSolver(model)
     else:
         return SimpleSolver(model, criterion)
