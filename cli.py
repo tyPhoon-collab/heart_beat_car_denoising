@@ -33,25 +33,22 @@ from logger.training_logger_factory import TrainingLoggerFactory
 
 
 def get_model(model_name: str) -> nn.Module:
-    model_dict = {model.__name__: model for model in MODEL}
-    if model_name in model_dict:
-        return model_dict[model_name]()
+    if model_name in MODEL_NAMES:
+        return MODEL[model_name]()
     else:
         raise ValueError(f"Unknown model: {model_name}")
 
 
 def get_loss_function(loss_fn_name: str) -> nn.Module:
-    loss_fn_dict = {loss_fn.__name__: loss_fn for loss_fn in LOSS_FN}
-    if loss_fn_name in loss_fn_dict:
-        return loss_fn_dict[loss_fn_name]()
+    if loss_fn_name in LOSS_FN_NAMES:
+        return LOSS_FN[loss_fn_name]()
     else:
         raise ValueError(f"Unknown loss function: {loss_fn_name}")
 
 
 def get_randomizer(randomizer_name: str) -> Randomizer:
-    randomizer_dict = {randomizer.__name__: randomizer for randomizer in RANDOMIZER}
-    if randomizer_name in randomizer_dict:
-        return randomizer_dict[randomizer_name]()
+    if randomizer_name in RANDOMIZER_NAMES:
+        return RANDOMIZER[randomizer_name]()
     else:
         raise ValueError(f"Unknown randomizer: {randomizer_name}")
 
