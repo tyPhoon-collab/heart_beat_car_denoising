@@ -297,6 +297,28 @@ class DiffusionSolver(BaseSolver):
     def __init__(self, model: GaussianDiffusion):
         super().__init__(model)
 
+    def _get_params(
+        self,
+        optimizer: optim.Optimizer,
+        epoch_size: int,
+        batch_size: int,
+        gain_controller: GainController | None,
+        dataset: NoisyHeartbeatDataset,
+        pretrained_weights_path: str | None,
+    ):
+        return {
+            **super()._get_params(
+                optimizer,
+                epoch_size,
+                batch_size,
+                gain_controller,
+                dataset,
+                pretrained_weights_path,
+            ),
+            "criterion": self.model.criterion.__class__.__name__,
+            "timesteps": self.model.num_timesteps,
+        }
+
     def calculate_loss(self, batch) -> Any:
         _, clean = batch
         return self.model(clean.to(self.device))

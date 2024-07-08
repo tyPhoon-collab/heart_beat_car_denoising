@@ -27,7 +27,12 @@ class GaussianDiffusion(GaussianDiffusion1D):
             dim_mults=(1, 2, 4, 8),
             channels=1,
         )
-        super().__init__(unet, seq_length=5120, timesteps=1000, objective="pred_v")
+        super().__init__(
+            unet,
+            seq_length=5120,
+            timesteps=1000,
+            objective="pred_v",
+        )
 
         self.criterion = criterion
 
