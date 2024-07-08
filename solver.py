@@ -341,4 +341,4 @@ class DiffusionSolver(BaseSolver):
                 batch = next(iter(val_dataloader))
                 noisy, clean = map(lambda x: x.to(self.device), batch)
                 outputs = self.model.evaluate(noisy)
-                self._plot(noisy, clean, outputs)
+                self._plot(outputs, noisy, clean)
