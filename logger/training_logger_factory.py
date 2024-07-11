@@ -35,6 +35,15 @@ class TrainingLoggerFactory:
         return CompositeTrainingLogger(loggers)
 
     @classmethod
+    def tune(cls) -> TrainingLogger:
+        return CompositeTrainingLogger(
+            [
+                StdoutTrainingLogger(),
+                NoopTrainingLogger(),
+            ]
+        )
+
+    @classmethod
     def __is_enable_remote_logging(cls) -> bool:
         logging_env_value = os.getenv("REMOTE_LOGGING")
         is_enable = logging_env_value == "1"

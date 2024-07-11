@@ -220,3 +220,17 @@ NEPTUNE_API_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXX...=="
   - optuna
 - nnabla
 - 最新のTransformerモデルで検証する
+
+### 7/10
+
+- ハイパーパラメータの調整の検討
+  - [neptuneの記事](https://neptune.ai/blog/best-tools-for-model-tuning-and-hyperparameter-optimization)
+  - [ray tuneの使用方法](https://pc.atsuhiro-me.net/entry/2023/10/19/175907)
+  - 今すぐできる統合としては、モデルのパラメタを変えること
+
+### 7/11
+
+- ノイズをDiffusionに渡してみる
+- よりゆっくり学習する
+- Diffusionのノイズのゲインを下げる
+  - randn系

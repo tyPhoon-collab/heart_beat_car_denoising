@@ -49,28 +49,33 @@ class DatasetFactory:
 
     @classmethod
     def create_240219(cls, **kwargs):
+        dir = cls._get_abs_dir()
+
         return cls.create(
-            clean_file_path="data/240219_Rawdata/Stop.mat",
-            noisy_file_path="data/240219_Rawdata/100km.mat",
+            clean_file_path=f"{dir}/data/240219_Rawdata/Stop.mat",
+            noisy_file_path=f"{dir}/data/240219_Rawdata/100km.mat",
             sample_rate_map=(32000, 1000),
             **kwargs,
         )
 
     @classmethod
     def create_240517(cls, **kwargs):
+        dir = cls._get_abs_dir()
+
         return cls.create(
-            clean_file_path="data/240517_Rawdata/HS_data_serial.mat",
-            noisy_file_path="data/240517_Rawdata/Noise_data_serial.mat",
+            clean_file_path=f"{dir}/data/240517_Rawdata/HS_data_serial.mat",
+            noisy_file_path=f"{dir}/data/240517_Rawdata/Noise_data_serial.mat",
             sample_rate=1000,
             **kwargs,
         )
 
     @classmethod
     def create_240517_filtered(cls, **kwargs):
+        dir = cls._get_abs_dir()
         modifier = FIRBandpassFilter((25, 55), 1000).apply
         return cls.create(
-            clean_file_path="data/240517_Rawdata/HS_data_serial.mat",
-            noisy_file_path="data/240517_Rawdata/Noise_data_serial.mat",
+            clean_file_path=f"{dir}/data/240517_Rawdata/HS_data_serial.mat",
+            noisy_file_path=f"{dir}/data/240517_Rawdata/Noise_data_serial.mat",
             clean_data_modifier=modifier,
             noisy_data_modifier=modifier,
             sample_rate=1000,
@@ -113,3 +118,7 @@ class DatasetFactory:
             )
         else:
             raise ValueError(f"Unsupported data path: {path}")
+
+    @classmethod
+    def _get_abs_dir(cls):
+        return os.getcwd()

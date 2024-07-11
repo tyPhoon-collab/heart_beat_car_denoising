@@ -11,6 +11,8 @@ class WaveUNetEnhanceTwoStageTransformer(WaveUNetEnhanceBase):
         nhead=8,
         num_encoder_layers=2,
         dim_feedforward=2048,
+        time_d_model=40,
+        time_nhead=20,
     ):
         super(WaveUNetEnhanceTwoStageTransformer, self).__init__(
             n_layers, channels_interval
@@ -27,8 +29,8 @@ class WaveUNetEnhanceTwoStageTransformer(WaveUNetEnhanceBase):
             batch_first=True,
         )
         self.transformer_layer_time = TransformerEncoderLayer(
-            d_model=40,
-            nhead=20,
+            d_model=time_d_model,
+            nhead=time_nhead,
             dim_feedforward=self.dim_feedforward,
             batch_first=True,
         )

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import os
 from typing import Any
+from attr import dataclass
 from matplotlib import pyplot as plt
 import torch
 from torch.utils.data import DataLoader
@@ -23,6 +24,12 @@ from utils.plot import plot_signals
 from utils.timeit import timeit
 
 
+@dataclass
+class TrainResult:
+    model: nn.Module
+    final_loss: float | None
+
+
 class Solver(ABC):
     def __init__(self, model: nn.Module):
         self.model = model
@@ -42,7 +49,7 @@ class Solver(ABC):
         logger: TrainingLogger | None = None,
         epoch_size: int = 5,
         pretrained_weights_path: str | None = None,
-    ):
+    ) -> TrainResult:
         pass
 
     @abstractmethod
@@ -137,6 +144,8 @@ class BaseSolver(Solver):
     ):
         self.model.train()
 
+        loss = None
+
         if not isinstance(dataloader.dataset, NoisyHeartbeatDataset):
             raise TypeError("dataset is not an instance of NoisyHeartbeatDataset")
 
@@ -186,7 +195,7 @@ class BaseSolver(Solver):
 
             if model_saver:
                 path = self._save_model_if_needed(
-                    loss,  # type: ignore
+                    loss,
                     model_saver,
                     model_save_validator,
                 )
@@ -198,12 +207,14 @@ class BaseSolver(Solver):
 
             # 現在の設計上、プロットしたデータはon_epoch_endに対してグローバルに渡している
             # よって直前のコードでプロットし、後続の処理でplt.clfしている
-            logger.on_epoch_end(epoch_index, loss)  # type: ignore
+            logger.on_epoch_end(epoch_index, loss)
 
             if val_dataloader:
                 plt.clf()
 
         logger.on_finish()
+
+        return TrainResult(self.model, loss)
 
     @abstractmethod
     def calculate_loss(self, batch) -> Any:

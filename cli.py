@@ -85,31 +85,39 @@ def prepare_saver(args):
     return model_saver, model_save_validator
 
 
-def prepare_data_loader(args, train, randomizer, gain_controller):
+def prepare_data_loader(
+    split_samples, stride_samples, batch_size, train, randomizer, gain_controller
+):
     dataset = DatasetFactory.create_240517_filtered(
         randomizer=randomizer,
         train=train,
         gain_controller=gain_controller,
-        split_samples=args.split_samples,
-        stride_samples=args.stride_samples,
+        split_samples=split_samples,
+        stride_samples=stride_samples,
     )
     dataloader = DataLoader(
         dataset,
-        batch_size=args.batch_size,
+        batch_size=batch_size,
         shuffle=train,
     )
     return dataloader
 
 
-def prepare_train_data_loaders(args, randomizer, gain_controller):
+def prepare_train_data_loaders(
+    split_samples, stride_samples, batch_size, randomizer, gain_controller
+):
     train_dataloader = prepare_data_loader(
-        args,
+        split_samples,
+        stride_samples,
+        batch_size,
         train=True,
         randomizer=randomizer,
         gain_controller=gain_controller,
     )
     val_dataloader = prepare_data_loader(
-        args,
+        split_samples,
+        stride_samples,
+        batch_size,
         train=False,
         randomizer=randomizer,
         gain_controller=gain_controller,
@@ -132,7 +140,9 @@ def train(args):
     )
     gain_controller = prepare_train_gain_controller(args)
     train_dataloader, val_dataloader = prepare_train_data_loaders(
-        args,
+        args.split_samples,
+        args.stride_samples,
+        args.batch_size,
         randomizer,
         gain_controller,
     )
@@ -170,7 +180,9 @@ def evaluate(args):
     model.load_state_dict(torch.load(args.weights_path))
 
     test_dataloader = prepare_data_loader(
-        args,
+        args.split_samples,
+        args.stride_samples,
+        args.batch_size,
         train=False,
         randomizer=randomizer,
         gain_controller=gain_controller,
