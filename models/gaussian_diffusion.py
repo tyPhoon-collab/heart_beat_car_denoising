@@ -32,6 +32,7 @@ class GaussianDiffusion(GaussianDiffusion1D):
             seq_length=5120,
             timesteps=1000,
             objective="pred_v",
+            auto_normalize=False,
         )
 
         self.criterion = criterion
