@@ -26,6 +26,7 @@
         "nhead",
         "notificator",
         "optim",
+        "pretrained",
         "ptwt",
         "pywt",
         "randn",
