@@ -53,16 +53,17 @@ def train_various_model(config):
 
 def fit_tuner(param_space: dict):
     tuner = tune.Tuner(
-        train_various_model,
+        tune.with_resources(train_various_model, resources={"gpu": 1}),
         param_space=param_space,
         run_config=train.RunConfig(
             name="test",
         ),
         tune_config=tune.TuneConfig(
             scheduler=ASHAScheduler(metric="loss", mode="min"),
-            num_samples=5,
+            num_samples=1,
         ),
     )
+
     result = tuner.fit()
     print(result.get_best_result(metric="loss", mode="min").config)
 
