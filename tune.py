@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
 
@@ -92,15 +91,15 @@ def test_tuner():
 
 if __name__ == "__main__":
     # ray tuneの挙動テスト
-    test_tuner()
+    # test_tuner()
 
-    # fit_tuner(
-    #     {
-    #         "time_d_model": tune.grid_search([40]),
-    #         "time_nhead": tune.grid_search([20, 40]),
-    #         "lr": tune.grid_search([0.000025]),
-    #         "batch_size": tune.grid_search([64]),
-    #         "epoch_size": tune.grid_search([5]),
-    #         "gain": tune.grid_search([0.5, 1]),
-    #     }
-    # )
+    fit_tuner(
+        {
+            "time_d_model": tune.grid_search([40]),
+            "time_nhead": tune.grid_search([20, 40]),
+            "lr": tune.grid_search([0.000025]),
+            "batch_size": tune.grid_search([64]),
+            "epoch_size": tune.grid_search([5]),
+            "gain": tune.grid_search([0.5, 1]),
+        }
+    )

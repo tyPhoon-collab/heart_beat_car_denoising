@@ -1,4 +1,5 @@
 import os
+from re import S
 from typing import Callable
 
 import numpy as np
@@ -121,4 +122,4 @@ class DatasetFactory:
 
     @classmethod
     def _get_abs_dir(cls):
-        return os.getcwd()
+        return "abs_dir"  # ここを変更する
