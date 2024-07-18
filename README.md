@@ -6,7 +6,7 @@
 
 ZIPを展開後、Dockerの作成と起動
 
-Macで実装したため、UNIX系で動かすと良い。Windowsの場合は、WSLでUbuntu 22をインストールし、そこでDockerを起動する
+Macで実装したため、Windowsの場合は、WSLでUbuntu 22をインストールし、そこでDockerを起動する
 
 ### GitHubリポジトリから
 
@@ -16,10 +16,9 @@ Macで実装したため、UNIX系で動かすと良い。Windowsの場合は、
 2. .containerのDockerfileを元にコンテナを起動
 3. 以下のファイルを追加する
 
-- .env
+- .env（オプション）
   - ロガー用の変数を置く
     - [サンプル](#envファイルのサンプル)
-    - なくても動く
 - dataフォルダ
   - 杉浦先生が用意したMAT形式のデータを置く
     - data/

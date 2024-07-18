@@ -12,6 +12,8 @@ from utils import gain_controller
 from utils.device import get_torch_device
 from utils.plot import plot_signals
 
+# from utils.sound import save_signal_to_wav_scipy
+
 
 models = [
     WaveUNetEnhanceTransformer(),
@@ -52,6 +54,8 @@ for gain in gains:
     for i, batch in enumerate(select_batches(dataloader)):
         noisy, clean = map(lambda x: x.to(device), batch)
         for model, state in zip(models, models_state_dicts):
+            basename = f"gain_{gain}_{model.__class__.__name__}_sample_{i}"
+
             model.to(device)
             model.eval()
             model.load_state_dict(torch.load(state, map_location=device))
@@ -62,6 +66,22 @@ for gain in gains:
             plot_signals(
                 [cpu_noisy, cpu_clean, cpu_outputs], ["Noisy", "Clean", "Output"]
             )
-            plt.savefig(
-                f"output/fig/gain_{gain}_{model.__class__.__name__}_sample_{i}.png"
-            )
+            plt.savefig(f"output/fig/{basename}.png")
+
+            # save audio
+            # sample_rate = 1000
+            # save_signal_to_wav_scipy(
+            #     cpu_clean,
+            #     sample_rate,
+            #     f"{basename}_clean.wav",
+            # )
+            # save_signal_to_wav_scipy(
+            #     cpu_noisy,
+            #     sample_rate,
+            #     f"{basename}_noisy.wav",
+            # )
+            # save_signal_to_wav_scipy(
+            #     cpu_outputs,
+            #     sample_rate,
+            #     f"{basename}_output.wav",
+            # )
