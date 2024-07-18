@@ -52,6 +52,7 @@ for gain in gains:
     for i, batch in enumerate(select_batches(dataloader)):
         noisy, clean = map(lambda x: x.to(device), batch)
         for model, state in zip(models, models_state_dicts):
+            model.to(device)
             model.eval()
             model.load_state_dict(torch.load(state, map_location=device))
             outputs = model(noisy)
