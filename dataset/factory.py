@@ -1,5 +1,4 @@
 import os
-from re import S
 from typing import Callable
 
 import numpy as np
@@ -49,34 +48,36 @@ class DatasetFactory:
         )
 
     @classmethod
-    def create_240219(cls, **kwargs):
-        dir = cls._get_abs_dir()
-
+    def create_240219(cls, base_dir: str = "", **kwargs):
+        c = os.path.join(base_dir, "data", "240219_Rawdata", "Stop.mat")
+        n = os.path.join(base_dir, "data", "240219_Rawdata", "100km.mat")
         return cls.create(
-            clean_file_path=f"{dir}/data/240219_Rawdata/Stop.mat",
-            noisy_file_path=f"{dir}/data/240219_Rawdata/100km.mat",
+            clean_file_path=c,
+            noisy_file_path=n,
             sample_rate_map=(32000, 1000),
             **kwargs,
         )
 
     @classmethod
-    def create_240517(cls, **kwargs):
-        dir = cls._get_abs_dir()
-
+    def create_240517(cls, base_dir: str = "", **kwargs):
+        c = os.path.join(base_dir, "data", "240517_Rawdata", "HS_data_serial.mat")
+        n = os.path.join(base_dir, "data", "240517_Rawdata", "Noise_data_serial.mat")
         return cls.create(
-            clean_file_path=f"{dir}/data/240517_Rawdata/HS_data_serial.mat",
-            noisy_file_path=f"{dir}/data/240517_Rawdata/Noise_data_serial.mat",
+            clean_file_path=c,
+            noisy_file_path=n,
             sample_rate=1000,
             **kwargs,
         )
 
     @classmethod
-    def create_240517_filtered(cls, **kwargs):
-        dir = cls._get_abs_dir()
+    def create_240517_filtered(cls, base_dir: str = "", **kwargs):
+        c = os.path.join(base_dir, "data", "240517_Rawdata", "HS_data_serial.mat")
+        n = os.path.join(base_dir, "data", "240517_Rawdata", "Noise_data_serial.mat")
         modifier = FIRBandpassFilter((25, 55), 1000).apply
+
         return cls.create(
-            clean_file_path=f"{dir}/data/240517_Rawdata/HS_data_serial.mat",
-            noisy_file_path=f"{dir}/data/240517_Rawdata/Noise_data_serial.mat",
+            clean_file_path=c,
+            noisy_file_path=n,
             clean_data_modifier=modifier,
             noisy_data_modifier=modifier,
             sample_rate=1000,
