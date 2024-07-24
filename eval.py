@@ -1,3 +1,4 @@
+import os
 from matplotlib import pyplot as plt
 import torch
 from dataset import randomizer
@@ -12,22 +13,17 @@ from utils import gain_controller
 from utils.device import get_torch_device
 from utils.plot import plot_signals
 
-# from utils.sound import save_signal_to_wav_scipy
-
-
-models = [
+MODELS = [
     WaveUNetEnhanceTransformer(),
     WaveUNetEnhanceTwoStageTransformer(),
 ]
 
-models_state_dicts = [
+MODELS_STATE_DICTS = [
     "output/checkpoint/single_stage_model_weights_best.pth",
     "output/checkpoint/two_stage_model_weights_best.pth",
 ]
 
-gains = [0, 0.25, 0.5, 0.75, 1.0]
-
-device = get_torch_device()
+GAINS = [0, 0.25, 0.5, 0.75, 1.0]
 
 
 def select_batches(dataloader):
@@ -41,7 +37,19 @@ def select_batches(dataloader):
     return [data[i] for i in result]
 
 
-for gain in gains:
+def load(model, models_state_dict):
+    model.to(device)
+    model.eval()
+    model.load_state_dict(torch.load(models_state_dict, map_location=device))
+    return model
+
+
+device = get_torch_device()
+
+models = [load(model, state) for model, state in zip(MODELS, MODELS_STATE_DICTS)]
+
+
+for gain in GAINS:
     dataset = DatasetFactory.create_240517_filtered(
         randomizer=randomizer.AddUniformNoiseRandomizer(),
         train=False,
@@ -52,36 +60,31 @@ for gain in gains:
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     for i, batch in enumerate(select_batches(dataloader)):
+        basename = f"gain_{gain}_sample_{i}"
+
         noisy, clean = map(lambda x: x.to(device), batch)
-        for model, state in zip(models, models_state_dicts):
-            basename = f"gain_{gain}_{model.__class__.__name__}_sample_{i}"
+        outputs = []
 
-            model.to(device)
-            model.eval()
-            model.load_state_dict(torch.load(state, map_location=device))
-            outputs = model(noisy)
-            cpu_noisy = noisy[0][0].detach().cpu().numpy()
-            cpu_clean = clean[0][0].detach().cpu().numpy()
-            cpu_outputs = outputs[0][0].detach().cpu().numpy()
-            plot_signals(
-                [cpu_noisy, cpu_clean, cpu_outputs], ["Noisy", "Clean", "Output"]
-            )
-            plt.savefig(f"output/fig/{basename}.png")
+        for model in models:
+            output = model(noisy)
+            outputs.append(output)
 
-            # save audio
-            # sample_rate = 1000
-            # save_signal_to_wav_scipy(
-            #     cpu_clean,
-            #     sample_rate,
-            #     f"{basename}_clean.wav",
-            # )
-            # save_signal_to_wav_scipy(
-            #     cpu_noisy,
-            #     sample_rate,
-            #     f"{basename}_noisy.wav",
-            # )
-            # save_signal_to_wav_scipy(
-            #     cpu_outputs,
-            #     sample_rate,
-            #     f"{basename}_output.wav",
-            # )
+        cpu_noisy = noisy[0][0].detach().cpu().numpy()
+        cpu_clean = clean[0][0].detach().cpu().numpy()
+        cpu_outputs = map(lambda x: x[0][0].detach().cpu().numpy(), outputs)
+        plot_signals(
+            [
+                cpu_noisy,
+                cpu_clean,
+                *cpu_outputs,
+            ],
+            [
+                "Noisy",
+                "Clean",
+                *map(lambda x: f"Output {x.__class__.__name__}", MODELS),
+            ],
+        )
+        directory = f"output/fig/{gain}"
+        os.makedirs(directory, exist_ok=True)
+        plt.savefig(f"{directory}/{basename}.png")
+        plt.close()
