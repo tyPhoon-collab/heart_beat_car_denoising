@@ -86,9 +86,16 @@ def prepare_saver(args):
 
 
 def prepare_data_loader(
-    split_samples, stride_samples, batch_size, train, randomizer, gain_controller
+    split_samples,
+    stride_samples,
+    batch_size,
+    train,
+    randomizer,
+    gain_controller,
+    base_dir: str = "",
 ):
     dataset = DatasetFactory.create_240517_filtered(
+        base_dir=base_dir,
         randomizer=randomizer,
         train=train,
         gain_controller=gain_controller,
@@ -103,24 +110,18 @@ def prepare_data_loader(
     return dataloader
 
 
-def prepare_train_data_loaders(
-    split_samples, stride_samples, batch_size, randomizer, gain_controller
-):
+def prepare_train_data_loaders(**kwargs):
+    """
+    train_dataloaderとval_dataloaderを返す
+    パラメータはprepare_data_loaderの引数を参照
+    """
     train_dataloader = prepare_data_loader(
-        split_samples,
-        stride_samples,
-        batch_size,
         train=True,
-        randomizer=randomizer,
-        gain_controller=gain_controller,
+        **kwargs,
     )
     val_dataloader = prepare_data_loader(
-        split_samples,
-        stride_samples,
-        batch_size,
         train=False,
-        randomizer=randomizer,
-        gain_controller=gain_controller,
+        **kwargs,
     )
     return train_dataloader, val_dataloader
 
@@ -140,11 +141,11 @@ def train(args):
     )
     gain_controller = prepare_train_gain_controller(args)
     train_dataloader, val_dataloader = prepare_train_data_loaders(
-        args.split_samples,
-        args.stride_samples,
-        args.batch_size,
-        randomizer,
-        gain_controller,
+        split_samples=args.split_samples,
+        stride_samples=args.stride_samples,
+        batch_size=args.batch_size,
+        randomizer=randomizer,
+        gain_controller=gain_controller,
     )
 
     solver = build_solver(args, model)

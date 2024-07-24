@@ -14,8 +14,12 @@ import torch.optim as optim
 
 from utils.gain_controller import ConstantGainController
 
+import matplotlib
+
 
 def train_various_model(config):
+    matplotlib.use("Agg")
+
     model = WaveUNetEnhanceTwoStageTransformer(
         time_d_model=config["time_d_model"],
         time_nhead=config["time_nhead"],
@@ -30,11 +34,12 @@ def train_various_model(config):
     )
     gain_controller = ConstantGainController(gain=config["gain"])
     train_dataloader, val_dataloader = prepare_train_data_loaders(
-        5120,
-        32,
-        config["batch_size"],
-        randomizer,
-        gain_controller,
+        split_samples=5120,
+        stride_samples=32,
+        batch_size=config["batch_size"],
+        randomizer=randomizer,
+        gain_controller=gain_controller,
+        base_dir="/Users/hiroaki/PycharmProjects/heart_beat_dataset",  # ここを環境によって変更する。ray tuneでは絶対パスでリソースを指定する必要がある
     )
 
     data = solver.train(
@@ -51,9 +56,9 @@ def train_various_model(config):
     }
 
 
-def fit_tuner(param_space: dict):
+def fit_tuner(param_space: dict, resources: dict):
     tuner = tune.Tuner(
-        tune.with_resources(train_various_model, resources={"gpu": 1}),
+        tune.with_resources(train_various_model, resources=resources),
         param_space=param_space,
         run_config=train.RunConfig(
             name="test",
@@ -95,12 +100,14 @@ if __name__ == "__main__":
     # test_tuner()
 
     fit_tuner(
-        {
+        param_space={
             "time_d_model": tune.grid_search([40]),
             "time_nhead": tune.grid_search([20, 40]),
             "lr": tune.grid_search([0.000025]),
             "batch_size": tune.grid_search([64]),
             "epoch_size": tune.grid_search([5]),
             "gain": tune.grid_search([0.5, 1]),
-        }
+        },
+        resources={"gpu": 1},
+        # resources={"cpu": 1},
     )
