@@ -1,5 +1,6 @@
 import os
 from matplotlib import pyplot as plt
+from sklearn import base
 import torch
 from dataset import randomizer
 from dataset.factory import DatasetFactory
@@ -12,6 +13,7 @@ from torch.utils.data import DataLoader
 from utils import gain_controller
 from utils.device import get_torch_device
 from utils.plot import plot_signals
+from utils.sound import save_signal_to_wav_scipy
 
 MODELS = [
     WaveUNetEnhanceTransformer(),
@@ -61,13 +63,38 @@ for gain in GAINS:
 
     for i, batch in enumerate(select_batches(dataloader)):
         basename = f"gain_{gain}_sample_{i}"
-
         noisy, clean = map(lambda x: x.to(device), batch)
         outputs = []
+
+        cpu_noisy = noisy[0][0].detach().cpu().numpy()
+        cpu_clean = clean[0][0].detach().cpu().numpy()
+
+        audio_directory = f"output/audio/{gain}"
+
+        sample_rate = 1000
+        save_signal_to_wav_scipy(
+            cpu_clean,
+            sample_rate,
+            filename=f"{basename}_clean.wav",
+            base_dir=audio_directory,
+        )
+        save_signal_to_wav_scipy(
+            cpu_noisy,
+            sample_rate,
+            filename=f"{basename}_noisy.wav",
+            base_dir=audio_directory,
+        )
 
         for model in models:
             output = model(noisy)
             outputs.append(output)
+
+            save_signal_to_wav_scipy(
+                output[0][0].detach().cpu().numpy(),
+                sample_rate,
+                filename=f"{basename}_{model.__class__.__name__}_output.wav",
+                base_dir=audio_directory,
+            )
 
         cpu_noisy = noisy[0][0].detach().cpu().numpy()
         cpu_clean = clean[0][0].detach().cpu().numpy()
@@ -84,7 +111,7 @@ for gain in GAINS:
                 *map(lambda x: f"Output {x.__class__.__name__}", MODELS),
             ],
         )
-        directory = f"output/fig/{gain}"
-        os.makedirs(directory, exist_ok=True)
-        plt.savefig(f"{directory}/{basename}.png")
+        fig_directory = f"output/fig/{gain}"
+        os.makedirs(fig_directory, exist_ok=True)
+        plt.savefig(f"{fig_directory}/{basename}.png")
         plt.close()

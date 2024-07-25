@@ -23,6 +23,7 @@ def train_various_model(config):
     model = WaveUNetEnhanceTwoStageTransformer(
         time_d_model=config["time_d_model"],
         time_nhead=config["time_nhead"],
+        num_encoder_layers=config["num_encoder_layers"],
     )
 
     solver = SimpleSolver(model, training_criterion=WeightedLoss())
@@ -103,6 +104,7 @@ if __name__ == "__main__":
         param_space={
             "time_d_model": tune.grid_search([40]),
             "time_nhead": tune.grid_search([20, 40]),
+            "num_encoder_layers": tune.grid_search([2, 4, 6]),
             "lr": tune.grid_search([0.000025]),
             "batch_size": tune.grid_search([64]),
             "epoch_size": tune.grid_search([5]),
