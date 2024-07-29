@@ -118,7 +118,7 @@ if __name__ == "__main__":
             "pretrained_weights_path": tune.grid_search(
                 [None, "output/checkpoint/two_stage_model_weights_best.pth"]
             ),
-            "with_progressive_gains": tune.grid_search([False, True]),
+            "with_progressive_gain": tune.grid_search([False, True]),
         },
         resources={"gpu": 1},
         # resources={"cpu": 1},
