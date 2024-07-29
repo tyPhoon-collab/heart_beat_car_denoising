@@ -12,7 +12,7 @@ from solver import SimpleSolver
 
 import torch.optim as optim
 
-from utils.gain_controller import ConstantGainController
+from utils.gain_controller import ConstantGainController, ProgressiveGainController
 
 import matplotlib
 
@@ -33,7 +33,13 @@ def train_various_model(config):
         model.parameters(),
         lr=config["lr"],
     )
-    gain_controller = ConstantGainController(gain=config["gain"])
+    gain_controller = (
+        ProgressiveGainController(
+            epoch_index_to=config["epoch_size"] // 2, max_gain=config["gain"]
+        )
+        if config["with_progressive_gain"]
+        else ConstantGainController(gain=config["gain"])
+    )
     train_dataloader, val_dataloader = prepare_train_data_loaders(
         split_samples=5120,
         stride_samples=32,
@@ -49,7 +55,7 @@ def train_various_model(config):
         logger=StdoutTrainingLogger(),
         epoch_size=config["epoch_size"],
         val_dataloader=val_dataloader,
-        # pretrained_weights_path=args.pretrained_weights_path,
+        pretrained_weights_path=config["pretrained_weights_path"],
     )
 
     return {
@@ -107,8 +113,12 @@ if __name__ == "__main__":
             "num_encoder_layers": tune.grid_search([2, 4, 6]),
             "lr": tune.grid_search([0.000025]),
             "batch_size": tune.grid_search([64]),
-            "epoch_size": tune.grid_search([5]),
+            "epoch_size": tune.grid_search([200]),
             "gain": tune.grid_search([0.5, 1]),
+            "pretrained_weights_path": tune.grid_search(
+                [None, "output/checkpoint/two_stage_model_weights_best.pth"]
+            ),
+            "with_progressive_gains": tune.grid_search([False, True]),
         },
         resources={"gpu": 1},
         # resources={"cpu": 1},
