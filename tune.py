@@ -1,3 +1,4 @@
+import os
 from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
 
@@ -15,6 +16,10 @@ import torch.optim as optim
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
 
 import matplotlib
+import dotenv
+
+dotenv.load_dotenv()
+WORKING_DIR = os.getenv("RAYTUNE_WORKING_DIR") or ""
 
 
 def train_various_model(config):
@@ -46,7 +51,7 @@ def train_various_model(config):
         batch_size=config["batch_size"],
         randomizer=randomizer,
         gain_controller=gain_controller,
-        base_dir="/Users/hiroaki/PycharmProjects/heart_beat_dataset",  # ここを環境によって変更する。ray tuneでは絶対パスでリソースを指定する必要がある
+        base_dir=WORKING_DIR,
     )
 
     data = solver.train(
@@ -116,10 +121,16 @@ if __name__ == "__main__":
             "epoch_size": tune.grid_search([200]),
             "gain": tune.grid_search([0.5, 1]),
             "pretrained_weights_path": tune.grid_search(
-                [None, "output/checkpoint/two_stage_model_weights_best.pth"]
+                [
+                    None,
+                    os.path.join(
+                        WORKING_DIR,
+                        "output/checkpoint/two_stage_model_weights_best.pth",
+                    ),
+                ]
             ),
             "with_progressive_gain": tune.grid_search([False, True]),
         },
-        resources={"gpu": 1},
-        # resources={"cpu": 1},
+        # resources={"gpu": 1},
+        resources={"cpu": 1},
     )
