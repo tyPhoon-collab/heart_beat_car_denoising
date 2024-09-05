@@ -356,7 +356,8 @@ class TestSampleRateConverter(unittest.TestCase):
     def test_scipy_sample_rate_converter(self):
         loader = MatLoader(
             "data/Stop.mat",
-            ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
+            data_key="data",
+            columns=["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
         )
 
         data = loader.load()
@@ -396,7 +397,8 @@ class TestLoader(unittest.TestCase):
     def test_240219_mat_loader(self):
         loader = MatLoader(
             "data/240219_Rawdata/Stop.mat",
-            ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
+            data_key="data",
+            columns=["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
         )
         data = loader.load()
         print(data)
@@ -404,8 +406,8 @@ class TestLoader(unittest.TestCase):
     def test_240517_mat_loader(self):
         loader = MatLoader(
             "data/240517_Rawdata/HS_data_serial.mat",
-            ["ch1z"],
             data_key="HS_data",
+            columns=["ch1z"],
         )
         data = loader.load()
         print(data)
@@ -535,7 +537,6 @@ class TestVisualize(unittest.TestCase):
     def test_show_ecg(self):
         loader = MatLoader(
             "data/240517_Rawdata/HS_data.mat",
-            [f"ch{i}z" for i in range(36)],
             data_key="HS_data",
         )
         data = loader.load()["ch1z"].to_numpy()
@@ -650,6 +651,36 @@ class TestVisualize(unittest.TestCase):
         threshold_normalized_target = torch.zeros_like(normalized_target)
         threshold_normalized_target[normalized_target >= 0.1] = 1
         show_signal(data * threshold_normalized_target, "data")
+
+    def test_show_noise_240826_filtered(self):
+        filter = FIRBandpassFilter((25, 55), 1000)
+
+        data = load("data/240826_Rawdata/Noise_data_100km.mat")
+        show_signal(filter.apply(data[:10000]), "data")
+
+    def test_show_noise_240826(self):
+        data = load("data/240826_Rawdata/Noise_data_100km.mat")
+        show_signal(data[:10000], "data")
+
+    def test_show_ecg_240826_filtered(self):
+        filter = FIRBandpassFilter((25, 55), 1000)
+
+        data = load("data/240826_Rawdata/ECG_data_stop.mat")
+        show_signal(filter.apply(data[:10000]), "data")
+
+    def test_show_ecg_240826(self):
+        data = load("data/240826_Rawdata/ECG_data_stop.mat")
+        show_signal(data[:10000], "data")
+
+    def test_show_hs_240826_filtered(self):
+        filter = FIRBandpassFilter((25, 55), 1000)
+
+        data = load("data/240826_Rawdata/HS_data_stop.mat")
+        show_signal(filter.apply(data[:10000]), "data")
+
+    def test_show_hs_240826(self):
+        data = load("data/240826_Rawdata/HS_data_stop.mat")
+        show_signal(data[:10000], "data")
 
     def convert_to_wav(
         self,

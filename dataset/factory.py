@@ -4,7 +4,7 @@ from typing import Callable
 import numpy as np
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.filter import FIRBandpassFilter
-from dataset.loader import MatLoader, cacheable
+from dataset.loader import ConcatColumnsLoader, MatLoader, cacheable
 from dataset.sampling_rate_converter import (
     NoSamplingRateConverter,
     ScipySamplingRateConverter,
@@ -85,6 +85,21 @@ class DatasetFactory:
         )
 
     @classmethod
+    def create_240826_filtered(cls, base_dir: str = "", **kwargs):
+        c = os.path.join(base_dir, "data", "240826_Rawdata", "HS_data_serial.mat")
+        n = os.path.join(base_dir, "data", "240826_Rawdata", "Noise_data_serial.mat")
+        modifier = lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000])
+
+        return cls.create(
+            clean_file_path=c,
+            noisy_file_path=n,
+            clean_data_modifier=modifier,
+            noisy_data_modifier=modifier,
+            sample_rate=1000,
+            **kwargs,
+        )
+
+    @classmethod
     def load(cls, modifier, loader):
         return modifier(loader.load()["ch1z"].to_numpy())
 
@@ -94,7 +109,15 @@ class DatasetFactory:
         """
         先方からのデータ形式が毎回異なる。差分を吸収してMatLoaderとして扱えるようにする関数
         """
-        if "240517" in path:
+        if "240219" in path:
+            print("240219 loader is chosen")
+
+            return MatLoader(
+                file_path=path,
+                columns=["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
+                data_key="data",
+            )
+        elif "240517" in path:
             print("240517 loader is chosen")
             # "data/240517_Rawdata/HS_data.mat" -> "HS_data"
             filename = os.path.splitext(os.path.basename(path))[0]
@@ -110,14 +133,33 @@ class DatasetFactory:
                 columns=["ch1z"],
                 data_key=data_key,
             )
-        elif "240219" in path:
-            print("240517 loader is chosen")
 
-            return MatLoader(
-                file_path=path,
-                columns=["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-                data_key="data",
-            )
+        elif "240826" in path:
+            print("240826 loader is chosen")
+
+            if "ECG" in path:
+                return ConcatColumnsLoader(
+                    loader=MatLoader(
+                        file_path=path,
+                        data_key="ECG_data",
+                    )
+                )
+            elif "HS" in path:
+                return ConcatColumnsLoader(
+                    loader=MatLoader(
+                        file_path=path,
+                        data_key="HS_data",
+                    )
+                )
+            elif "Noise" in path:
+                return ConcatColumnsLoader(
+                    loader=MatLoader(
+                        file_path=path,
+                        data_key="data",
+                    )
+                )
+            else:
+                raise ValueError(f"Unsupported data path: {path}")
         else:
             raise ValueError(f"Unsupported data path: {path}")
 

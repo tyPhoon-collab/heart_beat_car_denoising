@@ -17,8 +17,8 @@ class MatLoader(Loader):
     """
 
     file_path: str
-    columns: list[str]
-    data_key: str = "data"
+    data_key: str
+    columns: list[str] | None = None
 
     def load(self):
         # .matファイルを読み込む
@@ -34,15 +34,28 @@ class MatLoader(Loader):
         df = pd.DataFrame(data)
 
         # カラム名を検証し、設定する
-        if len(df.columns) != len(self.columns):
-            raise ValueError(
-                "The number of columns in the .mat file does not match the required columns"
-            )
+        if self.columns is not None:
+            if len(df.columns) != len(self.columns):
+                raise ValueError(
+                    "The number of columns in the .mat file does not match the required columns"
+                )
 
-        # カラム名を設定する
-        df.columns = self.columns
+            # カラム名を設定する
+            df.columns = self.columns
 
         return df
+
+
+@dataclass
+class ConcatColumnsLoader(Loader):
+    loader: Loader
+    column_name: str = "ch1z"
+
+    def load(self):
+        df = self.loader.load()
+        combined_df = pd.DataFrame({self.column_name: df.values.flatten()})
+
+        return combined_df
 
 
 _cached_dict = dict()
@@ -93,10 +106,8 @@ def cacheable(func):
 
 if __name__ == "__main__":
     loader = MatLoader(
-        "data/240517_Rawdata/HS_data.mat",
-        # ["Time", "ECG", "ch1z", "ch2z", "ch3z", "ch4z", "ch5z", "ch6z"],
-        ["ch1z"] * 36,
-        data_key="HS_data",
+        "data/240826_Rawdata/Noise_data_100km.mat",
+        "data",
     )
     data = loader.load()
     print(data)
