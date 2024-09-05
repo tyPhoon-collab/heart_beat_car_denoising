@@ -94,7 +94,7 @@ def prepare_data_loader(
     gain_controller,
     base_dir: str = "",
 ):
-    dataset = DatasetFactory.create_240517_filtered(
+    dataset = DatasetFactory.create_240826_filtered(
         base_dir=base_dir,
         randomizer=randomizer,
         train=train,

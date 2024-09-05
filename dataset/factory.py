@@ -86,9 +86,9 @@ class DatasetFactory:
 
     @classmethod
     def create_240826_filtered(cls, base_dir: str = "", **kwargs):
-        c = os.path.join(base_dir, "data", "240826_Rawdata", "HS_data_serial.mat")
-        n = os.path.join(base_dir, "data", "240826_Rawdata", "Noise_data_serial.mat")
-        modifier = lambda x: FIRBandpassFilter((25, 55), 1000).apply(x[:5000])
+        c = os.path.join(base_dir, "data", "240826_Rawdata", "HS_data_stop.mat")
+        n = os.path.join(base_dir, "data", "240826_Rawdata", "Noise_data_100km.mat")
+        modifier = FIRBandpassFilter((25, 55), 1000).apply
 
         return cls.create(
             clean_file_path=c,
@@ -162,7 +162,3 @@ class DatasetFactory:
                 raise ValueError(f"Unsupported data path: {path}")
         else:
             raise ValueError(f"Unsupported data path: {path}")
-
-    @classmethod
-    def _get_abs_dir(cls):
-        return "abs_dir"  # ここを変更する
