@@ -3,6 +3,7 @@ from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
 
 from cli import prepare_train_data_loaders
+from cli_options import CLIDataFolder
 from dataset.randomizer import AddUniformNoiseRandomizer
 from logger.training_impls.stdout import StdoutTrainingLogger
 from loss.weighted import WeightedLoss
@@ -46,6 +47,7 @@ def train_various_model(config):
         else ConstantGainController(gain=config["gain"])
     )
     train_dataloader, val_dataloader = prepare_train_data_loaders(
+        data_folder=CLIDataFolder.Raw240826,
         split_samples=5120,
         stride_samples=32,
         batch_size=config["batch_size"],

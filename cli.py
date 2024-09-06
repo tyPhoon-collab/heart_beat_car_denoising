@@ -2,15 +2,17 @@ import argparse
 import torch
 import torch.optim as optim
 from cli_options import (
+    CLIDataFolder,
     CLILossFn,
     CLIModel,
     CLIRandomizer,
+    build_cli_data_folder,
     build_cli_loss_fn,
     build_cli_model,
     build_cli_randomizer,
 )
-from dataset.factory import DatasetFactory
 from torch.utils.data import DataLoader
+from dataset.randomizer import Randomizer
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
@@ -63,15 +65,17 @@ def prepare_saver(args):
 
 
 def prepare_data_loader(
-    split_samples,
-    stride_samples,
-    batch_size,
-    train,
-    randomizer,
-    gain_controller,
+    data_folder: CLIDataFolder,
+    split_samples: int,
+    stride_samples: int,
+    batch_size: int,
+    train: bool,
+    randomizer: Randomizer,
+    gain_controller: GainController,
     base_dir: str = "",
 ):
-    dataset = DatasetFactory.create_240826_filtered(
+    dataset = build_cli_data_folder(
+        data_folder,
         base_dir=base_dir,
         randomizer=randomizer,
         train=train,
@@ -118,6 +122,7 @@ def train(args):
     )
     gain_controller = prepare_train_gain_controller(args)
     train_dataloader, val_dataloader = prepare_train_data_loaders(
+        data_folder=args.data_folder,
         split_samples=args.split_samples,
         stride_samples=args.stride_samples,
         batch_size=args.batch_size,
@@ -158,6 +163,7 @@ def evaluate(args):
     model.load_state_dict(torch.load(args.weights_path))
 
     test_dataloader = prepare_data_loader(
+        args.data_folder,
         args.split_samples,
         args.stride_samples,
         args.batch_size,
@@ -224,6 +230,13 @@ def add_common_arguments(parser):
         default="AddUniformNoiseRandomizer",
         choices=list(CLIRandomizer),
         help="Randomizer",
+    )
+    parser.add_argument(
+        "--data-folder",
+        type=lambda x: CLIDataFolder(x),
+        default=CLIDataFolder.Raw240826,
+        choices=list(CLIDataFolder),
+        help="Data folder name. This is not path name. Please see choices in help",
     )
 
 

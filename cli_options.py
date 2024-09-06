@@ -1,5 +1,7 @@
 from enum import StrEnum
 import torch.nn as nn
+from dataset.dataset import NoisyHeartbeatDataset
+from dataset.factory import DatasetFactory
 from dataset.randomizer import (
     AddUniformNoiseRandomizer,
     Randomizer,
@@ -46,6 +48,12 @@ class CLIRandomizer(StrEnum):
     AddUniformNoiseRandomizer = "AddUniformNoiseRandomizer"
 
 
+class CLIDataFolder(StrEnum):
+    Raw240219 = "Raw240219"
+    Raw240517 = "Raw240517"
+    Raw240826 = "Raw240826"
+
+
 def build_cli_model(model: CLIModel) -> nn.Module:
     match model:
         case CLIModel.WaveUNetEnhance:
@@ -88,3 +96,15 @@ def build_cli_randomizer(randomizer: CLIRandomizer) -> Randomizer:
             return PhaseShuffleRandomizer()
         case CLIRandomizer.AddUniformNoiseRandomizer:
             return AddUniformNoiseRandomizer()
+
+
+def build_cli_data_folder(
+    data_folder: CLIDataFolder, **kwargs
+) -> NoisyHeartbeatDataset:
+    match data_folder:
+        case CLIDataFolder.Raw240219:
+            return DatasetFactory.create_240219(**kwargs)
+        case CLIDataFolder.Raw240517:
+            return DatasetFactory.create_240517_filtered(**kwargs)
+        case CLIDataFolder.Raw240826:
+            return DatasetFactory.create_240826_filtered(**kwargs)
