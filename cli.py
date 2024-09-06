@@ -1,17 +1,15 @@
 import argparse
 import torch
 import torch.optim as optim
-import torch.nn as nn
 from cli_options import (
-    LOSS_FN,
-    LOSS_FN_NAMES,
-    MODEL,
-    MODEL_NAMES,
-    RANDOMIZER,
-    RANDOMIZER_NAMES,
+    CLILossFn,
+    CLIModel,
+    CLIRandomizer,
+    build_cli_loss_fn,
+    build_cli_model,
+    build_cli_randomizer,
 )
 from dataset.factory import DatasetFactory
-from dataset.randomizer import Randomizer
 from torch.utils.data import DataLoader
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
@@ -33,29 +31,8 @@ from utils.model_saver import WithDateModelSaver, WithIdModelSaver
 from logger.training_logger_factory import TrainingLoggerFactory
 
 
-def get_model(model_name: str) -> nn.Module:
-    if model_name in MODEL_NAMES:
-        return MODEL[model_name]()
-    else:
-        raise ValueError(f"Unknown model: {model_name}")
-
-
-def get_loss_function(loss_fn_name: str) -> nn.Module:
-    if loss_fn_name in LOSS_FN_NAMES:
-        return LOSS_FN[loss_fn_name]()
-    else:
-        raise ValueError(f"Unknown loss function: {loss_fn_name}")
-
-
-def get_randomizer(randomizer_name: str) -> Randomizer:
-    if randomizer_name in RANDOMIZER_NAMES:
-        return RANDOMIZER[randomizer_name]()
-    else:
-        raise ValueError(f"Unknown randomizer: {randomizer_name}")
-
-
 def build_solver(args, model) -> Solver:
-    criterion = get_loss_function(args.loss_fn)
+    criterion = build_cli_loss_fn(args.loss_fn)
 
     if isinstance(model, GaussianDiffusion):
         model.set_criterion(criterion)
@@ -131,8 +108,8 @@ def train(args):
     logger = TrainingLoggerFactory.env()
 
     model_saver, model_save_validator = prepare_saver(args)
-    model = get_model(args.model)
-    randomizer = get_randomizer(args.randomizer)
+    model = build_cli_model(args.model)
+    randomizer = build_cli_randomizer(args.randomizer)
 
     optimizer = optim.Adam(
         model.parameters(),
@@ -174,8 +151,8 @@ def prepare_train_gain_controller(args) -> GainController:
 
 
 def evaluate(args):
-    model = get_model(args.model)
-    randomizer = get_randomizer(args.randomizer)
+    model = build_cli_model(args.model)
+    randomizer = build_cli_randomizer(args.randomizer)
     gain_controller = ConstantGainController(gain=args.gain)
 
     model.load_state_dict(torch.load(args.weights_path))
@@ -210,16 +187,16 @@ def evaluate(args):
 def add_common_arguments(parser):
     parser.add_argument(
         "--model",
-        type=str,
+        type=lambda x: CLIModel[x],
         required=True,
-        choices=MODEL_NAMES,
+        choices=list(CLIModel),
         help="Model name",
     )
     parser.add_argument(
         "--loss-fn",
-        type=str,
+        type=lambda x: CLILossFn[x],
         required=True,
-        choices=LOSS_FN_NAMES,
+        choices=list(CLILossFn),
         help="Loss function",
     )
     parser.add_argument("--batch-size", type=int, default=1, help="Batch size")
@@ -243,9 +220,9 @@ def add_common_arguments(parser):
     )
     parser.add_argument(
         "--randomizer",
-        type=str,
+        type=lambda x: CLIRandomizer[x],
         default="AddUniformNoiseRandomizer",
-        choices=RANDOMIZER_NAMES,
+        choices=list(CLIRandomizer),
         help="Randomizer",
     )
 
