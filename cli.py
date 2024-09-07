@@ -140,6 +140,9 @@ def train(args):
         epoch_size=args.epoch_size,
         val_dataloader=val_dataloader,
         pretrained_weights_path=args.pretrained_weights_path,
+        additional_params={
+            "data_folder": str(args.data_folder),
+        },
     )
 
 

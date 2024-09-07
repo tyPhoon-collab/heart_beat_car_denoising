@@ -49,6 +49,7 @@ class Solver(ABC):
         logger: TrainingLogger | None = None,
         epoch_size: int = 5,
         pretrained_weights_path: str | None = None,
+        additional_params: dict[str, Any] | None = None,
     ) -> TrainResult:
         pass
 
@@ -108,6 +109,7 @@ class BaseSolver(Solver):
         gain_controller: GainController | None,
         dataset: NoisyHeartbeatDataset,
         pretrained_weights_path: str | None,
+        additional_params: dict[str, Any] | None = None,
     ):
         optim_params = optimizer.param_groups[0]
 
@@ -125,6 +127,7 @@ class BaseSolver(Solver):
             "stride_samples": dataset.stride_samples,
             "sample_rate": dataset.sample_rate,
             "init": "pretrained_weights" if pretrained_weights_path else "default",
+            **(additional_params or {}),
         }
 
         return params
@@ -141,6 +144,7 @@ class BaseSolver(Solver):
         logger: TrainingLogger | None = None,
         epoch_size: int = 5,
         pretrained_weights_path: str | None = None,
+        additional_params: dict[str, Any] | None = None,
     ) -> TrainResult:
         self.model.train()
 
@@ -172,6 +176,7 @@ class BaseSolver(Solver):
             gain_controller,
             dataset,
             pretrained_weights_path,
+            additional_params,
         )
         logger.on_start(params)
 
@@ -278,6 +283,7 @@ class SimpleSolver(BaseSolver):
         gain_controller: GainController | None,
         dataset: NoisyHeartbeatDataset,
         pretrained_weights_path: str | None,
+        additional_params: dict[str, Any] | None = None,
     ):
         return {
             **super()._get_params(
@@ -287,6 +293,7 @@ class SimpleSolver(BaseSolver):
                 gain_controller,
                 dataset,
                 pretrained_weights_path,
+                additional_params,
             ),
             "criterion": self.training_criterion.__class__.__name__,
         }
@@ -314,6 +321,7 @@ class DiffusionSolver(BaseSolver):
         gain_controller: GainController | None,
         dataset: NoisyHeartbeatDataset,
         pretrained_weights_path: str | None,
+        additional_params: dict[str, Any] | None = None,
     ):
         return {
             **super()._get_params(
@@ -323,6 +331,7 @@ class DiffusionSolver(BaseSolver):
                 gain_controller,
                 dataset,
                 pretrained_weights_path,
+                additional_params,
             ),
             "criterion": self.model.criterion.__class__.__name__,
             "timesteps": self.model.num_timesteps,
