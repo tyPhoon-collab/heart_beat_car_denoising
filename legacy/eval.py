@@ -1,6 +1,5 @@
 import os
 from matplotlib import pyplot as plt
-from sklearn import base
 import torch
 from dataset import randomizer
 from dataset.factory import DatasetFactory
@@ -70,6 +69,8 @@ for gain in GAINS:
         cpu_clean = clean[0][0].detach().cpu().numpy()
 
         audio_directory = f"output/audio/{gain}"
+        fig_directory = f"output/fig/{gain}"
+        # data_directory = f"output/data/{gain}"
 
         sample_rate = 1000
         save_signal_to_wav_scipy(
@@ -111,7 +112,6 @@ for gain in GAINS:
                 *map(lambda x: f"Output {x.__class__.__name__}", MODELS),
             ],
         )
-        fig_directory = f"output/fig/{gain}"
         os.makedirs(fig_directory, exist_ok=True)
         plt.savefig(f"{fig_directory}/{basename}.png")
         plt.close()
