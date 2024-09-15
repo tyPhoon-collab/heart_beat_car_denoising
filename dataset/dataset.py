@@ -14,7 +14,9 @@ class NoisyHeartbeatDataset(Dataset):
     clean_data: np.ndarray
     noisy_data: np.ndarray  # noisyデータ。データの都合上、ノイズ単体ではない
     sampling_rate_converter: SamplingRateConverter
-    randomizer: Randomizer | None  # 指定した場合、getitemでnoisy_dataをランダマイズ
+    randomizer: Randomizer | None = (
+        None  # 指定した場合、getitemのときにnoisy_dataをランダマイズ
+    )
     train: bool = True  # FashionMNISTなどのデータセットを参考にしたプロパティ
     train_split_ratio: float = 0.6
     split_samples: int = 5120
@@ -41,14 +43,14 @@ class NoisyHeartbeatDataset(Dataset):
         clean_data = clean_data[:total_samples]
         noisy_data = noisy_data[:total_samples]
 
-        split_samples = int(self.train_split_ratio * total_samples)
+        using_data_samples_length = int(self.train_split_ratio * total_samples)
 
         if self.train:
-            clean_data = clean_data[:split_samples]
-            noisy_data = noisy_data[:split_samples]
+            clean_data = clean_data[:using_data_samples_length]
+            noisy_data = noisy_data[:using_data_samples_length]
         else:
-            clean_data = clean_data[split_samples:]
-            noisy_data = noisy_data[split_samples:]
+            clean_data = clean_data[using_data_samples_length:]
+            noisy_data = noisy_data[using_data_samples_length:]
 
         return clean_data, noisy_data
 

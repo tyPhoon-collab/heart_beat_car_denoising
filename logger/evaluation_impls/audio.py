@@ -20,3 +20,6 @@ class AudioEvaluationLogger(EvaluationLogger):
             save_signal_to_wav_scipy(noisy, self.sample_rate, self.noisy_audio_filename)
         if self.audio_filename is not None:
             save_signal_to_wav_scipy(output, self.sample_rate, self.audio_filename)
+
+    def on_average_loss(self, loss: float):
+        pass

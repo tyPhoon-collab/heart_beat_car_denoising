@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
+from logger.evaluation_logger import EvaluationLogger
 from numpy.typing import ArrayLike
 
 
-class EvaluationLogger(ABC):
-    @abstractmethod
+class StdoutEvaluationLogger(EvaluationLogger):
     def on_data(self, noisy: ArrayLike, clean: ArrayLike, output: ArrayLike):
         pass
 
     def on_average_loss(self, loss: float):
-        pass
+        print("Average loss:", loss)

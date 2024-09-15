@@ -16,3 +16,7 @@ class CompositeEvaluationLogger(EvaluationLogger):
     def on_data(self, noisy: ArrayLike, clean: ArrayLike, output: ArrayLike):
         for logger in self.loggers:
             logger.on_data(noisy, clean, output)
+
+    def on_average_loss(self, loss: float):
+        for logger in self.loggers:
+            logger.on_average_loss(loss)

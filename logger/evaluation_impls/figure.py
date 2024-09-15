@@ -15,3 +15,6 @@ class FigureEvaluationLogger(EvaluationLogger):
             ["Noisy", "Clean", "Output"],
             filename=self.filename,
         )
+
+    def on_average_loss(self, loss: float):
+        pass

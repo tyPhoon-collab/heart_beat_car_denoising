@@ -3,6 +3,7 @@ import os
 from typing import Any
 from attr import dataclass
 from matplotlib import pyplot as plt
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -15,7 +16,7 @@ from logger.evaluation_logger import EvaluationLogger
 from models.gaussian_diffusion import GaussianDiffusion
 from utils.context_manager import change_to_eval_mode_temporary
 from utils.device import get_torch_device
-from utils.load import load_local_dotenv
+from utils.load_local_dotenv import load_local_dotenv
 from utils.epoch_sensitive import EpochSensitive
 from utils.gain_controller import GainController
 from utils.model_save_validator import ModelSaveValidator
@@ -244,6 +245,7 @@ class SimpleSolver(BaseSolver):
     ):
         self.model.eval()
         logger = logger or NoopEvaluationLogger()
+        criterion = criterion or self.training_criterion
 
         if state_dict_path:
             self.model.load_state_dict(torch.load(state_dict_path))
@@ -251,20 +253,35 @@ class SimpleSolver(BaseSolver):
         if not isinstance(dataloader.dataset, NoisyHeartbeatDataset):
             raise TypeError("dataset is not an instance of NoisyHeartbeatDataset")
 
+        total_loss = 0.0
+        count = 0
+
+        noisy_tensors = []
+        clean_tensors = []
+        outputs_tensors = []
+
         with torch.no_grad():
             for batch in dataloader:
                 outputs, noisy, clean = self._process_batch(batch)
 
-                criterion = criterion or self.training_criterion
                 loss = criterion(outputs, clean)
-                print(f"Loss: {loss.item()}")
+                total_loss += loss.item()
+                count += 1
 
-                logger.on_data(
-                    noisy[0][0].cpu().numpy(),
-                    clean[0][0].cpu().numpy(),
-                    outputs[0][0].cpu().numpy(),
-                )
-                break  # remove this line if you want to process all batches
+                noisy_tensors.append(noisy[0][0].cpu().numpy())
+                clean_tensors.append(clean[0][0].cpu().numpy())
+                outputs_tensors.append(outputs[0][0].cpu().numpy())
+
+        concat_noisy = np.concatenate(noisy_tensors)
+        concat_clean = np.concatenate(clean_tensors)
+        concat_outputs = np.concatenate(outputs_tensors)
+
+        logger.on_data(
+            concat_noisy,
+            concat_clean,
+            concat_outputs,
+        )
+        logger.on_average_loss(total_loss / count)
 
     def _process_batch(
         self,

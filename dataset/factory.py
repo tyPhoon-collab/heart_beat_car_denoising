@@ -11,14 +11,18 @@ from dataset.sampling_rate_converter import (
 )
 
 
+def _identity(x):
+    return x
+
+
 class DatasetFactory:
     @classmethod
     def create(
         cls,
         clean_file_path: str,
         noisy_file_path: str,
-        clean_data_modifier: Callable[[np.ndarray], np.ndarray] = lambda x: x,
-        noisy_data_modifier: Callable[[np.ndarray], np.ndarray] = lambda x: x,
+        clean_data_modifier: Callable[[np.ndarray], np.ndarray] = _identity,
+        noisy_data_modifier: Callable[[np.ndarray], np.ndarray] = _identity,
         sample_rate: int | None = None,
         sample_rate_map: tuple[int, int] | None = None,
         train=True,
@@ -26,11 +30,11 @@ class DatasetFactory:
     ):
         assert sample_rate is not None or sample_rate_map is not None
 
-        clean_data_loader = cls.build_loader(clean_file_path)
-        noisy_data_loader = cls.build_loader(noisy_file_path)
+        clean_data_loader = cls._build_loader(clean_file_path)
+        noisy_data_loader = cls._build_loader(noisy_file_path)
 
-        clean_data = cls.load(clean_data_modifier, clean_data_loader)
-        noisy_data = cls.load(noisy_data_modifier, noisy_data_loader)
+        clean_data = cls._load(clean_data_modifier, clean_data_loader)
+        noisy_data = cls._load(noisy_data_modifier, noisy_data_loader)
 
         return NoisyHeartbeatDataset(
             clean_data=clean_data,
@@ -100,12 +104,27 @@ class DatasetFactory:
         )
 
     @classmethod
-    def load(cls, modifier, loader):
+    def create_entire_noise(cls, noise_file_path: str, **kwargs):
+        n = os.path.join(noise_file_path)
+        modifier = FIRBandpassFilter((25, 55), 1000).apply
+
+        return cls.create(
+            clean_file_path=n,
+            noisy_file_path=n,
+            noisy_data_modifier=modifier,
+            sample_rate=1000,
+            train=False,
+            train_split_ratio=0,
+            **kwargs,
+        )
+
+    @classmethod
+    def _load(cls, modifier, loader):
         return modifier(loader.load()["ch1z"].to_numpy())
 
     @classmethod
     @cacheable
-    def build_loader(cls, path: str):
+    def _build_loader(cls, path: str):
         """
         先方からのデータ形式が毎回異なる。差分を吸収してMatLoaderとして扱えるようにする関数
         """

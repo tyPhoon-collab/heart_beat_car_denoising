@@ -45,7 +45,7 @@ from denoising_diffusion_pytorch import Unet1D, GaussianDiffusion1D
 
 
 def load(path: str, ch: str = "ch1z"):
-    return DatasetFactory.build_loader(path).load()[ch].to_numpy()
+    return DatasetFactory._build_loader(path).load()[ch].to_numpy()
 
 
 def build_loaders(batch_size):
@@ -456,7 +456,7 @@ class TestAudio(unittest.TestCase):
         output_sample_rate = 3000
 
         def load(path: str, ch: str = "ch1z"):
-            loader = DatasetFactory.build_loader(path)
+            loader = DatasetFactory._build_loader(path)
             single_data = loader.load()["ch1z"].to_numpy()
             return self.convert_sample_rate(
                 single_data,

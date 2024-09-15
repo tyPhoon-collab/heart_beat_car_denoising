@@ -16,9 +16,10 @@ from dataset.randomizer import Randomizer
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
 from logger.evaluation_impls.figure import FigureEvaluationLogger
+from logger.evaluation_impls.stdout import StdoutEvaluationLogger
 from models.gaussian_diffusion import GaussianDiffusion
 from solver import DiffusionSolver, SimpleSolver, Solver
-from utils.load import load_local_dotenv
+from utils.load_local_dotenv import load_local_dotenv
 from utils.gain_controller import (
     ConstantGainController,
     GainController,
@@ -165,10 +166,15 @@ def evaluate(args):
 
     model.load_state_dict(torch.load(args.weights_path))
 
+    if args.split_samples != args.stride_samples:
+        print(
+            "WARNING: --split-samples and --stride-samples are different. for evaluation, stride is dealt same as split"
+        )
+
     test_dataloader = prepare_data_loader(
         args.data_folder,
         args.split_samples,
-        args.stride_samples,
+        args.split_samples,  # for evaluation, stride same as split
         args.batch_size,
         train=False,
         randomizer=randomizer,
@@ -188,6 +194,7 @@ def evaluate(args):
                     clean_audio_filename=args.clean_audio_filename,
                     noisy_audio_filename=args.noisy_audio_filename,
                 ),
+                StdoutEvaluationLogger(),
             ]
         ),
     )
