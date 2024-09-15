@@ -2,12 +2,6 @@
 
 ## セットアップ
 
-### ZIPから
-
-ZIPを展開後、Dockerの作成と起動
-
-Macで実装したため、Windowsの場合は、WSLでUbuntu 22をインストールし、そこでDockerを起動する
-
 ### GitHubリポジトリから
 
 [GitHub リポジトリ](https://github.com/tyPhoon-collab/heart_beat_car_denoising)
