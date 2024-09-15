@@ -34,7 +34,7 @@ from models.wave_u_net_enhance_two_stage_transformer import (
 from solver import DiffusionSolver, SimpleSolver
 from utils.device import get_torch_device
 from utils.gain_controller import ConstantGainController, ProgressiveGainController
-from utils.plot import (
+from plot.plot_plt import (
     show_signal,
     show_signals,
     show_spectrogram,

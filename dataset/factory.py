@@ -104,13 +104,15 @@ class DatasetFactory:
         )
 
     @classmethod
-    def create_entire_noise(cls, noise_file_path: str, **kwargs):
-        n = os.path.join(noise_file_path)
+    def create_240517_entire_noise(cls, **kwargs):
+        c = os.path.join("data", "240517_Rawdata", "HS_data_serial.mat")
+        n = os.path.join("data", "240517_Rawdata", "Noise_data_serial.mat")
         modifier = FIRBandpassFilter((25, 55), 1000).apply
 
         return cls.create(
-            clean_file_path=n,
+            clean_file_path=c,
             noisy_file_path=n,
+            clean_data_modifier=modifier,
             noisy_data_modifier=modifier,
             sample_rate=1000,
             train=False,

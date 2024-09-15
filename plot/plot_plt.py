@@ -6,8 +6,8 @@ import numpy as np
 
 
 def _finalize_plot(filename=None):
-    """グラフの最終処理を行うヘルパー関数。
-    filenameが指定されていれば保存し、指定されていなければ表示する。"""
+    assert filename is None or filename.endswith(".png") or filename.endswith(".pdf")
+
     plt.tight_layout()
     if filename:
         save_directory = "output/fig"

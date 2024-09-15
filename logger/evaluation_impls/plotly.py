@@ -2,15 +2,15 @@ from dataclasses import dataclass
 from logger.evaluation_logger import EvaluationLogger
 from numpy.typing import ArrayLike
 
-from plot.plot_plt import show_signals
+from plot.plot_plotly import show_plotly_signals
 
 
 @dataclass
-class FigureEvaluationLogger(EvaluationLogger):
+class PlotlyEvaluationLogger(EvaluationLogger):
     filename: str
 
     def on_data(self, noisy: ArrayLike, clean: ArrayLike, output: ArrayLike):
-        show_signals(
+        show_plotly_signals(
             [noisy, clean, output],
             ["Noisy", "Clean", "Output"],
             filename=self.filename,

@@ -21,7 +21,7 @@ from utils.epoch_sensitive import EpochSensitive
 from utils.gain_controller import GainController
 from utils.model_save_validator import ModelSaveValidator
 from utils.model_saver import ModelSaver
-from utils.plot import plot_signals
+from plot.plot_plt import plot_signals
 from utils.timeit import timeit
 
 

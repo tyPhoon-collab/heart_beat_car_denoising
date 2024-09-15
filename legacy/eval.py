@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 
 from utils import gain_controller
 from utils.device import get_torch_device
-from utils.plot import plot_signals
+from plot.plot_plt import plot_signals
 from utils.sound import save_signal_to_wav_scipy
 
 MODELS = [
