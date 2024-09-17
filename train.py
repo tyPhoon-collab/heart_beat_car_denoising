@@ -7,7 +7,12 @@ from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 import torch.optim as optim
 from solver import SimpleSolver
 from utils.gain_controller import ConstantGainController
-from utils.model_saver import WithDateModelSaver
+from utils.model_save_validator import (
+    AnyCompositeModelSaveValidator,
+    BestModelSaveValidator,
+    SpecificEpochModelSaveValidator,
+)
+from utils.model_saver import SimpleModelSaver
 
 model = WaveUNetEnhanceTransformer()
 criterion = WeightedLoss()
@@ -29,11 +34,19 @@ train_dataloader, val_dataloader = prepare_train_data_loaders(
     gain_controller=gain_controller,
 )
 
+epoch_size = 100
+
 solver.train(
     train_dataloader,
     optimizer,
     logger=TrainingLoggerFactory.stdout(),
-    model_saver=WithDateModelSaver(base_directory="output/checkpoint"),
+    model_saver=SimpleModelSaver(base_directory="output"),
+    model_save_validator=AnyCompositeModelSaveValidator(
+        validators=[
+            BestModelSaveValidator(epoch_index_from=0),
+            SpecificEpochModelSaveValidator.last(epoch_size),
+        ]
+    ),
     val_dataloader=val_dataloader,
-    epoch_size=100,
+    epoch_size=epoch_size,
 )

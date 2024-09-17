@@ -10,7 +10,7 @@ from logger.evaluation_impls.stdout import StdoutEvaluationLogger
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 from utils.device import get_torch_device
 
-weights_path = "output/checkpoint/model_weights_best_240517_ver2.pth"
+weights_path = "output/checkpoint/model_weights_best.pth"
 
 device = get_torch_device()
 
