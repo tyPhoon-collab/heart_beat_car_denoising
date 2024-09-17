@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from dataset.factory import DatasetFactory
 from logger.evaluation_impls.audio import AudioEvaluationLogger
 from logger.evaluation_impls.composite import CompositeEvaluationLogger
+from logger.evaluation_impls.figure import FigureEvaluationLogger
 from logger.evaluation_impls.plotly import PlotlyEvaluationLogger
 from logger.evaluation_impls.stdout import StdoutEvaluationLogger
 from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
@@ -21,7 +22,7 @@ model.eval()
 
 logger = CompositeEvaluationLogger(
     [
-        # FigureEvaluationLogger(filename="entire_eval.png"),
+        FigureEvaluationLogger(filename="entire_eval.png"),
         PlotlyEvaluationLogger(filename="entire_eval.html"),
         AudioEvaluationLogger(
             sample_rate=1000,
