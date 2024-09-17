@@ -7,6 +7,7 @@ from models.wave_u_net_enhance_transformer import WaveUNetEnhanceTransformer
 import torch.optim as optim
 from solver import SimpleSolver
 from utils.gain_controller import ConstantGainController
+from utils.model_saver import WithDateModelSaver
 
 model = WaveUNetEnhanceTransformer()
 criterion = WeightedLoss()
@@ -32,6 +33,7 @@ solver.train(
     train_dataloader,
     optimizer,
     logger=TrainingLoggerFactory.stdout(),
+    model_saver=WithDateModelSaver(base_directory="output/checkpoint"),
     val_dataloader=val_dataloader,
     epoch_size=100,
 )
