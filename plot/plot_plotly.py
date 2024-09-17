@@ -2,11 +2,11 @@ import os
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from plotly_resampler import register_plotly_resampler
+# from plotly_resampler import register_plotly_resampler
 
 # Call the register function once and all Figures/FigureWidgets will be wrapped
 # according to the register_plotly_resampler its `mode` argument
-register_plotly_resampler(mode="auto")
+# register_plotly_resampler(mode="auto")
 scattergl_kwargs = {
     "mode": "lines",
     "line": dict(width=1),
@@ -78,7 +78,7 @@ def plot_plotly_subplot_signals(signals, labels) -> go.Figure:
 
 
 def show_plotly_signals(signals, labels, filename=None):
-    fig = plot_plotly_signals(signals, labels)
+    fig = plot_plotly_subplot_signals(signals, labels)
     _finalize_plotly_figure(fig, filename)
 
 
