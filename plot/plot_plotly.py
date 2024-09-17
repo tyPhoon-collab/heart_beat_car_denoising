@@ -2,6 +2,18 @@ import os
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from plotly_resampler import register_plotly_resampler
+
+# Call the register function once and all Figures/FigureWidgets will be wrapped
+# according to the register_plotly_resampler its `mode` argument
+register_plotly_resampler(mode="auto")
+scattergl_kwargs = {
+    "mode": "lines",
+    "line": dict(width=1),
+    "marker": dict(size=1, opacity=0.5),
+    "hoverinfo": "skip",
+}
+
 
 def _finalize_plotly_figure(fig: go.Figure, filename: str | None):
     assert filename is None or filename.endswith(".html")
@@ -22,8 +34,8 @@ def plot_plotly_signals(signals, labels) -> go.Figure:
             go.Scattergl(
                 x=list(range(len(signal))),
                 y=signal,
-                mode="lines",
                 name=label,
+                **scattergl_kwargs,
             ),
         )
 
@@ -50,8 +62,8 @@ def plot_plotly_subplot_signals(signals, labels) -> go.Figure:
             go.Scattergl(
                 x=list(range(len(signal))),
                 y=signal,
-                mode="lines",
                 name=label,
+                **scattergl_kwargs,
             ),
             row=i,
             col=1,
