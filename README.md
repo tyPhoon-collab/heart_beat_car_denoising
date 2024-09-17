@@ -84,7 +84,7 @@ Tue Sep 17 17:25:40 2024
 python train.py
 ```
 
-output/checkpoint/<日付>/model_weights_best.pthなどが生成されます
+`output/checkpoint/model_weights_best.pth`が生成されます
 
 #### 評価
 
@@ -92,7 +92,13 @@ output/checkpoint/<日付>/model_weights_best.pthなどが生成されます
 python entire_eval.py
 ```
 
-output/html/entire_eval.htmlなどが生成されます。ブラウザで開くとインタラクティブに結果を見ることができます
+以下が生成されます
+
+- `output/html/entire_eval.html`
+- `output/fig/entire_eval.png`
+- `output/audio/entire_eval_output.wav`
+- `output/audio/entire_eval_noisy.wav`
+- `output/audio/entire_eval_clean.wav`
 
 ### CLIを使用する場合
 
