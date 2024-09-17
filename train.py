@@ -40,7 +40,7 @@ solver.train(
     train_dataloader,
     optimizer,
     logger=TrainingLoggerFactory.stdout(),
-    model_saver=SimpleModelSaver(base_directory="output"),
+    model_saver=SimpleModelSaver(base_directory="output/checkpoint"),
     model_save_validator=AnyCompositeModelSaveValidator(
         validators=[
             BestModelSaveValidator(epoch_index_from=0),
