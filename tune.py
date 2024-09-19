@@ -1,138 +1,50 @@
-import os
+from attr import dataclass
 from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
-
-from cli import prepare_train_data_loaders
-from cli_options import CLIDataFolder
-from dataset.randomizer import AddUniformNoiseRandomizer
-from logger.training_impls.stdout import StdoutTrainingLogger
-from loss.weighted import WeightedLoss
-from models.wave_u_net_enhance_two_stage_transformer import (
-    WaveUNetEnhanceTwoStageTransformer,
-)
-from solver import SimpleSolver
-
-import torch.optim as optim
-
-from utils.gain_controller import ConstantGainController, ProgressiveGainController
+from parameter_tuning.tune import Tune
 
 import matplotlib
-import dotenv
 
-dotenv.load_dotenv()
-WORKING_DIR = os.getenv("RAYTUNE_WORKING_DIR") or ""
+from parameter_tuning.wave_u_net_enhance_transformer import (
+    TuneWaveUNetEnhanceTransformer,
+)
 
 
-def train_various_model(config):
-    matplotlib.use("Agg")
+@dataclass
+class Fitter:
+    tune: Tune
 
-    model = WaveUNetEnhanceTwoStageTransformer(
-        time_d_model=config["time_d_model"],
-        time_nhead=config["time_nhead"],
-        num_encoder_layers=config["num_encoder_layers"],
-    )
+    def train(self, config):
+        matplotlib.use("Agg")  # for ignoring plot
 
-    solver = SimpleSolver(model, training_criterion=WeightedLoss())
+        loss = self.tune.train(config)
 
-    randomizer = AddUniformNoiseRandomizer()
-    optimizer = optim.Adam(
-        model.parameters(),
-        lr=config["lr"],
-    )
-    gain_controller = (
-        ProgressiveGainController(
-            epoch_index_to=config["epoch_size"] // 2, max_gain=config["gain"]
+        return {"loss": loss}
+
+    def fit(self):
+        resources = {"gpu": 1.0}
+        # resources = {"cpu": 1.0}
+        param_space = self.tune.get_param_space()
+
+        tuner = tune.Tuner(
+            tune.with_resources(self.train, resources=resources),
+            param_space=param_space,
+            run_config=train.RunConfig(
+                name="test",
+            ),
+            tune_config=tune.TuneConfig(
+                scheduler=ASHAScheduler(metric="loss", mode="min"),
+                num_samples=1,
+            ),
         )
-        if config["with_progressive_gain"]
-        else ConstantGainController(gain=config["gain"])
-    )
-    train_dataloader, val_dataloader = prepare_train_data_loaders(
-        data_folder=CLIDataFolder.Raw240826,
-        split_samples=5120,
-        stride_samples=32,
-        batch_size=config["batch_size"],
-        randomizer=randomizer,
-        gain_controller=gain_controller,
-        base_dir=WORKING_DIR,
-    )
 
-    data = solver.train(
-        train_dataloader,
-        optimizer,
-        logger=StdoutTrainingLogger(),
-        epoch_size=config["epoch_size"],
-        val_dataloader=val_dataloader,
-        pretrained_weights_path=config["pretrained_weights_path"],
-    )
-
-    return {
-        "loss": data.final_loss,
-    }
-
-
-def fit_tuner(param_space: dict, resources: dict):
-    tuner = tune.Tuner(
-        tune.with_resources(train_various_model, resources=resources),
-        param_space=param_space,
-        run_config=train.RunConfig(
-            name="test",
-        ),
-        tune_config=tune.TuneConfig(
-            scheduler=ASHAScheduler(metric="loss", mode="min"),
-            num_samples=1,
-        ),
-    )
-
-    result = tuner.fit()
-    print(result.get_best_result(metric="loss", mode="min").config)
-
-
-def test_func(config):
-    return {
-        "score": config["a"] * 5 + config["b"],
-    }
-
-
-def test_tuner():
-    tuner = tune.Tuner(
-        test_func,
-        param_space={
-            "a": tune.grid_search([0, 1, 2, 3]),
-            "b": tune.grid_search([0, 5, 10]),
-        },
-        tune_config=tune.TuneConfig(
-            mode="min",
-            max_concurrent_trials=1,
-        ),
-    )
-    result = tuner.fit()
-    print(result.get_best_result(metric="score", mode="min").config)
+        return tuner.fit()
 
 
 if __name__ == "__main__":
-    # ray tuneの挙動テスト
-    # test_tuner()
+    # fitter = Fitter(TuneExample())
+    # fitter = Fitter(TuneWaveUNetEnhanceTwoStageTransformer())
+    fitter = Fitter(TuneWaveUNetEnhanceTransformer())
 
-    fit_tuner(
-        param_space={
-            "time_d_model": tune.grid_search([40]),
-            "time_nhead": tune.grid_search([20, 40]),
-            "num_encoder_layers": tune.grid_search([2, 4, 6]),
-            "lr": tune.grid_search([0.000025]),
-            "batch_size": tune.grid_search([64]),
-            "epoch_size": tune.grid_search([200]),
-            "gain": tune.grid_search([0.5, 1]),
-            "pretrained_weights_path": tune.grid_search(
-                [
-                    None,
-                    os.path.join(
-                        WORKING_DIR,
-                        "output/checkpoint/two_stage_model_weights_best.pth",
-                    ),
-                ]
-            ),
-            "with_progressive_gain": tune.grid_search([False, True]),
-        },
-        # resources={"gpu": 1},
-        resources={"cpu": 1},
-    )
+    result = fitter.fit()
+    print(result.get_best_result(metric="loss", mode="min").config)
