@@ -15,7 +15,6 @@ class TuneWaveUNetEnhanceTransformer(TuneBase):
             "batch_size": tune.grid_search([64]),
             "epoch_size": tune.grid_search([200]),
             "gain": tune.grid_search([1]),
-            "with_progressive_gain": tune.grid_search([False, True]),
         }
 
     def build_model(self, config) -> Module:

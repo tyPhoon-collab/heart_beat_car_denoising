@@ -34,7 +34,7 @@ class Fitter:
             ),
             tune_config=tune.TuneConfig(
                 scheduler=ASHAScheduler(metric="loss", mode="min"),
-                num_samples=1,
+                num_samples=5,
             ),
         )
 

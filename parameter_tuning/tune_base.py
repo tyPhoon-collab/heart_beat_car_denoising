@@ -23,6 +23,8 @@ class TuneBase(Tune):
         dotenv.load_dotenv()
         WORKING_DIR = os.getenv("RAYTUNE_WORKING_DIR") or ""
 
+        data_folder = CLIDataFolder.Raw240517
+
         model = self.build_model(config)
 
         solver = SimpleSolver(model, training_criterion=WeightedLoss())
@@ -40,7 +42,7 @@ class TuneBase(Tune):
             else ConstantGainController(gain=config["gain"])
         )
         train_dataloader, val_dataloader = prepare_train_data_loaders(
-            data_folder=CLIDataFolder.Raw240826,
+            data_folder=data_folder,
             split_samples=5120,
             stride_samples=32,
             batch_size=config["batch_size"],
