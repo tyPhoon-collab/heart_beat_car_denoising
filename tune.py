@@ -1,6 +1,7 @@
 from attr import dataclass
 from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
+from logger.training_impls.discord import DiscordLogger
 from parameter_tuning.tune import Tune
 
 import matplotlib
@@ -34,7 +35,7 @@ class Fitter:
             ),
             tune_config=tune.TuneConfig(
                 scheduler=ASHAScheduler(metric="loss", mode="min"),
-                num_samples=5,
+                num_samples=3,
             ),
         )
 
@@ -46,5 +47,11 @@ if __name__ == "__main__":
     # fitter = Fitter(TuneWaveUNetEnhanceTwoStageTransformer())
     fitter = Fitter(TuneWaveUNetEnhanceTransformer())
 
+    logger = DiscordLogger()
+
+    logger.on_start({})
+
     result = fitter.fit()
     print(result.get_best_result(metric="loss", mode="min").config)
+
+    logger.on_finish()
