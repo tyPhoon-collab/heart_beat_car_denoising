@@ -119,6 +119,7 @@ class BaseSolver(Solver):
             "learning_rate": optim_params["lr"],
             "weight_decay": optim_params["weight_decay"],
             "model_name": self.model.__class__.__name__,
+            "model_description": str(self.model),
             "optimizer_name": optimizer.__class__.__name__,
             "device": str(self.device),
             "batch_size": batch_size,

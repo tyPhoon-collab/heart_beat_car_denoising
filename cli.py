@@ -113,7 +113,7 @@ def train(args):
     logger = TrainingLoggerFactory.env()
 
     model_saver, model_save_validator = prepare_saver(args)
-    model = build_cli_model(args.model)
+    model = build_cli_model(args)
     randomizer = build_cli_randomizer(args.randomizer)
 
     optimizer = optim.Adam(
@@ -240,6 +240,12 @@ def add_common_arguments(parser):
         default="AddUniformNoiseRandomizer",
         choices=list(CLIRandomizer),
         help="Randomizer",
+    )
+    parser.add_argument(
+        "--num-encoder-layers",
+        type=int,
+        default=2,
+        help="Number of encoder layers. This only effects for using transformer model",
     )
     parser.add_argument(
         "--data-folder",

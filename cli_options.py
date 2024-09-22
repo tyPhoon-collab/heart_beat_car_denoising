@@ -54,14 +54,20 @@ class CLIDataFolder(StrEnum):
     Raw240826 = "Raw240826"
 
 
-def build_cli_model(model: CLIModel) -> nn.Module:
+def build_cli_model(args) -> nn.Module:
+    model = CLIModel(args.model)
+
     match model:
         case CLIModel.WaveUNetEnhance:
             return WaveUNetEnhance()
         case CLIModel.WaveUNetEnhanceTransformer:
-            return WaveUNetEnhanceTransformer()
+            return WaveUNetEnhanceTransformer(
+                num_encoder_layers=args.num_encoder_layers
+            )
         case CLIModel.WaveUNetEnhanceTwoStageTransformer:
-            return WaveUNetEnhanceTwoStageTransformer()
+            return WaveUNetEnhanceTwoStageTransformer(
+                num_encoder_layers=args.num_encoder_layers
+            )
         case CLIModel.Autoencoder:
             return Autoencoder()
         case CLIModel.PixelShuffleAutoencoder:
