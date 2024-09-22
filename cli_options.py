@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import Enum
 import torch.nn as nn
 from dataset.dataset import NoisyHeartbeatDataset
 from dataset.factory import DatasetFactory
@@ -24,7 +24,7 @@ from models.wave_u_net_enhance_two_stage_transformer import (
 )
 
 
-class CLIModel(StrEnum):
+class CLIModel(Enum):
     WaveUNetEnhance = "WaveUNetEnhance"
     WaveUNetEnhanceTransformer = "WaveUNetEnhanceTransformer"
     WaveUNetEnhanceTwoStageTransformer = "WaveUNetEnhanceTwoStageTransformer"
@@ -34,7 +34,7 @@ class CLIModel(StrEnum):
     GaussianDiffusion = "GaussianDiffusion"
 
 
-class CLILossFn(StrEnum):
+class CLILossFn(Enum):
     L1Loss = "L1Loss"
     SmoothL1Loss = "SmoothL1Loss"
     CombinedLoss = "CombinedLoss"
@@ -42,13 +42,13 @@ class CLILossFn(StrEnum):
     WeightedCombinedLoss = "WeightedCombinedLoss"
 
 
-class CLIRandomizer(StrEnum):
+class CLIRandomizer(Enum):
     SampleShuffleRandomizer = "SampleShuffleRandomizer"
     PhaseShuffleRandomizer = "PhaseShuffleRandomizer"
     AddUniformNoiseRandomizer = "AddUniformNoiseRandomizer"
 
 
-class CLIDataFolder(StrEnum):
+class CLIDataFolder(Enum):
     Raw240219 = "Raw240219"
     Raw240517 = "Raw240517"
     Raw240826 = "Raw240826"
