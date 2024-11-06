@@ -55,9 +55,7 @@ class CLIDataFolder(Enum):
 
 
 def build_cli_model(args) -> nn.Module:
-    model = CLIModel(args.model)
-
-    match model:
+    match args.model:
         case CLIModel.WaveUNetEnhance:
             return WaveUNetEnhance()
         case CLIModel.WaveUNetEnhanceTransformer:
@@ -78,6 +76,8 @@ def build_cli_model(args) -> nn.Module:
             return GaussianDiffusion(
                 nn.MSELoss()
             )  # criterionは仮置き。CLIで上書きされる
+
+    raise ValueError(f"Invalid model: {args.model}")
 
 
 def build_cli_loss_fn(loss_fn: CLILossFn) -> nn.Module:
