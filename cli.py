@@ -160,7 +160,7 @@ def prepare_train_gain_controller(args) -> GainController:
 
 
 def evaluate(args):
-    model = build_cli_model(args.model)
+    model = build_cli_model(args)
     randomizer = build_cli_randomizer(args.randomizer)
     gain_controller = ConstantGainController(gain=args.gain)
 
