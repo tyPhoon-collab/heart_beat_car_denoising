@@ -377,6 +377,13 @@ class DiffusionSolver(BaseSolver):
         if not isinstance(dataloader.dataset, NoisyHeartbeatDataset):
             raise TypeError("dataset is not an instance of NoisyHeartbeatDataset")
 
+        total_loss = 0.0
+        count = 0
+
+        noisy_tensors = []
+        clean_tensors = []
+        outputs_tensors = []
+
         with torch.no_grad():
             for batch in dataloader:
                 noisy, clean = map(lambda x: x.to(self.device), batch)
@@ -384,14 +391,24 @@ class DiffusionSolver(BaseSolver):
 
                 if criterion:
                     loss = criterion(outputs, clean)
-                    print(f"Loss: {loss.item()}")
+                    total_loss += loss.item()
+                    count += 1
 
-                logger.on_data(
-                    noisy[0][0].cpu().numpy(),
-                    clean[0][0].cpu().numpy(),
-                    outputs[0][0].cpu().numpy(),
-                )
-                break  # remove this line if you want to process all batches
+                noisy_tensors.append(noisy[0][0].cpu().numpy())
+                clean_tensors.append(clean[0][0].cpu().numpy())
+                outputs_tensors.append(outputs[0][0].cpu().numpy())
+
+        concat_noisy = np.concatenate(noisy_tensors)
+        concat_clean = np.concatenate(clean_tensors)
+        concat_outputs = np.concatenate(outputs_tensors)
+
+        logger.on_data(
+            concat_noisy,
+            concat_clean,
+            concat_outputs,
+        )
+        if count:
+            logger.on_average_loss(total_loss / count)
 
     def validate_and_plot(self, val_dataloader: DataLoader):
         with change_to_eval_mode_temporary(self.model):
