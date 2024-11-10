@@ -1,0 +1,22 @@
+defaults:
+  - train: simple
+  - eval: simple
+  - model: wave_u_net_enhance_transformer
+  - loss_fn: weighted_l1
+  - randomizer: add_uniform_noise
+  - secret: none
+  - logging: remote
+  - hydra: run
+  - _self_
+
+mode: train
+
+gain: 1
+batch: 16
+stride: 32
+split: 5120
+
+data: Raw240517
+
+only_first_batch: true
+

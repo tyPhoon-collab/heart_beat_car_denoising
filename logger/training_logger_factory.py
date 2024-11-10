@@ -6,6 +6,7 @@ from logger.training_impls.neptune import NeptuneLogger
 from logger.training_impls.noop import NoopTrainingLogger
 from logger.training_impls.stdout import StdoutTrainingLogger
 from logger.training_logger import TrainingLogger
+from config import LoggingConfig, SecretConfig
 
 
 class TrainingLoggerFactory:
@@ -18,19 +19,33 @@ class TrainingLoggerFactory:
         return StdoutTrainingLogger()
 
     @classmethod
-    def env(cls) -> TrainingLogger:
-        is_enable_remote_logging = cls.__is_enable_remote_logging()
+    def config(cls, config: LoggingConfig, secret: SecretConfig) -> TrainingLogger:
+        r = config.remote
 
         loggers = []
 
-        if os.getenv("STDOUT_LOGGING") == "1":
+        if config.stdout:
             loggers.append(StdoutTrainingLogger())
+        if r and config.neptune:
+            if not secret.neptune_project_name or not secret.neptune_api_token:
+                raise ValueError(
+                    "Neptune project name and API token must be provided in secret config."
+                )
 
-        if is_enable_remote_logging and os.getenv("NEPTUNE_LOGGING") == "1":
-            loggers.append(NeptuneLogger())
+            loggers.append(
+                NeptuneLogger(
+                    secret.neptune_project_name,
+                    secret.neptune_api_token,
+                    config.neptune_save_model_state,
+                )
+            )
+        if r and config.discord:
+            if not secret.discord_webhook_url:
+                raise ValueError(
+                    "Discord webhook URL must be provided in secret config."
+                )
 
-        if is_enable_remote_logging and os.getenv("DISCORD_LOGGING") == "1":
-            loggers.append(DiscordLogger())
+            loggers.append(DiscordLogger(secret.discord_webhook_url))
 
         return CompositeTrainingLogger(loggers)
 

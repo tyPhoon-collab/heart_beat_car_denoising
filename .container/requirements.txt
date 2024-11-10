@@ -12,3 +12,4 @@ denoising-diffusion-pytorch
 ray[tune]
 plotly
 plotly-resampler
+hydra-core

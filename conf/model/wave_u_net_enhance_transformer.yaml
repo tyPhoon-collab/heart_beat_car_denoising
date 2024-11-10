@@ -1,0 +1,2 @@
+_target_: models.wave_u_net_enhance_transformer.WaveUNetEnhanceTransformer
+num_encoder_layers: 4

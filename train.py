@@ -1,5 +1,5 @@
 from cli import prepare_train_data_loaders
-from cli_options import CLIDataFolder
+from cli_options import DataFolder
 from dataset.randomizer import AddUniformNoiseRandomizer
 from logger.training_logger_factory import TrainingLoggerFactory
 from loss.weighted import WeightedLoss
@@ -26,7 +26,7 @@ optimizer = optim.Adam(
 )
 gain_controller = ConstantGainController(gain=1)
 train_dataloader, val_dataloader = prepare_train_data_loaders(
-    data_folder=CLIDataFolder.Raw240826,
+    data_folder=DataFolder.Raw240826,
     split_samples=5120,
     stride_samples=32,
     batch_size=64,

@@ -16,7 +16,7 @@ weights_path = "output/checkpoint/model_weights_best.pth"
 device = get_torch_device()
 
 model = WaveUNetEnhanceTransformer()
-solver = SimpleSolver(model, WeightedLoss())
+solver = SimpleSolver(model, training_criterion=WeightedLoss())
 
 model.to(device)
 

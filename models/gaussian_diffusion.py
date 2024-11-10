@@ -21,7 +21,7 @@ def extract(a, t, x_shape):
 
 
 class GaussianDiffusion(GaussianDiffusion1D):
-    def __init__(self, criterion: nn.Module):
+    def __init__(self, criterion: nn.Module | None = None):
         unet = Unet1D(
             dim=64,
             dim_mults=(1, 2, 4, 8),
@@ -35,12 +35,9 @@ class GaussianDiffusion(GaussianDiffusion1D):
             auto_normalize=False,
         )
 
-        self.criterion = criterion
+        self.criterion = criterion or nn.MSELoss()
 
     def set_criterion(self, criterion: nn.Module):
-        """
-        Sets the loss function for the model. For CLI usage.
-        """
         self.criterion = criterion
 
     def evaluate(self, noisy: torch.Tensor):

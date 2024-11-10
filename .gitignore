@@ -1,7 +1,16 @@
 .venv
 __pycache__/
-data/
 .DS_Store
+.pytest_cache/
+
+data/
 output/
-.env
+
 .neptune/
+
+# for hydra
+conf/secret/*.yaml
+!conf/secret/none.yaml
+
+main.log
+run/*

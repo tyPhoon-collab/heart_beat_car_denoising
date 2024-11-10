@@ -2,7 +2,7 @@ from abc import abstractmethod
 import os
 import dotenv
 from cli import prepare_train_data_loaders
-from cli_options import CLIDataFolder
+from cli_options import DataFolder
 from dataset.randomizer import AddUniformNoiseRandomizer
 from logger.training_impls.stdout import StdoutTrainingLogger
 from loss.weighted import WeightedLoss
@@ -23,7 +23,7 @@ class TuneBase(Tune):
         dotenv.load_dotenv()
         WORKING_DIR = os.getenv("RAYTUNE_WORKING_DIR") or ""
 
-        data_folder = CLIDataFolder.Raw240517
+        data_folder = DataFolder.Raw240517
 
         model = self.build_model(config)
 

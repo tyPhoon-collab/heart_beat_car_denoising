@@ -1,0 +1,5 @@
+remote: true
+stdout: true
+discord: true
+neptune: true
+neptune_save_model_state: true

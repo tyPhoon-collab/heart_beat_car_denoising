@@ -16,7 +16,6 @@ from logger.evaluation_logger import EvaluationLogger
 from models.gaussian_diffusion import GaussianDiffusion
 from utils.context_manager import change_to_eval_mode_temporary
 from utils.device import get_torch_device
-from utils.load_local_dotenv import load_local_dotenv
 from utils.epoch_sensitive import EpochSensitive
 from utils.gain_controller import GainController
 from utils.model_save_validator import ModelSaveValidator
@@ -34,7 +33,6 @@ class TrainResult:
 class Solver(ABC):
     def __init__(self, model: nn.Module):
         self.model = model
-        load_local_dotenv()
         self.device = get_torch_device()
         self.model.to(self.device)
 
@@ -67,8 +65,9 @@ class Solver(ABC):
 
 
 class BaseSolver(Solver):
-    def __init__(self, model: nn.Module):
+    def __init__(self, model: nn.Module, only_first_batch: bool = False):
         super().__init__(model)
+        self.only_first_batch = only_first_batch
 
     def _load_pretrained_model(self, path: str) -> nn.Module:
         if os.path.exists(path):
@@ -183,7 +182,7 @@ class BaseSolver(Solver):
         logger.on_start(params)
 
         # For debugging
-        if os.getenv("ONLY_FIRST_BATCH") == "1":
+        if self.only_first_batch:
             dataloader = [next(iter(dataloader))]  # type: ignore
 
         for epoch_index in range(epoch_size):
@@ -231,8 +230,13 @@ class BaseSolver(Solver):
 
 
 class SimpleSolver(BaseSolver):
-    def __init__(self, model: nn.Module, training_criterion: nn.Module):
-        super().__init__(model)
+    def __init__(
+        self,
+        model: nn.Module,
+        training_criterion: nn.Module,
+        only_first_batch: bool = False,
+    ):
+        super().__init__(model, only_first_batch)
         self.training_criterion = training_criterion
 
     @timeit
@@ -273,6 +277,12 @@ class SimpleSolver(BaseSolver):
                 clean_tensors.append(clean[0][0].cpu().numpy())
                 outputs_tensors.append(outputs[0][0].cpu().numpy())
 
+                if self.only_first_batch:
+                    print(
+                        "Only first batch is processed. Because only_first_batch is True."
+                    )
+                    break
+
         concat_noisy = np.concatenate(noisy_tensors)
         concat_clean = np.concatenate(clean_tensors)
         concat_outputs = np.concatenate(outputs_tensors)
@@ -293,29 +303,6 @@ class SimpleSolver(BaseSolver):
 
         return outputs, noisy, clean
 
-    def _get_params(
-        self,
-        optimizer: optim.Optimizer,
-        epoch_size: int,
-        batch_size: int,
-        gain_controller: GainController | None,
-        dataset: NoisyHeartbeatDataset,
-        pretrained_weights_path: str | None,
-        additional_params: dict[str, Any] | None = None,
-    ):
-        return {
-            **super()._get_params(
-                optimizer,
-                epoch_size,
-                batch_size,
-                gain_controller,
-                dataset,
-                pretrained_weights_path,
-                additional_params,
-            ),
-            "criterion": self.training_criterion.__class__.__name__,
-        }
-
     def calculate_loss(self, batch) -> Any:
         outputs, _, clean = self._process_batch(batch)
 
@@ -328,8 +315,8 @@ class SimpleSolver(BaseSolver):
 
 
 class DiffusionSolver(BaseSolver):
-    def __init__(self, model: GaussianDiffusion):
-        super().__init__(model)
+    def __init__(self, model: GaussianDiffusion, only_first_batch: bool = False):
+        super().__init__(model, only_first_batch)
 
     def _get_params(
         self,
@@ -397,6 +384,12 @@ class DiffusionSolver(BaseSolver):
                 noisy_tensors.append(noisy[0][0].cpu().numpy())
                 clean_tensors.append(clean[0][0].cpu().numpy())
                 outputs_tensors.append(outputs[0][0].cpu().numpy())
+
+                if self.only_first_batch:
+                    print(
+                        "Only first batch is processed. Because only_first_batch is True."
+                    )
+                    break
 
         concat_noisy = np.concatenate(noisy_tensors)
         concat_clean = np.concatenate(clean_tensors)
