@@ -3,37 +3,22 @@ from hydra.core.config_store import ConfigStore
 from hydra.utils import instantiate
 
 from config import Config
-from logger.evaluation_logger_factory import EvaluationLoggerFactory
-from logger.training_logger_factory import TrainingLoggerFactory
-from models.gaussian_diffusion import GaussianDiffusion
-from solver import DiffusionSolver, SimpleSolver, Solver
-
-import torch.optim as optim
-
-from utils.dataloader_factory import DataLoaderFactory
-from utils.gain_controller_factory import GainControllerFactory
-from utils.saver_factory import ModelSaverFactory
 
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=Config)
 
 
-# TODO remove this. convert to PyTorch Lightning?
-def create_solver(c: Config, model):
-    solver: Solver
-
-    criterion = instantiate(c.loss_fn)
-
-    if isinstance(model, GaussianDiffusion):
-        model.set_criterion(criterion)
-        solver = DiffusionSolver(model, c.only_first_batch)
-    else:
-        solver = SimpleSolver(model, criterion, c.only_first_batch)
-    return solver
-
-
 def train(c: Config):
+    from logger.training_logger_factory import TrainingLoggerFactory
+    from solver import SolverFactory
+
+    import torch.optim as optim
+
+    from utils.dataloader_factory import DataLoaderFactory
+    from utils.gain_controller_factory import GainControllerFactory
+    from utils.saver_factory import ModelSaverFactory
+
     model_saver, model_save_validator = ModelSaverFactory.config(c.train)
 
     model = instantiate(c.model)
@@ -52,7 +37,7 @@ def train(c: Config):
         gain_controller=gain_controller,
     )
 
-    solver = create_solver(c, model)
+    solver = SolverFactory.config(c, model)
 
     solver.train(
         train_dataloader,
@@ -70,6 +55,12 @@ def train(c: Config):
 
 
 def eval(c: Config):
+    from logger.evaluation_logger_factory import EvaluationLoggerFactory
+    from solver import SolverFactory
+
+    from utils.dataloader_factory import DataLoaderFactory
+    from utils.gain_controller_factory import GainControllerFactory
+
     model = instantiate(c.model)
     randomizer = instantiate(c.randomizer)
     gain_controller = GainControllerFactory.config(c)
@@ -85,7 +76,7 @@ def eval(c: Config):
         gain_controller=gain_controller,
     )
 
-    solver = create_solver(c, model)
+    solver = SolverFactory.config(c, model)
 
     solver.evaluate(
         test_dataloader,
@@ -104,6 +95,9 @@ def main(cfg: Config):
         case "train":
             train(cfg)
         case "eval":
+            eval(cfg)
+        case "train_eval":
+            train(cfg)
             eval(cfg)
         case mode:
             raise ValueError(f"Invalid mode: {mode}. Expected 'train' or 'eval'.")

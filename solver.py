@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
+from config import Config
 from dataset.dataset import NoisyHeartbeatDataset
 from logger.evaluation_impls.noop import NoopEvaluationLogger
 from logger.training_logger import TrainingLogger
@@ -22,6 +23,7 @@ from utils.model_save_validator import ModelSaveValidator
 from utils.model_saver import ModelSaver
 from plot.plot_plt import plot_signals
 from utils.timeit import timeit
+from hydra.utils import instantiate
 
 
 @dataclass
@@ -62,6 +64,22 @@ class Solver(ABC):
         logger: EvaluationLogger | None = None,
     ):
         pass
+
+
+# TODO remove this. convert to PyTorch Lightning?
+class SolverFactory:
+    @staticmethod
+    def config(c: Config, model: nn.Module) -> Solver:
+        solver: Solver
+
+        criterion = instantiate(c.loss_fn)
+
+        if isinstance(model, GaussianDiffusion):
+            model.set_criterion(criterion)
+            solver = DiffusionSolver(model, c.only_first_batch)
+        else:
+            solver = SimpleSolver(model, criterion, c.only_first_batch)
+        return solver
 
 
 class BaseSolver(Solver):
