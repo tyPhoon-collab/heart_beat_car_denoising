@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from hydra.types import TargetConf
 
-from omegaconf import DictConfig
-
 
 @dataclass(frozen=True)
 class TrainConfig:
