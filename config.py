@@ -20,7 +20,7 @@ class TrainConfig:
 
 @dataclass(frozen=True)
 class EvalConfig:
-    weight_path: str = "output/checkpoint/weights.pth"
+    weight_path: str | None = None
     figure_filename: str | None = None
     clean_audio_filename: str | None = None
     noisy_audio_filename: str | None = None

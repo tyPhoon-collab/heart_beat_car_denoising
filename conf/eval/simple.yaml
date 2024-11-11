@@ -1,4 +1,4 @@
-weight_path: ""
+weight_path: null
 figure_filename: null
 clean_audio_filename: null
 noisy_audio_filename: null

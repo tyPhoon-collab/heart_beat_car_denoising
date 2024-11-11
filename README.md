@@ -85,6 +85,12 @@ python main.py train=tuned
 python main.py model.num_encoder_layers=4
 ```
 
+- 推論時に音声ファイル、画像ファイル、HTMLファイルを出力
+
+```bash
+python main.py mode=eval eval=all
+```
+
 ## 出力
 
 ### outputフォルダ

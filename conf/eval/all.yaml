@@ -1,0 +1,6 @@
+weight_path: null
+figure_filename: eval.png
+clean_audio_filename: eval_clean.wav
+noisy_audio_filename: eval_noisy.wav
+audio_filename: eval_output.wav
+html_filename: eval.html
