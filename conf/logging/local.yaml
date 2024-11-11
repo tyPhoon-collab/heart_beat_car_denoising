@@ -1,5 +1,5 @@
 remote: false
 stdout: true
-discord: true
-neptune: true
-neptune_save_model_state: true
+discord: false
+neptune: false
+neptune_save_model_state: false

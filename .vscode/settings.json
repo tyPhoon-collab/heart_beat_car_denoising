@@ -18,6 +18,7 @@
     "ifft",
     "impls",
     "imshow",
+    "ipynb",
     "librosa",
     "loadmat",
     "Lowpass",

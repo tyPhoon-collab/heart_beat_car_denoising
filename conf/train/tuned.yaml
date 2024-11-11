@@ -1,0 +1,12 @@
+id: null
+lr: 0.00025
+epoch: 200
+checkpoint_path: output/checkpoint
+
+pretrained_weight_path: null
+weight_decay: 0
+
+progressive_gain: true
+progressive_end_epoch: 100
+progressive_min_gain: 0
+

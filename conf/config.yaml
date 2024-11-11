@@ -5,7 +5,7 @@ defaults:
   - loss_fn: weighted_l1
   - randomizer: add_uniform_noise
   - secret: none
-  - logging: remote
+  - logging: local
   - hydra: run
   - _self_
 
