@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from hydra.types import TargetConf
+
+from omegaconf import DictConfig
 
 
 @dataclass(frozen=True)
@@ -56,8 +57,8 @@ class Config:
 
     train: TrainConfig = field(default_factory=TrainConfig)
     eval: EvalConfig = field(default_factory=EvalConfig)
-    model: TargetConf = field(default_factory=TargetConf)
-    loss_fn: TargetConf = field(default_factory=TargetConf)
-    randomizer: TargetConf = field(default_factory=TargetConf)
+    model: DictConfig = field(default_factory=lambda: DictConfig({}))
+    loss_fn: DictConfig = field(default_factory=lambda: DictConfig({}))
+    randomizer: DictConfig = field(default_factory=lambda: DictConfig({}))
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     secret: SecretConfig = field(default_factory=SecretConfig)
