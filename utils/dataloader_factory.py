@@ -38,8 +38,8 @@ class DataLoaderFactory:
         kwargs = {
             "base_dir": base_dir,
             "train": train,
-            "split_samples": c.split,
-            "stride_samples": c.stride,
+            "split_samples": c.data.split,
+            "stride_samples": c.data.stride,
             "randomizer": randomizer,
             "gain_controller": gain_controller,
         }
@@ -48,7 +48,7 @@ class DataLoaderFactory:
 
         dataloader = DataLoader(
             dataset,
-            batch_size=c.batch,
+            batch_size=c.train.batch if train else c.eval.batch,
             shuffle=train,
         )
 

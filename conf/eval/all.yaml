@@ -1,3 +1,4 @@
+batch: 64
 weight_path: null
 figure_filename: eval.png
 clean_audio_filename: eval_clean.wav

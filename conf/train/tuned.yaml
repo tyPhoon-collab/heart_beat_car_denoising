@@ -1,5 +1,6 @@
 id: null
 lr: 0.00025
+batch: 64
 epoch: 200
 checkpoint_path: output/checkpoint
 

@@ -7,6 +7,7 @@ from omegaconf import DictConfig
 class TrainConfig:
     id: str | None = None
     lr: float = 0.001
+    batch: int = 16
     epoch: int = 5
     checkpoint_path: str = "output/checkpoint"
 
@@ -20,6 +21,7 @@ class TrainConfig:
 
 @dataclass(frozen=True)
 class EvalConfig:
+    batch: int = 16
     weight_path: str | None = None
     figure_filename: str | None = None
     clean_audio_filename: str | None = None
@@ -46,15 +48,23 @@ class SecretConfig:
 
 
 @dataclass(frozen=True)
-class Config:
-    mode: str = "train"
-    gain: float = 0
-    batch: int = 32
+class DataConfig:
+    name: str = "Raw240517"
+    gain: float = 1
     stride: int = 32
     split: int = 5120
-    data: str = "Raw240517"
+
+
+@dataclass(frozen=True)
+class DebugConfig:
     only_first_batch: bool = False
 
+
+@dataclass(frozen=True)
+class Config:
+    mode: str = "train"
+
+    data: DataConfig = field(default_factory=DataConfig)
     train: TrainConfig = field(default_factory=TrainConfig)
     eval: EvalConfig = field(default_factory=EvalConfig)
     model: DictConfig = field(default_factory=lambda: DictConfig({}))
@@ -62,3 +72,4 @@ class Config:
     randomizer: DictConfig = field(default_factory=lambda: DictConfig({}))
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     secret: SecretConfig = field(default_factory=SecretConfig)
+    debug: DebugConfig = field(default_factory=DebugConfig)

@@ -76,9 +76,9 @@ class SolverFactory:
 
         if isinstance(model, GaussianDiffusion):
             model.set_criterion(criterion)
-            solver = DiffusionSolver(model, c.only_first_batch)
+            solver = DiffusionSolver(model, c.debug.only_first_batch)
         else:
-            solver = SimpleSolver(model, criterion, c.only_first_batch)
+            solver = SimpleSolver(model, criterion, c.debug.only_first_batch)
         return solver
 
 

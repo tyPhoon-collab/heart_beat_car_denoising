@@ -13,8 +13,8 @@ class GainControllerFactory:
             ProgressiveGainController(
                 epoch_index_to=c.train.progressive_end_epoch - 1,
                 min_gain=c.train.progressive_min_gain,
-                max_gain=c.gain,
+                max_gain=c.data.gain,
             )
             if c.train.progressive_gain
-            else ConstantGainController(gain=c.gain)
+            else ConstantGainController(gain=c.data.gain)
         )
