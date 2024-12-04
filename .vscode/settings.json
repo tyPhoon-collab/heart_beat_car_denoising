@@ -43,6 +43,7 @@
     "scipy",
     "stft",
     "timesteps",
+    "Unet",
     "Unshuffle",
     "unsqueeze",
     "wavfile",

@@ -4,17 +4,15 @@ from hydra.utils import instantiate
 
 from config import Config
 
-
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=Config)
 
 
 def train(c: Config):
-    from logger.training_logger_factory import TrainingLoggerFactory
-    from solver import SolverFactory
-
     import torch.optim as optim
 
+    from logger.training_logger_factory import TrainingLoggerFactory
+    from solver import SolverFactory
     from utils.dataloader_factory import DataLoaderFactory
     from utils.gain_controller_factory import GainControllerFactory
     from utils.saver_factory import ModelSaverFactory
@@ -57,7 +55,6 @@ def train(c: Config):
 def eval(c: Config):
     from logger.evaluation_logger_factory import EvaluationLoggerFactory
     from solver import SolverFactory
-
     from utils.dataloader_factory import DataLoaderFactory
     from utils.gain_controller_factory import GainControllerFactory
 
@@ -65,7 +62,7 @@ def eval(c: Config):
     randomizer = instantiate(c.randomizer)
     gain_controller = GainControllerFactory.config(c)
 
-    if c.split != c.stride:
+    if c.data.split != c.data.stride:
         print(
             "WARNING: --split-samples and --stride-samples are different. for evaluation, stride is dealt same as split"
         )

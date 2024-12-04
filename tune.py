@@ -1,11 +1,9 @@
+import matplotlib
 from attr import dataclass
 from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
-from logger.training_impls.discord import DiscordLogger
+
 from parameter_tuning.tune import Tune
-
-import matplotlib
-
 from parameter_tuning.wave_u_net_enhance_transformer import (
     TuneWaveUNetEnhanceTransformer,
 )
@@ -47,11 +45,5 @@ if __name__ == "__main__":
     # fitter = Fitter(TuneWaveUNetEnhanceTwoStageTransformer())
     fitter = Fitter(TuneWaveUNetEnhanceTransformer())
 
-    logger = DiscordLogger()
-
-    logger.on_start({})
-
     result = fitter.fit()
     print(result.get_best_result(metric="loss", mode="min").config)
-
-    logger.on_finish()
